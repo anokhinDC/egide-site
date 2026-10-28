@@ -3,6 +3,7 @@
    azul, vermelho e amarelo primários, quadros com sombra dura e caixas de narração. */
 
 :root {
+  color-scheme: only light;
   --paper: #f3efe4;
   --paper-2: #e8e2d2;
   --white: #ffffff;
@@ -618,3 +619,5 @@ ol.graus-lista li::marker { font-family: var(--display); font-size: 16px; color:
 .tlog-body { padding: 0 14px 12px; }
 .tlog .cena { white-space: normal; line-height: 1.5; margin: 6px 0 0; }
 @media (max-width: 640px) { .treino-topo { grid-template-columns: 1fr; } .tt-box b { font-size: 32px; } }
+
+html { background: var(--paper); forced-color-adjust: none; }
