@@ -1,0 +1,290 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ------------------------------------------------------------------
+    // Quem é quem
+    // ------------------------------------------------------------------
+    function logado() { return request.auth != null; }
+
+    // Mestre: só estes dois e-mails exatos.
+    function mestre() {
+      return logado()
+        && request.auth.token.email != null
+        && request.auth.token.email.lower() in ['admin@beyonddepths.com', 'mestre@beyonddepths.com'];
+    }
+
+    // Dono do documento que já existe.
+    function dono() { return logado() && resource.data.ownerId == request.auth.uid; }
+
+    // Quem cria precisa se declarar dono (a pessoa não cria ficha no nome de outra).
+    function criaComoDono() {
+      return logado()
+        && request.resource.data.ownerId is string
+        && request.resource.data.ownerId == request.auth.uid;
+    }
+
+    // Quem não é mestre não pode passar o documento para outra pessoa.
+    function mantemDono() {
+      return mestre() || request.resource.data.ownerId == resource.data.ownerId;
+    }
+
+    // ------------------------------------------------------------------
+    // Limites de tamanho e de tipo (travam lixo, spam e documentos gigantes)
+    // ------------------------------------------------------------------
+    function texto(d, campo, max) {
+      return !(campo in d) || (d[campo] is string && d[campo].size() <= max);
+    }
+    function lista(d, campo, max) {
+      return !(campo in d) || (d[campo] is list && d[campo].size() <= max);
+    }
+    function mapa(d, campo, max) {
+      return !(campo in d) || (d[campo] is map && d[campo].keys().size() <= max);
+    }
+
+    // Ficha do personagem.
+    function fichaOk(d) {
+      return d.keys().size() <= 120
+        && texto(d, 'nome', 120)
+        && texto(d, 'jogador', 120)
+        && texto(d, 'conceito', 300)
+        && texto(d, 'retrato', 2000)
+        && texto(d, 'ownerName', 120)
+        && texto(d, 'embedCor', 9)
+        && texto(d, 'embedFoto', 20)
+        && texto(d, 'embedSimbolo', 8)
+        && texto(d, 'embedRodape', 120)
+        && texto(d, 'historia', 20000)
+        && texto(d, 'notas', 20000)
+        && texto(d, 'lacunas', 20000)
+        && lista(d, 'habilidades', 500)
+        && lista(d, 'habilidadesEquipadas', 50)
+        && lista(d, 'pictosPossuidos', 500)
+        && lista(d, 'pictosEquipados', 50)
+        && lista(d, 'inventario', 500) && lista(d, 'armasPossuidas', 200)
+        && lista(d, 'ecos', 200)
+        && mapa(d, 'status', 40)
+        && mapa(d, 'ampolas', 20)
+        && mapa(d, 'dominio', 100);
+    }
+
+    // Habilidade.
+    function habilidadeOk(d) {
+      return d.keys().size() <= 80
+        && texto(d, 'nome', 120)
+        && texto(d, 'descricao', 5000)
+        && texto(d, 'perfeita', 2000)
+        && texto(d, 'origem', 300)
+        && texto(d, 'ownerName', 120)
+        && lista(d, 'porPerfeicao', 50)
+        && lista(d, 'tags', 50);
+    }
+
+    // Itens da biblioteca do mestre (picto, arma, item, monstro).
+    function bibliotecaOk(d) {
+      return d.keys().size() <= 120
+        && texto(d, 'nome', 120)
+        && texto(d, 'descricao', 8000)
+        && texto(d, 'imagem', 2000)
+        && lista(d, 'tags', 50);
+    }
+
+    // Arma: os mesmos limites da biblioteca, mais o teto de Poder e de Quebra do site.
+    function armaOk(d) {
+      return bibliotecaOk(d)
+        && texto(d, 'origem', 300)
+        && texto(d, 'ownerName', 120)
+        && lista(d, 'passivas', 20)
+        && (!('poder' in d) || (d.poder is number && d.poder >= 0 && d.poder <= 60))
+        && (!('quebra' in d) || (d.quebra is number && d.quebra >= 0 && d.quebra <= 2));
+    }
+
+    // Ampolas da expedição: um registro único ('atual'), compartilhado por todos.
+    function ampolaOk(a) {
+      return a is map && a.keys().hasOnly(['atual', 'max'])
+        && a.atual is int && a.max is int
+        && a.atual >= 0 && a.atual <= a.max && a.max <= 20;
+    }
+    function expedicaoOk(d) {
+      return d.keys().hasOnly(['id', 'ampolas', 'fragmentos', 'updatedAt'])
+        && d.id == 'atual'
+        && d.fragmentos is int && d.fragmentos >= 0 && d.fragmentos <= 999
+        && d.ampolas is map && d.ampolas.keys().hasOnly(['cura', 'lumia', 'retorno'])
+        && ampolaOk(d.ampolas.cura) && ampolaOk(d.ampolas.lumia) && ampolaOk(d.ampolas.retorno);
+    }
+    function maxPadrao(d) {
+      return d.ampolas.cura.max == 3 && d.ampolas.lumia.max == 2 && d.ampolas.retorno.max == 1;
+    }
+    function maxIgual(d, r) {
+      return d.ampolas.cura.max == r.ampolas.cura.max
+        && d.ampolas.lumia.max == r.ampolas.lumia.max
+        && d.ampolas.retorno.max == r.ampolas.retorno.max;
+    }
+
+    // ------------------------------------------------------------------
+    // Fichas: quem está logado lê; cada jogador mexe só na sua; o mestre em todas.
+    // ------------------------------------------------------------------
+    match /lumia_personagens/{id} {
+      allow read: if logado();
+      allow create: if (criaComoDono() || mestre()) && fichaOk(request.resource.data) && id.size() <= 80;
+      allow update: if (dono() || mestre()) && mantemDono() && fichaOk(request.resource.data);
+      allow delete: if dono() || mestre();
+    }
+
+    // Habilidades: jogadores criam as suas; o mestre edita todas.
+    match /lumia_habilidades/{id} {
+      allow read: if logado();
+      allow create: if (criaComoDono() || mestre()) && habilidadeOk(request.resource.data) && id.size() <= 80;
+      allow update: if (dono() || mestre()) && mantemDono() && habilidadeOk(request.resource.data);
+      allow delete: if dono() || mestre();
+    }
+
+    // Biblioteca do mestre: todos leem, só o mestre escreve (pictos, itens e monstros).
+    match /lumia_pictos/{id} {
+      allow read: if logado();
+      allow create, update: if mestre() && bibliotecaOk(request.resource.data);
+      allow delete: if mestre();
+    }
+    // Armas: qualquer pessoa logada cria as suas e mexe só nelas; o mestre mexe em todas.
+    match /lumia_armas/{id} {
+      allow read: if logado();
+      allow create: if (criaComoDono() || mestre()) && armaOk(request.resource.data) && id.size() <= 80;
+      allow update: if (dono() || mestre()) && mantemDono() && armaOk(request.resource.data);
+      allow delete: if dono() || mestre();
+    }
+    // Ampolas da expedição: qualquer pessoa logada gasta e recupera cargas e mexe nos
+    // Fragmentos; só o mestre muda a carga máxima (o que os Fragmentos compram) e apaga o registro.
+    match /lumia_expedicao/{id} {
+      allow read: if logado();
+      allow create: if logado() && id == 'atual' && expedicaoOk(request.resource.data)
+        && (mestre() || maxPadrao(request.resource.data));
+      allow update: if logado() && expedicaoOk(request.resource.data)
+        && (mestre() || maxIgual(request.resource.data, resource.data));
+      allow delete: if mestre();
+    }
+    match /lumia_itens/{id} {
+      allow read: if logado();
+      allow create, update: if mestre() && bibliotecaOk(request.resource.data);
+      allow delete: if mestre();
+    }
+    match /lumia_monstros/{id} {
+      allow read: if logado();
+      allow create, update: if mestre() && bibliotecaOk(request.resource.data);
+      allow delete: if mestre();
+    }
+
+    // ------------------------------------------------------------------
+    // Painel antigo (pasta legacy/): só leitura para quem está logado.
+    // Só o mestre escreve. Antes, qualquer pessoa logada apagava tudo daqui.
+    // ------------------------------------------------------------------
+    match /characters/{id}         { allow read: if logado(); allow write: if mestre(); }
+    match /monsters/{id}           { allow read: if logado(); allow write: if mestre(); }
+    match /global_skills/{id}      { allow read: if logado(); allow write: if mestre(); }
+    match /global_weapons/{id}     { allow read: if logado(); allow write: if mestre(); }
+    match /global_armors/{id}      { allow read: if logado(); allow write: if mestre(); }
+    match /global_accessories/{id} { allow read: if logado(); allow write: if mestre(); }
+
+    // ------------------------------------------------------------------
+    // Égide (site novo): coleções egide_*
+    // ------------------------------------------------------------------
+    // Campos que só a mestragem muda: nível, bônus, treino, Ascensão e a aprovação.
+    function camposDaMestragemIguais(d, r) {
+      return d.get('nivel', 1) == r.get('nivel', 1)
+        && d.get('bonus', null) == r.get('bonus', null)
+        && d.get('ptTreino', 0) == r.get('ptTreino', 0)
+        && d.get('ascensao', 0) == r.get('ascensao', 0)
+        && d.get('bonusPV', 0) == r.get('bonusPV', 0)
+        && d.get('aprovada', false) == r.get('aprovada', false)
+        && d.get('salario', 0) == r.get('salario', 0)
+        && d.get('inicialFixo', null) == r.get('inicialFixo', null);
+    }
+    // Treino: cada treino conta +1 em treino.n, com 12 horas (menos uma folga) desde o anterior, e rende no máximo 3 PT.
+    // Fora de um treino, Marcas e PT de treino não mudam. Cada 1 PP trocado custa 2 PT de treino.
+    function treinoOk(d, r) {
+      let a = d.get('treino', {});
+      let b = r.get('treino', {});
+      return a.get('trocas', 0) >= b.get('trocas', 0)
+        && a.get('trocas', 0) * 2 <= a.get('ptGanho', 0)
+        && a.get('ptGanho', 0) >= b.get('ptGanho', 0)
+        && (
+          (a.get('n', 0) == b.get('n', 0)
+            && a.get('ptGanho', 0) == b.get('ptGanho', 0)
+            && a.get('marcas', {}) == b.get('marcas', {})
+            && a.get('em', 0) == b.get('em', 0))
+          || (a.get('n', 0) == b.get('n', 0) + 1
+            && a.get('em', 0) >= b.get('em', 0) + 42000000
+            && a.get('em', 0) <= request.time.toMillis() + 600000
+            && a.get('ptGanho', 0) <= b.get('ptGanho', 0) + 3)
+        );
+    }
+    // Dinheiro: o jogador só gasta (gastoTotal sobe) e recebe o salário uma vez por semana.
+    function dinheiroOk(d, r) {
+      return d.get('gastoTotal', 0) >= r.get('gastoTotal', 0)
+        && (d.get('creditos', 0) == r.get('creditos', 0)
+          || (d.get('semanaSalario', '') != r.get('semanaSalario', '')
+            && d.get('creditos', 0) == r.get('creditos', 0) + r.get('salario', 0)));
+    }
+    // Ficha nova de jogador: nível 1, sem bônus, sem aprovação.
+    function fichaNovaLimpa(d) {
+      return d.get('nivel', 1) == 1
+        && d.get('aprovada', false) == false
+        && d.get('ptTreino', 0) == 0
+        && d.get('ascensao', 0) == 0
+        && d.get('bonusPV', 0) == 0
+        && d.get('treino', {}).get('ptGanho', 0) == 0 && d.get('treino', {}).get('trocas', 0) == 0
+        && d.get('creditos', 0) == 0 && d.get('salario', 0) == 0 && d.get('inicialFixo', null) == null
+        && (d.get('bonus', null) == null || d.bonus == {'pt': 0, 'pp': 0, 'det': 0});
+    }
+    // Depois da aprovação, Origem e Potencial ficam travados para o jogador.
+    function potencialTravado(d, r) {
+      return r.get('aprovada', false) != true
+        || (d.get('origem', '') == r.get('origem', '') && d.get('potencial', null) == r.get('potencial', null) && d.get('feNoDestino', false) == r.get('feNoDestino', false));
+    }
+    function fichaEgideOk(d) {
+      return d.keys().size() <= 80
+        && texto(d, 'nome', 120) && texto(d, 'codinome', 120) && texto(d, 'conceito', 400)
+        && texto(d, 'simbolo', 16) && texto(d, 'retrato', 2000) && texto(d, 'ownerName', 120)
+        && texto(d, 'historia', 20000) && texto(d, 'aparencia', 5000) && texto(d, 'notas', 20000) && texto(d, 'perda', 5000)
+        && lista(d, 'poderes', 60) && lista(d, 'grimorio', 80) && lista(d, 'inventario', 300) && lista(d, 'compras', 80) && lista(d, 'extrato', 80)
+        && lista(d, 'fraquezas', 10) && lista(d, 'qualidades', 30) && lista(d, 'defeitos', 5)
+        && mapa(d, 'atributos', 6) && mapa(d, 'pericias', 40) && mapa(d, 'estilos', 20) && mapa(d, 'kits', 6);
+    }
+    function poderEgideOk(d) {
+      return d.keys().size() <= 40
+        && texto(d, 'nome', 120) && texto(d, 'descritor', 2000) && texto(d, 'notas', 2000) && texto(d, 'ownerName', 120)
+        && lista(d, 'extras', 20) && lista(d, 'falhas', 15) && lista(d, 'variacoes', 12)
+        && (!('grau' in d) || (d.grau is number && d.grau >= 1 && d.grau <= 8));
+    }
+
+    match /egide_personagens/{id} {
+      allow read: if logado();
+      allow create: if id.size() <= 80 && fichaEgideOk(request.resource.data)
+        && (mestre() || (criaComoDono() && fichaNovaLimpa(request.resource.data)));
+      allow update: if fichaEgideOk(request.resource.data)
+        && (mestre() || (dono() && mantemDono()
+          && camposDaMestragemIguais(request.resource.data, resource.data)
+          && potencialTravado(request.resource.data, resource.data)
+          && dinheiroOk(request.resource.data, resource.data)
+          && treinoOk(request.resource.data, resource.data)));
+      allow delete: if dono() || mestre();
+    }
+    // Biblioteca de poderes: todos leem; cada jogador mexe nos seus.
+    match /egide_poderes/{id} {
+      allow read: if logado();
+      allow create: if (criaComoDono() || mestre()) && poderEgideOk(request.resource.data) && id.size() <= 80;
+      allow update: if (dono() || mestre()) && mantemDono() && poderEgideOk(request.resource.data);
+      allow delete: if dono() || mestre();
+    }
+    // Catálogo do Arsenal: todos leem, só a mestragem escreve.
+    match /egide_itens/{id} {
+      allow read: if logado();
+      allow create, update: if mestre() && bibliotecaOk(request.resource.data);
+      allow delete: if mestre();
+    }
+
+    // Todo o resto fica negado: nenhuma coleção nova nasce aberta.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
