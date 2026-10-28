@@ -741,9 +741,9 @@
   function efeitoAgora(p, g, c) {
     const s = sinal;
     const m = {
-      luta: `Acerto ${s(c.A.FOR + 2 * g)} · desarmado ${1 + Math.floor(g / 2)}d6`,
-      laminas: `Acerto ${s(c.A.AGI + 2 * g)} · +${Math.floor(g / 2)}d6 na lâmina`,
-      pontaria: `Acerto ${s(c.A.AGI + 2 * g)} · +${Math.floor(g / 2)}d6 na arma`,
+      luta: `Acerto ${s(c.A.FOR + g)} · desarmado ${1 + Math.floor(g / 2)}d6`,
+      laminas: `Acerto ${s(c.A.AGI + g)} · +${Math.floor(g / 2)}d6 na lâmina`,
+      pontaria: `Acerto ${s(c.A.AGI + g)} · +${Math.floor(g / 2)}d6 na arma`,
       esquiva: `Defesa ${c.defesa} · Esquivar ${s(c.esquivar)}`,
       acrobacia: `Reflexos ${s(c.reflexos)}`,
       atletismo: `Deslocamento ${c.deslocamento} m`,
@@ -752,13 +752,13 @@
       folego: `Fôlego ${c.folego} rodadas${c.energiaAttr === 'VIG' ? ` · Energia ${c.energiaMax}` : ''}`,
       tatica: `Ler a Brecha ${s(c.brecha)}`,
       medicina: `Kit de Cura ${c.kitCura}`,
-      ocultismo: `Conjurar ${s(2 * g)} na Perícia`,
+      ocultismo: `Conjurar ${s(c.A.INT + g)}`,
       percepcao: `Passiva ${c.percepcaoPassiva} · Iniciativa ${s(c.iniciativa)}`,
       concentracao: `Mente ${s(c.mente)}${c.energiaAttr === 'VON' ? ` · Energia ${c.energiaMax}` : ''}`,
-      dominio: `Acerto dos poderes +${2 * g} · CD +${Math.floor(g / 2)}`,
+      dominio: `Acerto dos poderes ${s(c.A.VON + g)}`,
       lideranca: `Ajudar dá +${2 + g}`
     };
-    return m[p.key] || `Teste ${s(c.A[p.attr] + 2 * g)}`;
+    return m[p.key] || `Teste ${s(c.A[p.attr] + g)}`;
   }
 
   function passoTreino(el, f, c) {
@@ -776,7 +776,7 @@
           return `<div class="per ${g ? 'on' : ''}">
             <div class="per-l"><span class="p-n" title="${esc(p.desc)}">${esc(p.nome)}${p.efeito ? ' <span class="star" title="' + esc(p.efeito) + '">★</span>' : ''}</span>
               ${g ? `<span class="p-fx">${esc(efeitoAgora(p, R.grau(f, p.key), c))}</span>` : `<span class="p-desc">${esc(p.desc)}</span>`}</div>
-            <div class="per-r"><span class="num">${sinal(c.A[p.attr] + 2 * R.grau(f, p.key))}</span>
+            <div class="per-r"><span class="num">${sinal(c.A[p.attr] + R.grau(f, p.key))}</span>
               <div class="seg" data-pericia="${p.key}">${[0, 1, 2, 3, 4, 5].map((i) => `<button class="${g === i ? 'on' : ''}" data-g="${i}" ${i > teto ? 'disabled' : ''} title="${esc(LD.GRAUS_PERICIA[i])}: ${i} PT">${i || '—'}</button>`).join('')}</div></div>
           </div>`;
         }).join('')}</div>`).join('')}

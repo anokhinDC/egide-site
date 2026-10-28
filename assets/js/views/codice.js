@@ -9,7 +9,7 @@
 
   const SECOES = [
     ['teste', 'O teste', () => `
-      <pre class="code">1d20 + Atributo + Perícia (ou Proficiência)  ≥  Dificuldade (CD)</pre>
+      <pre class="code">1d20 + Atributo + Perícia  ≥  CD</pre>
       ${tabela(['Dificuldade', 'CD', 'Exemplo'], [['Fácil', '10', 'Pular de um telhado para o vizinho.'], ['Médio', '15', 'Hackear uma câmera da Kael Dynamics.'], ['Difícil', '20', 'Atravessar a névoa de Hespéria.'], ['Heroico', '25', 'Algo que só a Tríade fez.'], ['Lendário', '30', 'Algo que não deveria ser possível.']])}
       <p><b>20 natural:</b> sucesso e algo a mais (em ataque, crítico). <b>1 natural:</b> falha e uma complicação. Empate é sucesso.</p>
       <p><b>Vantagem:</b> 2d20, fica o maior. <b>Desvantagem:</b> 2d20, fica o menor. Elas se cancelam e nunca se acumulam. <b>Ajuda:</b> um aliado que passa de CD 10 dá +2 (Vantagem com Vínculo 2+).</p>`],
@@ -35,7 +35,7 @@ REAÇÕES  Esquivar 1d20 + AGI + Esquiva ≥ ataque → errou
       <p>Proteção: a maior, mais metade da segunda. Teto: Classe × 5 + 5. O teto dos jogadores é a Classe 4.</p>`],
     ['status', 'Valores derivados', () => tabela(['Valor', 'Fórmula'], [
       ['PV máximo', '20 + VIG × 5 + 3 por degrau de Classe'], ['Defesa', '10 + AGI + Esquiva + bônus'], ['Resistência', 'VIG + Proteção'], ['Potência', 'Classe × 5 (golpes: só com Força Sobre-humana; Ápices 5)'],
-      ['Iniciativa', '1d20 + AGI'], ['Energia máxima', '3 + VIG (Arcanos: 3 + VON), +1 nos níveis 3, 6 e 9'], ['Percepção passiva', '10 + VON + Percepção'], ['CD dos poderes', '10 + Atributo-chave + Grau'],
+      ['Iniciativa', '1d20 + AGI + Percepção'], ['Energia máxima', '3 + VIG (Arcanos: 3 + VON), +1 na Classe 1,7, 2,7 e 3,7'], ['Percepção passiva', '10 + VON + Percepção'], ['CD dos poderes', '10 + Grau'],
       ['Reflexos / Fortitude / Mente', 'AGI + Acrobacia / VIG + Resiliência / VON + Concentração'], ['Carga', 'FOR × 25 kg']])],
     ['energia', 'Energia', () => `${tabela(['Gasto', 'Custo'], [['Intensificar (+2d6 no dano)', '1 por uso, até 3'], ['Técnica', '2'], ['Façanha de Poder', '2'], ['Suprema', '5'], ['Sustentar', '1 por rodada'], ['Feitiço', 'o Grau']])}
       <p>Ganha-se: 2 no início de cada combate; +1 num crítico, numa Quebra, num Resgate; +2 ao trazer a Fraqueza; tudo num descanso de verdade.</p>`],

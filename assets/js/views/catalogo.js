@@ -32,7 +32,7 @@
       el.innerHTML = `<div class="grid cards">${LD.ARQUETIPOS.filter((x) => x.key !== 'proprio').map((x) => `<article class="card static"><div class="card-title">${esc(x.nome)}</div><div class="italic paper-2">${esc(x.papel)}</div><div class="small">${esc(x.habilidade)}</div></article>`).join('')}</div>
         <p class="muted">Arquétipos próprios (O Fantasma, O Escudo do Povo, O Estrategista, O Rebelde, O Curandeiro…) com uma habilidade do mesmo tamanho, combinada com a mestragem.</p>`;
     } else if (a === 'pericias') {
-      el.innerHTML = `<p class="paper-2">Cada grau custa 1 PT e dá +2 no teste. Grau máximo: 3 na criação (Treinados 4), +1 nos níveis 3 e 6. As marcadas com ★ mexem sozinhas na ficha.</p>
+      el.innerHTML = `<p class="paper-2">Teste = d20 + Atributo + Perícia. Cada grau custa 1 PT e vale +1. Grau máximo: 3 na criação (Treinados 4), +1 na Classe 1,7 e na 2,7.</p>
         ${LD.ATRIBUTOS.map((at) => `<div class="subsect"><span>${esc(at.nome)}</span></div>
           <div class="grid cards">${LD.PERICIAS.filter((p) => p.attr === at.key).map((p) => `<article class="card static">
             <div class="card-title">${esc(p.nome)}${p.efeito ? ' ★' : ''}</div><div class="small">${esc(p.desc)}</div>

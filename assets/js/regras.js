@@ -25,41 +25,41 @@
   const PONTOS_DE_ATRIBUTO = 12;
 
   /* ---------- Perícias ----------
-   * 31 Perícias, separadas pelo Atributo que usam. Grau 0 a 5: cada grau custa 1 PT e dá +2 no teste.
+   * 31 Perícias, separadas pelo Atributo que usam. Grau 0 a 5: cada grau custa 1 PT e dá +1 no teste. Teste = d20 + Atributo + Perícia.
    * "efeito" diz o que o site soma sozinho na ficha. */
   const P_ = (key, nome, attr, desc, efeito) => ({ key, nome, attr, desc, efeito: efeito || '' });
   const PERICIAS = [
     // Força
-    P_('luta', 'Luta', 'FOR', 'Socos, chutes, armas pesadas, briga de rua.', 'Ataque corpo a corpo +2 por grau. Dano desarmado: 1d6, mais 1d6 a cada 2 graus.'),
+    P_('luta', 'Luta', 'FOR', 'Socos, chutes, armas pesadas, briga de rua.', 'Ataque corpo a corpo +1 por grau. Dano desarmado: 1d6, mais 1d6 a cada 2 graus.'),
     P_('atletismo', 'Atletismo', 'FOR', 'Escalar, nadar, saltar longe, correr.', 'Deslocamento +2 m por grau.'),
     P_('agarrar', 'Agarrar', 'FOR', 'Agarrar, imobilizar, empurrar, derrubar, escapar.'),
     P_('forca_bruta', 'Força Bruta', 'FOR', 'Arrombar, quebrar, carregar peso, segurar o que cai.', 'Carga +25% por grau.'),
     // Agilidade
-    P_('laminas', 'Lâminas', 'AGI', 'Facas, espadas, lanças, armas leves.', 'Ataque com lâmina +2 por grau. Dano da arma, mais 1d6 a cada 2 graus.'),
-    P_('pontaria', 'Pontaria', 'AGI', 'Armas de fogo, arcos, arremesso.', 'Ataque à distância +2 por grau. Dano da arma, mais 1d6 a cada 2 graus.'),
-    P_('esquiva', 'Esquiva', 'AGI', 'Não estar onde o golpe chega.', 'Defesa +1 por grau. Reação de Esquivar +2 por grau.'),
-    P_('acrobacia', 'Acrobacia', 'AGI', 'Equilíbrio, quedas, telhados, escapar de amarras.', 'Reflexos +2 por grau.'),
+    P_('laminas', 'Lâminas', 'AGI', 'Facas, espadas, lanças, armas leves.', 'Ataque com lâmina +1 por grau. Dano da arma, mais 1d6 a cada 2 graus.'),
+    P_('pontaria', 'Pontaria', 'AGI', 'Armas de fogo, arcos, arremesso.', 'Ataque à distância +1 por grau. Dano da arma, mais 1d6 a cada 2 graus.'),
+    P_('esquiva', 'Esquiva', 'AGI', 'Não estar onde o golpe chega.', 'Defesa e Esquivar +1 por grau.'),
+    P_('acrobacia', 'Acrobacia', 'AGI', 'Equilíbrio, quedas, telhados, escapar de amarras.', 'Reflexos +1 por grau.'),
     P_('furtividade', 'Furtividade', 'AGI', 'Esconder-se, andar sem ruído, seguir alguém.'),
     P_('pilotagem', 'Pilotagem', 'AGI', 'Carros, motos, barcos, a Albatroz, perseguições.'),
     P_('prestidigitacao', 'Prestidigitação', 'AGI', 'Mãos rápidas: bater carteira, fechaduras, truques.'),
     // Vigor
-    P_('resiliencia', 'Resiliência', 'VIG', 'Aguentar dor, veneno, doença, golpes.', 'Fortitude +2 por grau. PV +3 por grau.'),
+    P_('resiliencia', 'Resiliência', 'VIG', 'Aguentar dor, veneno, doença, golpes.', 'Fortitude +1 por grau. PV +3 por grau.'),
     P_('sobrevivencia', 'Sobrevivência', 'VIG', 'Frio, calor, fome, mata, mar, rastros.'),
     P_('folego', 'Fôlego', 'VIG', 'Correr longe, prender a respiração, aguentar o cansaço.', 'Fôlego +1 rodada por grau. Energia +1 a cada 2 graus (quem não é Arcano).'),
     // Intelecto
     P_('investigacao', 'Investigação', 'INT', 'Pistas, arquivos, deduções.'),
-    P_('tatica', 'Tática', 'INT', 'Ler o combate, achar a Brecha, planejar.', 'Ler a Brecha +2 por grau.'),
+    P_('tatica', 'Tática', 'INT', 'Ler o combate, achar a Brecha, planejar.', 'Ler a Brecha +1 por grau.'),
     P_('conhecimento', 'Conhecimento', 'INT', 'História, leis, idiomas, a política de Aldória.'),
     P_('ciencia', 'Ciência', 'INT', 'Física, química, biologia, a estrela.'),
     P_('tecnologia', 'Tecnologia', 'INT', 'Máquinas, armaduras, consertar, sabotar.'),
     P_('computacao', 'Computação', 'INT', 'Hackear, redes, câmeras, rastrear sinais.'),
-    P_('medicina', 'Medicina', 'INT', 'Primeiros socorros, cirurgia, levantar um Nocauteado.', 'Kit de Cura cura +2 por grau.'),
-    P_('ocultismo', 'Ocultismo', 'INT', 'Magia, Hespéria, a Fome, deuses, rituais.', 'Conjurar +2 por grau.'),
+    P_('medicina', 'Medicina', 'INT', 'Primeiros socorros, cirurgia, levantar um Nocauteado.', 'Kit de Cura cura +1 por grau.'),
+    P_('ocultismo', 'Ocultismo', 'INT', 'Magia, Hespéria, a Fome, deuses, rituais.', 'Conjurar +1 por grau.'),
     // Vontade
-    P_('percepcao', 'Percepção', 'VON', 'Ver, ouvir, notar a emboscada.', 'Percepção passiva +2 por grau. Iniciativa +1 por grau.'),
+    P_('percepcao', 'Percepção', 'VON', 'Ver, ouvir, notar a emboscada.', 'Percepção passiva e Iniciativa +1 por grau.'),
     P_('intuicao', 'Intuição', 'VON', 'Sentir a mentira, ler intenções.'),
-    P_('concentracao', 'Concentração', 'VON', 'Sustentar poderes, resistir à mente e à Fome.', 'Mente +2 por grau. Para Arcanos, Energia +1 a cada 2 graus.'),
-    P_('dominio', 'Domínio do Poder', 'VON', 'Mirar e controlar os próprios poderes.', 'Acerto dos poderes +2 por grau. CD dos poderes +1 a cada 2 graus.'),
+    P_('concentracao', 'Concentração', 'VON', 'Sustentar poderes, resistir à mente e à Fome.', 'Mente +1 por grau. Para Arcanos, Energia +1 a cada 2 graus.'),
+    P_('dominio', 'Domínio do Poder', 'VON', 'Mirar e controlar os próprios poderes.', 'Acerto dos poderes +1 por grau.'),
     // Presença
     P_('persuasao', 'Persuasão', 'PRE', 'Convencer, negociar, inspirar.'),
     P_('enganacao', 'Enganação', 'PRE', 'Mentir, disfarçar, blefar, infiltrar.'),
@@ -589,7 +589,7 @@
     const lugar = LUGARES_TREINO.find((x) => x.key === (lugarKey || '')) || LUGARES_TREINO[0];
     const bLugar = vale(lugar.areas, areaKey) || vale(lugar.areas, a.pericia) ? 2 : 0;
     const dist = treinoDe(f).distensao.includes(areaKey) ? -2 : 0;
-    return { area: a, attr: A[a.attr], grau: g, pericia: 2 * g, lugar: bLugar, distensao: dist, total: A[a.attr] + 2 * g + bLugar + dist };
+    return { area: a, attr: A[a.attr], grau: g, pericia: g, lugar: bLugar, distensao: dist, total: A[a.attr] + g + bLugar + dist };
   }
   // Aplica um treino já rolado à ficha x (muta). r = {area, intensidade, lugar, mentor, cena, natural, total}
   function aplicarTreino(x, r, agora) {
@@ -649,7 +649,7 @@
     const treinado = f.origem === 'treinado';
     const origem = LD.byKey(ORIGENS, f.origem);
     const G = (k) => grau(f, k);
-    const pericia = (k) => 2 * G(k);
+    const pericia = (k) => G(k);
     const equip = itensEquipados(f);
 
     // Proteção
@@ -713,7 +713,7 @@
     const ppGastos = (f.poderes || []).reduce((s, p) => s + custoPoder(p).total, 0);
 
     const profAtaque = 0;
-    const profEnergetico = 2 * G('dominio');
+    const profEnergetico = G('dominio');
 
     const c = {
       pot, classe: cls, classeDegrau: classeDoDegrau(f), rotuloClasse: rotuloClasse(f), nivel, degrau: nivel, A, protecao, tetoProt, detalheProt, defesa, profDef, bonusDef, pvMax, energiaMax, energiaAttr, detMax, recursoNome,
@@ -738,7 +738,7 @@
     const preciso = (p.extras || []).includes('preciso') ? 2 : 0;
     const bonus = c.A[attr] + profi + preciso;
     const danoFixo = c.A[attr] + c.potPoder;
-    return { attr, bonus, dados: `${g}d6`, danoFixo, expr: `${g}d6+${danoFixo}`, cd: 10 + c.A[attr] + g + Math.floor(c.G('dominio') / 2), penetrante: (p.extras || []).includes('penetrante') };
+    return { attr, bonus, dados: `${g}d6`, danoFixo, expr: `${g}d6+${danoFixo}`, cd: 10 + g, penetrante: (p.extras || []).includes('penetrante') };
   }
 
   // Quantos d6 tem um texto ("2d6" -> 2).
@@ -759,13 +759,13 @@
       if (p.key === 'pontaria') { dados = (d6(w.dadosBase) || 1) + extra(g); pot = num(w.potencia); }
       else { dados = 1 + extra(g) + d6(w.dadosExtra); pot = Math.max(num(w.potencia), c.potGolpe); }
       const danoFixo = c.A[attr] + pot + num(w.bonusFixo);
-      out.push({ nome: w.nome, sub: `${p.nome} ${g}`, attr, bonus: c.A[attr] + 2 * g, dados: `${dados}d6`, danoFixo, expr: `${dados}d6+${danoFixo}` });
+      out.push({ nome: w.nome, sub: `${p.nome} ${g}`, attr, bonus: c.A[attr] + g, dados: `${dados}d6`, danoFixo, expr: `${dados}d6+${danoFixo}` });
     });
     const gL = c.G('luta');
     if (!armas.some((w) => (w.pericia || 'luta') === 'luta') && (gL || !armas.length)) {
       const dados = 1 + extra(gL);
       const danoFixo = c.A.FOR + c.potGolpe;
-      out.unshift({ nome: 'Desarmado', sub: `Luta ${gL}`, attr: 'FOR', bonus: c.A.FOR + 2 * gL, dados: `${dados}d6`, danoFixo, expr: `${dados}d6+${danoFixo}` });
+      out.unshift({ nome: 'Desarmado', sub: `Luta ${gL}`, attr: 'FOR', bonus: c.A.FOR + gL, dados: `${dados}d6`, danoFixo, expr: `${dados}d6+${danoFixo}` });
     }
     (f.poderes || []).forEach((p) => {
       const b = LD.byKey(PODERES, p.base);
