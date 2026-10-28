@@ -814,7 +814,7 @@
     (f.qualidades || []).forEach((k) => { const q = LD.byKey(QUALIDADES, k); if (q && q.origem && q.origem !== f.origem) out.push({ passo: 'tracos', msg: `${q.nome} é só para ${(LD.byKey(ORIGENS, q.origem) || {}).nome}.` }); });
     // Fraquezas (Regra do Preço)
     const fr = f.fraquezas || [];
-    if (!fr.length) out.push({ passo: 'tracos', msg: 'Todo herói tem pelo menos uma Fraqueza.' });
+    if (!fr.length) out.push({ passo: 'tracos', msg: 'Falta a Fraqueza.' });
     const grav = (x) => x.gravidade || ((LD.byKey(FRAQUEZAS, x.key) || {}).gravidade) || 'leve';
     const temGrave = fr.some((x) => grav(x) === 'grave');
     const temSeria = fr.some((x) => ['seria', 'grave'].includes(grav(x)));

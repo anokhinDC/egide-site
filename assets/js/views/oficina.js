@@ -22,8 +22,7 @@
     const mestre = LD.store.isMaster();
     const fichas = LD.store.list('personagens').map((x) => LD.fichas.normalizar(JSON.parse(JSON.stringify(x))));
     main.innerHTML = `
-      <div class="page-head"><div><div class="eyebrow">Ferramentas</div><h1>Oficina</h1>
-        <p class="lead">A calculadora de combate da Égide e, para a mestragem, o painel da mesa.</p></div></div>
+      <div class="page-head"><div><div class="eyebrow">Ferramentas</div><h1>Oficina</h1></div></div>
 
       <div class="grid two">
         <section class="panel framed">
@@ -72,7 +71,7 @@
           <button class="btn" data-exportar>Exportar tudo (JSON)</button>
           <label class="btn" style="cursor:pointer">Importar JSON<input type="file" accept=".json,application/json" data-importar hidden></label>
         </div>
-        <p class="muted small">Carregar o catálogo de novo não duplica: os itens têm ids fixos (e volta os valores originais dos itens iniciais).</p>` : ''}`;
+        <p class="muted small">Recarregar não duplica itens.</p>` : ''}`;
 
     const ler = () => {
       const v = LD.ui.readForm(main.querySelector('.grid.two section'));

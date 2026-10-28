@@ -84,7 +84,6 @@
         <div>
           <div class="eyebrow">Os heróis de Aldória</div>
           <h1>Fichas</h1>
-          <p class="lead">Crie seu herói em 7 passos. O site faz as contas e avisa o que falta. Na hora de jogar, é só clicar para rolar.</p>
         </div>
         <button class="btn-primary" data-novo>＋ Novo herói</button>
       </div>
@@ -272,7 +271,6 @@
               <button class="roll" data-atk="${i}" title="Rolar o ataque">Acerto ${sinal(a.bonus)}</button>
               <button class="roll dmg ${st.critico === `${f.id}:${i}` ? 'armed' : ''}" data-dano="${i}" title="Rolar o dano">${st.critico === `${f.id}:${i}` ? 'Crítico!' : 'Dano ' + esc(a.expr)}</button>
             </div>`).join('')}</div>
-          <p class="muted small">Um 20 natural deixa o próximo dano daquele ataque como crítico.</p>
         </div>
         <div>
           <div class="subsect"><span>Defesa</span></div>
@@ -537,8 +535,7 @@
   function passoConceito(el, f) {
     const mestre = LD.store.isMaster();
     el.innerHTML = `
-      <h2>Comece pela pessoa</h2>
-      <p class="lead">Quem é o herói, o que ele faz de especial e o que ele perdeu. As regras vêm depois.</p>
+      <h2>Conceito</h2>
       <div class="row">
         ${field('Nome de herói', input('codinome', f.codinome, 'class="big" placeholder="Faísca"'))}
         ${field('Nome civil', input('nome', f.nome, 'placeholder="Joana Prates"'))}
@@ -550,7 +547,6 @@
         ${field('Alinhamento', select('alinhamento', [{ key: 'heroi', nome: 'Herói' }, { key: 'anti_heroi', nome: 'Anti-herói (Rancor)' }, { key: 'vilao', nome: 'Vilão (Ambição)' }], f.alinhamento))}
       </div></details>
       <div class="subsect"><span>Arquétipo</span></div>
-      <p class="muted small">O papel no grupo. Não custa nada e dá uma habilidade.</p>
       <div class="pick-grid">${LD.ARQUETIPOS.map((a) => `
         <button class="pick ${f.arquetipo === a.key ? 'on' : ''}" data-arq="${a.key}">
           <b>${esc(a.nome)}</b><span class="muted small">${esc(a.papel)}</span>
@@ -570,8 +566,8 @@
     const o = LD.byKey(LD.ORIGENS, f.origem);
     const adj = R.resultadoAjustado(f);
     el.innerHTML = `
-      <h2>De onde vem o poder</h2>
-      <p class="lead">Cada Origem é forte de um jeito e paga de outro.${trava ? ' <b class="warn">A ficha foi aprovada: Origem e Potencial só a mestragem muda.</b>' : ''}</p>
+      <h2>Origem e Potencial</h2>
+      ${trava ? '<p class="lead"><b class="warn">Ficha aprovada: Origem e Potencial só a mestragem muda.</b></p>' : ''}
       <div class="pick-grid three">${LD.ORIGENS.map((x) => `
         <button class="pick ${f.origem === x.key ? 'on' : ''}" data-origem="${x.key}" ${trava ? 'disabled' : ''}>
           <b>${esc(x.nome)}</b><span class="muted small">${esc(x.fonte)}</span>
@@ -584,7 +580,7 @@
       ${!o ? '<p class="muted">Escolha a Origem primeiro.</p>' : o.rola ? `
         <div class="pot-box panel">
           <div class="row">
-            ${field('Resultado do !egide-potencial', input('potencial.resultado', f.potencial.resultado, `type="number" min="1" max="100" class="big" ${trava ? 'disabled' : ''}`), 'O bot rola 2d100 e fica com o maior, em público, no canal de aprovação. Digite o número que ele deu.')}
+            ${field('Resultado do !egide-potencial', input('potencial.resultado', f.potencial.resultado, `type="number" min="1" max="100" class="big" ${trava ? 'disabled' : ''}`), 'O número que o bot deu.')}
             <div class="pot-out">
               ${c.pot.rolou ? `<div class="pot-name">${esc(c.pot.emoji)} ${esc(c.pot.nome)}</div><div class="small">Resultado ${adj}${adj !== num(f.potencial.resultado) ? ` (ajustado pela Origem: ${o.somaRolagem ? '+15' : 'Linhagem'})` : ''} · ${c.pot.pp} PP · +${c.pot.pt} PT${c.pot.det ? ' · +1 Determinação' : ''}</div>${c.pot.preco ? `<div class="warn small">Preço: ${esc(c.pot.preco)}</div>` : ''}` : '<div class="muted italic">Sem resultado ainda.</div>'}
             </div>
@@ -640,7 +636,7 @@
     const aumPermitidos = [LD.MARCOS.atributo1, LD.MARCOS.atributo2].filter((n) => c.degrau >= n).length;
     el.innerHTML = `
       <h2>Atributos</h2>
-      <p class="lead">Todos começam em 1. Distribua <b>${LD.PONTOS_DE_ATRIBUTO} pontos</b>. O teto é <b>${cap}</b> (5 + Classe ${R.fmtClasse(c.classe)}): no teto, o Atributo trabalha na escala da sua Classe inteira.</p>
+      <p class="lead"><b>${LD.PONTOS_DE_ATRIBUTO} pontos</b> · teto <b>${cap}</b></p>
       <div class="points"><b>${livres}</b><span class="caps">pontos livres</span></div>
       <div class="attr-list">${LD.ATRIBUTOS.map((a) => {
         const p = num(f.atributos[a.key]);
@@ -662,8 +658,7 @@
       <details class="ref"><summary>O que cada número significa na Classe ${R.fmtClasse(c.classe)}</summary>
         <table class="tbl"><thead><tr><th>Valor</th><th>Escala</th><th>Quanto da Classe</th></tr></thead><tbody>
         ${Array.from({ length: cap }, (_, i) => i + 1).map((v) => { const e = R.escalaAtributo(v, c.classe); return `<tr class="${LD.ATRIBUTOS.some((a) => c.A[a.key] === v) ? 'hi' : ''}"><td>${v}</td><td>${esc(e.classe ? `${e.nome} (Classe ${e.classe})` : `Humano · ${e.nome}`)}</td><td>${e.pct}%</td></tr>`; }).join('')}
-        </tbody></table>
-        <p class="muted small">Humano: o Atributo ainda não usa o poder. Ápice: o limite do corpo humano. Daí em diante, cada degrau é uma Classe: Quarteirão, Cidade, Nação.</p></details>`;
+        </tbody></table></details>`;
     bindSteppers(el, (k, v) => mudar(f.id, (x) => { x.atributos[k] = v - 1; }));
     el.querySelectorAll('[data-ob]').forEach((b) => b.addEventListener('click', () => mudar(f.id, (x) => {
       const k = b.dataset.ob; const n = o.bonus.escolha;
@@ -681,10 +676,10 @@
     const temEscola = f.poderes.some((p) => (LD.byKey(LD.PODERES, p.base) || {}).escola);
     const treinado = f.origem === 'treinado';
     el.innerHTML = `
-      <h2>Estilo de Poder e poderes</h2>
-      <p class="lead">${treinado ? 'Treinados não têm PP: o poder deles são os anos de treino. Pule para Perícias, ou use PP de bônus da mestragem.' : `Gaste os <b>${c.ppTotal} PP</b>. Grau máximo ${c.grauMax}. Monte do catálogo ou do zero, com Extras, Falhas e Variações.`}</p>
+      <h2>Poderes</h2>
+      <p class="lead">${treinado ? 'Treinados não têm PP.' : `<b>${c.ppTotal} PP</b> · Grau máximo <b>${c.grauMax}</b>`}</p>
       <div class="row">
-        ${field('Estilo de Poder', select('estiloPoder', [{ key: '', nome: 'Nenhum' }].concat(LD.ESTILOS_PODER.map((x) => ({ key: x.key, nome: x.nome }))), f.estiloPoder), 'Gratuito: dá a Assinatura e a Técnica. Só os poderes custam PP.')}
+        ${field('Estilo de Poder', select('estiloPoder', [{ key: '', nome: 'Nenhum' }].concat(LD.ESTILOS_PODER.map((x) => ({ key: x.key, nome: x.nome }))), f.estiloPoder), 'Grátis.')}
         ${f.origem === 'desperto' ? field('Segunda Assinatura (Desperto)', select('assinatura2', [{ key: '', nome: '—' }].concat(LD.ESTILOS_PODER.filter((x) => x.key !== f.estiloPoder).map((x) => ({ key: x.key, nome: x.nome }))), f.assinatura2)) : ''}
         ${f.origem === 'arcano' || temEscola ? field('Tradição mágica', select('tradicao', [{ key: '', nome: '—' }].concat(LD.TRADICOES.map((x) => ({ key: x.key, nome: `${x.nome} (${x.attr})` }))), f.tradicao)) : ''}
       </div>
@@ -711,7 +706,7 @@
 
       ${temEscola || f.grimorio.length ? `
         <div class="subsect"><span>Grimório</span></div>
-        <p class="muted">Feitiços não custam PP: as escolas sim. Extras sobem o Grau (CD e Energia), Falhas descem.</p>
+        <p class="muted">As escolas custam PP. Os feitiços, não.</p>
         <div class="atk-list">${f.grimorio.map((ft) => { const x = R.feitico(f, ft, c); return `
           <div class="atk">
             <div><div class="atk-n">${esc(ft.nome || 'Feitiço sem nome')}</div><div class="muted small">${esc(x.escola ? x.escola.nome : 'sem escola')} · ${esc((LD.byKey(LD.PODERES, ft.efeito) || {}).nome || '')} · Grau ${x.final} · CD ${x.cd} · ${esc(x.custo)}</div></div>
@@ -772,7 +767,7 @@
       .sort((a, b) => (b.efeito ? 1 : 0) - (a.efeito ? 1 : 0) || c.A[b.attr] - c.A[a.attr] || num(f.pericias[b.key]) - num(f.pericias[a.key])).slice(0, 6) : [];
     el.innerHTML = `
       <h2>Perícias</h2>
-      <p class="lead">Gaste os <b>${c.ptTotal} PT</b>. Cada grau custa <b>1 PT</b> e dá <b>+2</b> no teste. Grau máximo agora: <b>${teto}</b>. As Perícias com ★ mexem sozinhas na ficha.</p>
+      <p class="lead"><b>${c.ptTotal} PT</b> · 1 PT por grau · grau máximo <b>${teto}</b></p>
       ${sugestoes.length ? `<div class="caption"><b>Sobram ${c.ptLivres} PT.</b> Sugestões: ${sugestoes.map((p) => `<button class="btn" data-mais="${p.key}" title="${esc(p.efeito || p.desc)}">+1 ${esc(p.nome)}</button>`).join(' ')}</div>` : ''}
       ${LD.ATRIBUTOS.map((a) => `
         <div class="subsect"><span>${esc(a.nome)}</span><span class="tag">${a.key} ${c.A[a.key]}</span></div>
@@ -800,7 +795,7 @@
   function passoTracos(el, f, c) {
     el.innerHTML = `
       <h2>Traços e Fraquezas</h2>
-      <p class="lead">Traços são opcionais: Qualidades custam PT, até ${LD.MAX_DEFEITOS} Defeitos devolvem PT. A Fraqueza é obrigatória. Passe o mouse num Traço para ver o efeito.</p>
+      <p class="lead">A Fraqueza é obrigatória.</p>
       <div class="grid two">
         <div><div class="subsect"><span>Qualidades</span></div>
           <div class="trait-list">${LD.QUALIDADES.map((q) => `
@@ -815,7 +810,7 @@
       </div>
 
       <div class="subsect"><span>Fraquezas</span></div>
-      <p class="muted small">Pelo menos uma. Trazer a Fraqueza para a cena de propósito dá +2 Energia e 1 Determinação.</p>
+      <p class="muted small">Usar a Fraqueza em cena: +2 Energia e 1 Determinação.</p>
       <div class="weak-list">${f.fraquezas.map((w, i) => `
         <div class="weak">
           <div class="weak-h">
@@ -856,7 +851,6 @@
     const travado = f.aprovada && !LD.store.isMaster();
     el.innerHTML = `
       <h2>Vida civil e dinheiro</h2>
-      <p class="lead">Herói também paga aluguel. O dinheiro é em dólares: o Arsenal desconta as compras do saldo.</p>
       <div class="row">
         ${field('Começa com', select('recursos', LD.DINHEIRO_PARTIDA.map((x) => ({ key: x.key, nome: `${x.nome} (${R.fmtUS(x.valor)})` })), Math.min(2, num(f.recursos, 1)), travado ? 'disabled' : ''), f.aprovada ? 'Congelado na aprovação.' : 'Rico (+US$ 15.000) e Sem Lugar (US$ 0) são Traços.')}
         ${f.origem === 'treinado' ? field('Família rica (Treinado)', checkbox('familiaRica', f.recursosOpcao === 'familia_rica', 'Troca 2 PT por US$ 10.000 iniciais', 'data-skip' + (travado ? ' disabled' : ''))) : ''}
@@ -869,14 +863,14 @@
       </div>
       ${checkbox('vidaCivil.identidadeSecreta', f.vidaCivil.identidadeSecreta, 'Tem identidade secreta')}
       ${field('Quem sabe', input('vidaCivil.quemSabe', f.vidaCivil.quemSabe, 'placeholder="A avó, um colega do DAME…"'))}
-      ${field('A Perda', textarea('perda', f.perda, 'placeholder="O que o Eclipse, o Conclave ou a Noite de 2016 já tiraram do herói."'), 'Quem entra no site lê as fichas. Se for segredo, conte em privado à mestragem.')}
+      ${field('A Perda', textarea('perda', f.perda, 'placeholder="O que o Eclipse, o Conclave ou a Noite de 2016 já tiraram do herói."'), 'As fichas são públicas.')}
       ${LD.store.isMaster() ? `<div class="subsect"><span>Mestragem</span></div>
         <div class="row">
           ${field('Bônus de PT', input('bonus.pt', f.bonus.pt, 'type="number"'))}
           ${field('Bônus de PP', input('bonus.pp', f.bonus.pp, 'type="number"'))}
           ${field('Bônus de Determinação', input('bonus.det', f.bonus.det, 'type="number"'))}
           ${field('PT de treino', input('ptTreino', f.ptTreino, 'type="number" min="0"'))}
-          ${field('Classe (degrau)', select('ascensao', LD.DEGRAUS_CLASSE.map((v, i) => ({ key: i, nome: `${f.origem === 'treinado' ? 'Ápice' : 'Classe'} ${R.fmtClasse(v)} (degrau ${i + 1})` })), num(f.ascensao)), 'Sobe um degrau a cada marco da história.')}
+          ${field('Classe (degrau)', select('ascensao', LD.DEGRAUS_CLASSE.map((v, i) => ({ key: i, nome: `${f.origem === 'treinado' ? 'Ápice' : 'Classe'} ${R.fmtClasse(v)} (degrau ${i + 1})` })), num(f.ascensao)))}
           ${field('Salário por semana', select('salario', LD.SALARIOS, num(f.salario)))}
         </div>` : ''}`;
     bindCampos(el, f, (x, k) => { if (k === 'recursos') x.recursos = num(x.recursos, 1); if (k === 'salario') x.salario = num(x.salario); if (k === 'ascensao') x.ascensao = R.clamp(num(x.ascensao), 0, 9); });
@@ -927,9 +921,9 @@
         </div>
         <div class="row">
           ${field('Onde', select('t_lugar', LD.LUGARES_TREINO.map((l) => ({ key: l.key, nome: l.nome + (l.key && (R.valeTreino(l.areas, form.area) || R.valeTreino(l.areas, b.area.pericia)) ? ' (+2)' : '') })), form.lugar), b.lugar ? 'Lugar de treino: +2.' : 'Sem bônus de lugar para esta área.')}
-          ${field('Mentor na cena', select('t_mentor', [{ key: '', nome: 'Sem mentor' }].concat(mentores.map((m) => ({ key: m.key, nome: m.nome }))), form.mentor), 'Vantagem. Precisa de Vínculo 2 com ele.')}
+          ${field('Mentor na cena', select('t_mentor', [{ key: '', nome: 'Sem mentor' }].concat(mentores.map((m) => ({ key: m.key, nome: m.nome }))), form.mentor), 'Vantagem · Vínculo 2')}
         </div>
-        ${field(`A cena do treino (mínimo ${LD.TREINO_CENA_MIN} caracteres)`, textarea('t_cena', form.cena, 'rows="8" placeholder="Onde, o quê e como: o que o herói ainda não consegue fazer, e o exercício. Correr a escadaria de Hespéria, levantar um carro, acertar cem latas…"'), `<span data-cont>${form.cena.trim().length}</span> / ${LD.TREINO_CENA_MIN}`)}
+        ${field(`A cena do treino (mínimo ${LD.TREINO_CENA_MIN} caracteres)`, textarea('t_cena', form.cena, 'rows="8" placeholder="Onde, o quê e como."'), `<span data-cont>${form.cena.trim().length}</span> / ${LD.TREINO_CENA_MIN}`)}
         <div class="treino-rolar">
           <div class="big-mod">${sinal(b.total + pen.p)}</div>
           <div class="muted small">${esc(b.area.attr)} ${sinal(b.attr)} · Perícia ${sinal(b.pericia)}${b.lugar ? ' · lugar +2' : ''}${b.distensao ? ' · Distensão −2' : ''}${pen.p ? ` · ${esc(pen.motivos.join(', '))} ${pen.p}` : ''}${form.mentor ? ' · Vantagem' : ''} contra CD ${it.cd}</div>
@@ -946,7 +940,7 @@
             ${e.novosPT ? `<span class="tag gold">+${e.novosPT} PT</span>` : ''}${e.lesao ? `<span class="tag bad">${esc(e.lesao)}</span>` : ''}${e.fadiga ? `<span class="tag warn">+${e.fadiga} Fadiga</span>` : ''}</summary>
           <div class="tlog-body"><p class="muted small">d20 [${esc((e.dados || []).join(', '))}]${e.lugar ? ' · ' + esc((LD.LUGARES_TREINO.find((l) => l.key === e.lugar) || {}).nome || '') : ''}${e.mentor ? ' · mentor: ' + esc((LD.MENTORES_TREINO.find((m) => m.key === e.mentor) || {}).nome || '') : ''}</p>
             <p class="cena">${esc(e.cena).replace(/\n/g, '<br>')}</p></div>
-        </details>`).join('')}</div>` : '<p class="muted">Nenhum treino ainda. Cada treino é uma cena: escreva, role, junte Marcas. 5 Marcas numa área viram 1 PT.</p>'}`;
+        </details>`).join('')}</div>` : '<p class="muted">Nenhum treino ainda.</p>'}`;
 
     const troca = el.querySelector('[data-trocar]');
     if (troca) troca.addEventListener('click', () => mudar(f.id, (x) => { const tt = R.treinoDe(x); tt.trocas += 1; x.treino = tt; }));

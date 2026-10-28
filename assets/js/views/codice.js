@@ -64,8 +64,7 @@ REAÇÕES  Esquivar 1d20 + AGI + Esquiva ≥ ataque → errou
 
   function render(main) {
     main.innerHTML = `
-      <div class="page-head"><div><div class="eyebrow">As regras numa página</div><h1>Códice</h1>
-        <p class="lead">O resumo de mesa da Égide. As regras completas estão no vault.</p></div></div>
+      <div class="page-head"><div><div class="eyebrow">As regras numa página</div><h1>Códice</h1></div></div>
       <div class="codex">
         <nav class="codex-toc">${SECOES.map(([k, n]) => `<a href="#/codice" data-ir="${k}">${esc(n)}</a>`).join('')}</nav>
         <div>${SECOES.map(([k, n, fn]) => `<section id="cx-${k}"><h2>${esc(n)}</h2>${fn()}</section>`).join('')}</div>

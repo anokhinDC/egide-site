@@ -126,8 +126,7 @@
 
     main.innerHTML = `
       <div class="page-head">
-        <div><div class="eyebrow">Equipamento e Itens</div><h1>Arsenal</h1>
-          <p class="lead">Tudo tem preço em dólares. Comprar desconta do saldo da ficha. Quem é da Nova Égide pega de graça o que está no Observatório.</p></div>
+        <div><div class="eyebrow">Equipamento e Itens</div><h1>Arsenal</h1></div>
         ${mestre ? '<button class="btn-primary" data-novo>＋ Novo item</button>' : ''}
       </div>
       ${fichas.length ? `<div class="buyer panel">

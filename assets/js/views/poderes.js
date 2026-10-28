@@ -212,7 +212,7 @@
       eyebrow: `Grimório · ${LD.fichas.titulo(f)}`, title: feitico ? 'Editar feitiço' : 'Criar feitiço', wide: true,
       body: `<div class="builder"><div class="b-form">
         ${!escolas.length ? '<p class="warn">A ficha não tem nenhuma escola de Magia. Compre uma escola em Poderes (grupo Magia).</p>' : ''}
-        ${field('Nome do feitiço', `<input name="nome" class="big" value="${esc(ft.nome)}" placeholder="Corrente de Vésper">`, 'Feitiço sem nome não entra no Grimório.')}
+        ${field('Nome do feitiço', `<input name="nome" class="big" value="${esc(ft.nome)}" placeholder="Corrente de Vésper">`)}
         <div class="row">
           ${field('Escola', `<select name="escolaId">${escolas.map((e) => `<option value="${esc(e.id)}" ${e.id === ft.escolaId ? 'selected' : ''}>${esc(e.nome || (LD.byKey(LD.PODERES, e.base) || {}).nome)} (Grau ${e.grau})</option>`).join('')}</select>`)}
           ${field('Efeito', `<select name="efeito">${efeitos.map((e) => `<option value="${e.key}" ${e.key === ft.efeito ? 'selected' : ''}>${esc(e.nome)}</option>`).join('')}</select>`)}
@@ -298,7 +298,7 @@
     const filtro = { grupo: '', busca: '' };
     LD.ui.openDrawer({
       eyebrow: `Poderes prontos · ${LD.fichas.titulo(f)}`, title: 'Escolher um poder', wide: true,
-      body: `<div class="caption">Sobram <b>${c.ppLivres} PP</b>. O poder entra no Grau 1; depois é só clicar em <b>Aprimorar</b>. A Classe é o teto: peso, Proteção e dano nunca passam da escala dela.</div>
+      body: `<div class="caption">Sobram <b>${c.ppLivres} PP</b>. Entra no Grau 1.</div>
         <div class="toolbar"><div class="search"><span>⌕</span><input data-b placeholder="Procurar (voo, fogo, cura…)"></div>
         <div class="chips"><button class="chip on" data-g="">Todos</button>${LD.GRUPOS_PRONTOS.map((g) => `<button class="chip" data-g="${g}">${g}</button>`).join('')}</div></div>
         <div class="grid cards" data-lista></div>`,
@@ -321,8 +321,7 @@
     const bib = LD.store.list('poderes').slice().sort((a, b) => (a.nome || '').localeCompare(b.nome || ''));
     main.innerHTML = `
       <div class="page-head">
-        <div><div class="eyebrow">Criando Poderes</div><h1>Poderes</h1>
-          <p class="lead">Escolha o que o poder faz, quanto ele faz (o Grau) e veja o custo na hora.</p></div>
+        <div><div class="eyebrow">Criando Poderes</div><h1>Poderes</h1></div>
         <button class="btn-primary" data-montar>＋ Montar um poder</button>
       </div>
       <nav class="tabs">${[['prontos', `Poderes prontos (${LD.PRONTOS.length})`], ['catalogo', 'Montar do zero'], ['biblioteca', `Biblioteca (${bib.length})`], ['graus', 'Graus e modificadores']].map(([k, n]) => `<button class="${st.aba === k ? 'on' : ''}" data-aba="${k}">${n}</button>`).join('')}</nav>
@@ -331,7 +330,6 @@
     if (st.aba === 'prontos') {
       const lista = listaProntos({ grupo: st.grupoPronto, busca: st.busca });
       corpo.innerHTML = `
-        <p class="lead" style="margin:0 0 16px">Os poderes clássicos, prontos. Cada Grau melhora o poder em números concretos: mais velocidade, mais alcance, mais peso, mais dano. Aprimorar custa o PP por Grau.</p>
         <div class="toolbar"><div class="search"><span>⌕</span><input data-busca placeholder="Procurar (voo, fogo, cura…)" value="${esc(st.busca)}"></div>
           <div class="chips"><button class="chip ${!st.grupoPronto ? 'on' : ''}" data-gp="">Todos</button>${LD.GRUPOS_PRONTOS.map((g) => `<button class="chip ${st.grupoPronto === g ? 'on' : ''}" data-gp="${g}">${g}</button>`).join('')}</div></div>
         <div class="grid cards">${lista.map((p) => cartaoPronto(p, `<button class="btn" data-pfic="${p.key}">Pôr numa ficha</button>`)).join('')}</div>`;
@@ -365,7 +363,7 @@
       corpo.querySelectorAll('[data-g]').forEach((b) => b.addEventListener('click', () => { st.grupo = b.dataset.g; render(main); }));
       corpo.querySelectorAll('[data-usar]').forEach((b) => b.addEventListener('click', () => construtor({ base: b.dataset.usar })));
     } else if (st.aba === 'biblioteca') {
-      corpo.innerHTML = bib.length ? `<p class="muted">Poderes que os jogadores montaram. Pegue um para a sua ficha e ajuste.</p>
+      corpo.innerHTML = bib.length ? `
         <div class="grid cards">${bib.map((p) => { const b = LD.byKey(LD.PODERES, p.base) || {}; const meu = LD.store.canEdit('poderes', p); return `
           <article class="card pcard">
             <div class="card-meta"><span class="tag">${esc(b.nome || '')} ${p.grau}</span><span class="tag gold">${R.custoPoder(p).total} PP</span></div>

@@ -10,8 +10,7 @@
 
   function render(main) {
     main.innerHTML = `
-      <div class="page-head"><div><div class="eyebrow">O que existe na Égide</div><h1>Referência</h1>
-        <p class="lead">As peças de um herói, para consultar. Na ficha, cada uma é um clique.</p></div></div>
+      <div class="page-head"><div><div class="eyebrow">O que existe na Égide</div><h1>Referência</h1></div></div>
       <nav class="tabs">${ABAS.map(([k, n]) => `<button class="${st.aba === k ? 'on' : ''}" data-aba="${k}">${n}</button>`).join('')}</nav>
       <div data-corpo></div>`;
     const el = main.querySelector('[data-corpo]');

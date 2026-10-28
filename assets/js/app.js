@@ -51,7 +51,7 @@
       <div class="gate">
         <div class="eyebrow">Égide · Aldória</div>
         <h1>Vista a máscara!</h1>
-        <p class="lead">Entre com o seu usuário e senha (os mesmos do site antigo). Se for a primeira vez, a conta é criada agora.</p>
+        <p class="lead">Mesmo usuário e senha do site antigo.</p>
         <form data-login class="panel framed">
           <div class="field"><label>Usuário</label><input name="u" required autocomplete="username" class="big"></div>
           <div class="field"><label>Senha</label><input name="p" type="password" required autocomplete="current-password"></div>
