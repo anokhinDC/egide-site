@@ -37,6 +37,9 @@
     f.vidaCivil = Object.assign({}, d.vidaCivil, f.vidaCivil);
     f.bonus = Object.assign({ pt: 0, pp: 0, det: 0 }, f.bonus);
     f.potencial = Object.assign({ resultado: '', rolagens: 1 }, f.potencial);
+    if (R.hasTraco(f, 'sem_lugar') && f.recursosOpcao === 'familia_rica') f.recursosOpcao = '';
+    Object.entries(LD.PERICIAS_ANTIGAS).forEach(([velha, nova]) => { if (f.pericias[velha] != null) { f.pericias[nova] = Math.max(num(f.pericias[nova]), num(f.pericias[velha])); delete f.pericias[velha]; } });
+    f.fraquezas = f.fraquezas.filter((w) => !LD.FRAQUEZAS.some((x) => x.origem && x.key === w.key));
     if (!f.kits) f.kits = Object.fromEntries(LD.KITS.map((k) => [k.key, { atual: LD.KITS_PADRAO[k.key], max: LD.KITS_PADRAO[k.key] }]));
     const c = R.calc(f);
     if (f.kits.pulso && !f.kits.energia) { f.kits.energia = f.kits.pulso; delete f.kits.pulso; }
@@ -196,6 +199,13 @@
     });
   }
 
+  /* ---------- Marcas de Traços e Fraquezas nas Perícias ---------- */
+  function marcaTag(lista) {
+    if (!lista || !lista.length) return '';
+    const rot = { des: 'Desv.', van: 'Vant.', menos2: '−2', nota: '!' };
+    return lista.map((m) => ` <span class="tag mk mk-${m.tipo}" title="${esc(m.txt)}">${rot[m.tipo]}</span>`).join('');
+  }
+
   /* ---------- Penalidades das rolagens ---------- */
   function penalidade(f, tipo) {
     const m = f.medidores;
@@ -223,6 +233,9 @@
   }
 
   function renderJogar(el, f, c, editar) {
+    const marcas = R.marcasPericias(f);
+    const fraqs = R.fraquezasDe(f);
+    const fraqJogo = fraqs.length ? `<details class="more" ${keep('fraq-' + f.id)}><summary>Fraquezas (${fraqs.length})</summary><ul class="small fraq-jogo">${fraqs.map((w) => `<li><b>${esc(w.nome)}</b>${w.fixa ? ' <span class="tag">Origem</span>' : ''}: ${esc(w.efeito || '')}</li>`).join('')}</ul></details>` : '';
     const m = f.medidores;
     const [estado, cls] = estadoSaude(m.pv, c.pvMax);
     const pct = Math.max(0, Math.min(100, m.pv / c.pvMax * 100));
@@ -284,6 +297,11 @@
             <button class="btn" data-rolar="for">⚄ Fortitude ${sinal(c.fortitude)}</button>
             <button class="btn" data-rolar="men">⚄ Mente ${sinal(c.mente)}</button>
           </div>
+          <div class="btn-row">
+            <button class="btn" data-rolar="esq">⚄ Esquivar ${sinal(c.esquivar)}</button>
+            <button class="btn" data-rolar="blo">⚄ Bloquear ${sinal(c.bloquear)}</button>
+          </div>
+          ${fraqJogo}
           <details class="more" ${keep('numeros')}><summary>Todos os números</summary>
             <div class="stat-grid">
               ${stat('Defesa', c.defesa, `10 + AGI ${c.A.AGI} + Esquiva ${c.profDef}${c.bonusDef ? ` ${sinal(c.bonusDef)} equip.` : ''}`)}
@@ -291,8 +309,8 @@
               ${stat('Potência', c.potPoder, `poderes · golpes ${c.potGolpe}`)}
               ${stat('Percepção passiva', c.percepcaoPassiva, '10 + VON + Percepção')}
               ${stat('Deslocamento', c.deslocamento + ' m', 'por rodada')}
-              ${stat('Carga', c.carga + ' kg', 'FOR × 25')}
-              ${stat('Dinheiro', R.fmtUS(c.dinheiro), f.salario ? `salário ${R.fmtUS(f.salario)}/semana` : 'sem salário')}
+              ${stat('Carga', c.carga + ' kg', 'a mochila, sempre')}
+              ${stat('Dinheiro', R.fmtUS(c.dinheiro), R.salarioDe(f) ? `salário ${R.fmtUS(R.salarioDe(f))}/semana` : 'sem salário')}
               ${c.protecao <= 5 ? stat('Evasão', '✓', 'Ainda de Pé e Evasão valem') : ''}
             </div>
           </details>
@@ -304,10 +322,10 @@
         ${LD.ATRIBUTOS.map((a) => `<button class="ap-attr" data-attr="${a.key}" title="${esc(a.nome)}: ${esc(a.desc)} Clique para rolar."><span class="caps">${esc(a.nome)}</span><b>${c.A[a.key]}</b><small>${esc(R.escalaAtributo(c.A[a.key], c.classe).nome)}</small></button>`).join('')}
       </div>
       <div class="per-chips">
-        ${treinadas.map((p) => `<button class="ap-per tr" data-per="${p.key}" title="${esc(p.desc)}">${esc(p.nome)} <b>${sinal(c.A[p.attr] + 2 * num(f.pericias[p.key]))}</b></button>`).join('') || '<span class="muted small">Nenhuma Perícia treinada.</span>'}
+        ${treinadas.map((p) => `<button class="ap-per tr" data-per="${p.key}" title="${esc(p.desc)}">${esc(p.nome)} <b>${sinal(c.A[p.attr] + R.grau(f, p.key))}</b>${marcaTag(marcas[p.key])}</button>`).join('') || '<span class="muted small">Nenhuma Perícia treinada.</span>'}
       </div>
       <details class="more" ${keep('outras-' + f.id)}><summary>Outras Perícias</summary><div class="per-chips">
-        ${outras.map((p) => `<button class="ap-per" data-per="${p.key}" title="${esc(p.desc)}">${esc(p.nome)} <b>${sinal(c.A[p.attr])}</b></button>`).join('')}
+        ${outras.map((p) => `<button class="ap-per" data-per="${p.key}" title="${esc(p.desc)}">${esc(p.nome)} <b>${sinal(c.A[p.attr])}</b>${marcaTag(marcas[p.key])}</button>`).join('')}
       </div></details>
 
       ${f.poderes.length ? `<div class="subsect"><span>Poderes</span></div>
@@ -330,7 +348,7 @@
 
       ${editar ? `<div class="subsect"><span>Entre as cenas</span></div>
       <div class="btn-row">
-        <button class="btn" data-folego title="Ação Rápida, uma vez por combate: VIG + degrau de Classe em PV">Segundo Fôlego (+${c.A.VIG + c.degrau} PV)</button>
+        <button class="btn" data-folego title="Ação Rápida, uma vez por combate: VIG + degrau de Classe em PV">Segundo Fôlego (+${c.A.VIG + c.degrau + 2 * c.G('vitalidade')} PV)</button>
         <button class="btn" data-descanso="curto" title="¼ do PV, Energia até a metade, −1 Fadiga">Descanso curto</button>
         <button class="btn" data-descanso="longo" title="PV e Energia cheios, −1 Fadiga">Descanso longo</button>
         <button class="btn" data-descanso="seguro" title="E ainda Fadiga 0, −1 Sussurro, Kits reabastecidos">Lugar seguro</button>
@@ -351,19 +369,22 @@
     const qtd = () => Math.max(1, num((el.querySelector('[data-qtd="pv"]') || {}).value, 1));
     el.querySelectorAll('[data-pv]').forEach((b) => b.addEventListener('click', () => mudarPV(f.id, num(b.dataset.pv) * qtd())));
     const fol = el.querySelector('[data-folego]');
-    if (fol) fol.addEventListener('click', () => mudarPV(f.id, c.A.VIG + c.degrau, 'Segundo Fôlego'));
+    if (fol) fol.addEventListener('click', () => mudarPV(f.id, c.A.VIG + c.degrau + 2 * c.G('vitalidade'), 'Segundo Fôlego'));
     bindSteppers(el, (k, v) => mudar(f.id, (x) => { x.medidores[k] = v; }));
     el.querySelectorAll('[data-descanso]').forEach((b) => b.addEventListener('click', () => descansar(f.id, b.dataset.descanso)));
     el.querySelectorAll('button[data-cond]').forEach((b) => b.addEventListener('click', () => mudar(f.id, (x) => {
       const k = b.dataset.cond; const arr = x.medidores.condicoes;
       x.medidores.condicoes = arr.includes(k) ? arr.filter((y) => y !== k) : arr.concat(k);
     })));
-    const rolagens = { ini: ['Iniciativa', c.iniciativa, 'atributo'], ref: ['Reflexos', c.reflexos, 'salva'], for: ['Fortitude', c.fortitude, 'salva'], men: ['Mente', c.mente, 'salva'] };
+    const rolagens = { esq: ['Esquivar', c.esquivar, 'pericia'], blo: ['Bloquear', c.bloquear, 'pericia'], ini: ['Iniciativa', c.iniciativa, 'atributo'], ref: ['Reflexos', c.reflexos, 'salva'], for: ['Fortitude', c.fortitude, 'salva'], men: ['Mente', c.mente, 'salva'] };
     el.querySelectorAll('[data-rolar]').forEach((b) => b.addEventListener('click', () => { const r = rolagens[b.dataset.rolar]; rolar(f, r[0], r[1], r[2], b.dataset.rolar === 'ini' ? false : undefined); }));
     el.querySelectorAll('[data-attr]').forEach((b) => b.addEventListener('click', () => rolar(f, (LD.byKey(LD.ATRIBUTOS, b.dataset.attr) || {}).nome, c.A[b.dataset.attr], 'atributo')));
     el.querySelectorAll('[data-per]').forEach((b) => b.addEventListener('click', () => {
       const p = LD.byKey(LD.PERICIAS, b.dataset.per);
-      rolar(f, p.nome, c.A[p.attr] + 2 * num(f.pericias[p.key]), 'pericia');
+      const mk = (marcas[p.key] || []);
+      const modo = mk.some((m) => m.tipo === 'des') ? 'desvantagem' : null;
+      if (modo) { const antes = st.modo; st.modo = modo; rolar(f, `${p.nome} (${mk.map((m) => m.txt).join(', ')})`, c.A[p.attr] + R.grau(f, p.key), 'pericia'); st.modo = antes; return; }
+      rolar(f, p.nome, c.A[p.attr] + R.grau(f, p.key), 'pericia');
     }));
     el.querySelectorAll('[data-atk]').forEach((b) => b.addEventListener('click', () => {
       const i = +b.dataset.atk; const a = ataques[i];
@@ -443,7 +464,7 @@
     return mudar(id, (x) => {
       const c = R.calc(x); const m = x.medidores;
       if (tipo === 'curto') {
-        m.pv = Math.min(c.pvMax, m.pv + Math.floor(c.pvMax / 4));
+        m.pv = Math.min(c.pvMax, m.pv + Math.floor(c.pvMax / 4) + 2 * c.G('vitalidade'));
         m.energia = Math.max(m.energia, Math.floor(c.energiaMax / 2));
         m.fadiga = Math.max(0, m.fadiga - 1);
       } else if (tipo === 'longo' || tipo === 'seguro') {
@@ -685,7 +706,7 @@
       </div>
       ${ep ? `<div class="sig panel"><div><span class="caps">Núcleo</span> ${esc(ep.nucleo)}</div><div><span class="caps">Assinatura</span> ${esc(ep.assinatura)}</div><div><span class="caps">Técnica (2 Energia)</span> ${esc(ep.tecnica)}</div>
         ${f.assinatura2 ? `<div><span class="caps">2ª Assinatura</span> ${esc((LD.byKey(LD.ESTILOS_PODER, f.assinatura2) || {}).assinatura || '')}</div>` : ''}</div>` : ''}
-      ${f.tradicao ? (() => { const t = LD.byKey(LD.TRADICOES, f.tradicao); return `<div class="sig panel"><div><span class="caps">Conjura com</span> ${t.attr} + ${t.pericia === 'ciencia' ? 'Ciência' : 'Ocultismo'}</div><div><span class="caps">Vantagem</span> ${esc(t.vantagem)}</div><div><span class="caps">Limite</span> ${esc(t.limite)}</div></div>`; })() : ''}
+      ${f.tradicao ? (() => { const t = LD.byKey(LD.TRADICOES, f.tradicao); return `<div class="sig panel"><div><span class="caps">Conjura com</span> ${t.attr} + ${(LD.byKey(LD.PERICIAS, t.pericia) || {}).nome || 'Ocultismo'}</div><div><span class="caps">Vantagem</span> ${esc(t.vantagem)}</div><div><span class="caps">Limite</span> ${esc(t.limite)}</div></div>`; })() : ''}
 
       <div class="subsect"><span>Poderes da ficha</span><span class="tag gold">${c.ppGastos} / ${c.ppTotal} PP</span></div>
       <div class="pow-play">${f.poderes.map((p) => poderResumo(f, p, c, `${num(p.grau) < c.grauMax ? `<button class="btn-primary small-btn" data-sobe="${esc(p.id)}" ${R.custoPoder(p).porGrau > c.ppLivres ? 'disabled title="Faltam PP"' : ''}>Aprimorar (+${R.custoPoder(p).porGrau} PP)</button>` : '<span class="tag">Grau máximo</span>'}<button class="btn" data-editp="${esc(p.id)}">Editar</button><button class="btn plain" data-libp="${esc(p.id)}">Pôr na biblioteca</button><button class="btn plain danger" data-rmp="${esc(p.id)}">Tirar</button>`)).join('') || '<div class="empty small-empty">Nenhum poder ainda.</div>'}</div>
@@ -746,8 +767,15 @@
       pontaria: `Acerto ${s(c.A.AGI + g)} · +${Math.floor(g / 2)}d6 na arma`,
       esquiva: `Defesa ${c.defesa} · Esquivar ${s(c.esquivar)}`,
       acrobacia: `Reflexos ${s(c.reflexos)}`,
-      atletismo: `Deslocamento ${c.deslocamento} m`,
-      forca_bruta: `Carga ${c.carga} kg`,
+      corrida: `Deslocamento ${c.deslocamento} m`,
+      forca_bruta: `Empurrar +${g} m`,
+      guarda: `Bloquear ${s(c.bloquear)}`,
+      pesadas: `Acerto ${s(c.A.FOR + g)} · +${Math.floor(g / 2)}d6 na arma`,
+      arremesso: `Acerto ${s(c.A.FOR + g)} · +${Math.floor(g / 2)}d6`,
+      vitalidade: `Segundo Fôlego +${c.A.VIG + c.degrau + 2 * g} PV`,
+      imunidade: `Contra veneno ${s(c.A.VIG + g)}`,
+      aclimatacao: `Contra o ambiente ${s(c.A.VIG + g)}`,
+      coragem: `Contra Medo ${s(c.A.VON + g)}`,
       resiliencia: `Fortitude ${s(c.fortitude)} · PV ${c.pvMax}`,
       folego: `Fôlego ${c.folego} rodadas${c.energiaAttr === 'VIG' ? ` · Energia ${c.energiaMax}` : ''}`,
       tatica: `Ler a Brecha ${s(c.brecha)}`,
@@ -763,6 +791,7 @@
 
   function passoTreino(el, f, c) {
     const teto = c.tetoPericia;
+    const marcasP = R.marcasPericias(f);
     const sugestoes = c.ptLivres > 0 ? LD.PERICIAS.filter((p) => num(f.pericias[p.key]) < teto)
       .sort((a, b) => (b.efeito ? 1 : 0) - (a.efeito ? 1 : 0) || c.A[b.attr] - c.A[a.attr] || num(f.pericias[b.key]) - num(f.pericias[a.key])).slice(0, 6) : [];
     el.innerHTML = `
@@ -774,7 +803,7 @@
         <div class="per-list">${LD.PERICIAS.filter((p) => p.attr === a.key).map((p) => {
           const g = num(f.pericias[p.key]);
           return `<div class="per ${g ? 'on' : ''}">
-            <div class="per-l"><span class="p-n" title="${esc(p.desc)}">${esc(p.nome)}${p.efeito ? ' <span class="star" title="' + esc(p.efeito) + '">★</span>' : ''}</span>
+            <div class="per-l"><span class="p-n" title="${esc(p.desc)}">${esc(p.nome)}${p.efeito ? ' <span class="star" title="' + esc(p.efeito) + '">★</span>' : ''}${marcaTag(marcasP[p.key])}</span>
               ${g ? `<span class="p-fx">${esc(efeitoAgora(p, R.grau(f, p.key), c))}</span>` : `<span class="p-desc">${esc(p.desc)}</span>`}</div>
             <div class="per-r"><span class="num">${sinal(c.A[p.attr] + R.grau(f, p.key))}</span>
               <div class="seg" data-pericia="${p.key}">${[0, 1, 2, 3, 4, 5].map((i) => `<button class="${g === i ? 'on' : ''}" data-g="${i}" ${i > teto ? 'disabled' : ''} title="${esc(LD.GRAUS_PERICIA[i])}: ${i} PT">${i || '—'}</button>`).join('')}</div></div>
@@ -811,6 +840,7 @@
 
       <div class="subsect"><span>Fraquezas</span></div>
       <p class="muted small">Usar a Fraqueza em cena: +2 Energia e 1 Determinação.</p>
+      ${R.fraquezasDe(f).filter((w) => w.fixa).map((w) => `<div class="weak fixa"><div class="weak-h"><b>${esc(w.nome)}</b><span class="tag">da Origem</span></div><div class="small">${esc(w.efeito)}</div></div>`).join('')}
       <div class="weak-list">${f.fraquezas.map((w, i) => `
         <div class="weak">
           <div class="weak-h">
@@ -826,7 +856,7 @@
           </div></details>
         </div>`).join('')}</div>
       <div class="btn-row">
-        <select data-addw><option value="">＋ Fraqueza da lista…</option>${LD.FRAQUEZAS.map((w) => `<option value="${w.key}">${esc(w.nome)} (${(LD.byKey(LD.GRAVIDADES, w.gravidade) || {}).nome})</option>`).join('')}</select>
+        <select data-addw><option value="">＋ Fraqueza da lista…</option>${LD.FRAQUEZAS.filter((w) => !w.origem).map((w) => `<option value="${w.key}">${esc(w.nome)} (${(LD.byKey(LD.GRAVIDADES, w.gravidade) || {}).nome})</option>`).join('')}</select>
         <button class="btn" data-addw-propria>＋ Criar Fraqueza própria</button>
       </div>
       <details class="ref"><summary>Medidas de gravidade</summary><table class="tbl"><tbody>${LD.GRAVIDADES.map((g) => `<tr><td><b>${g.nome}</b></td><td>${esc(g.efeito)}</td></tr>`).join('')}</tbody></table></details>`;
@@ -849,17 +879,18 @@
   /* ---------- 7. Vida civil ---------- */
   function passoCivil(el, f, c) {
     const travado = f.aprovada && !LD.store.isMaster();
+    const semLugar = R.hasTraco(f, 'sem_lugar');
     el.innerHTML = `
       <h2>Vida civil e dinheiro</h2>
       <div class="row">
-        ${field('Começa com', select('recursos', LD.DINHEIRO_PARTIDA.map((x) => ({ key: x.key, nome: `${x.nome} (${R.fmtUS(x.valor)})` })), Math.min(2, num(f.recursos, 1)), travado ? 'disabled' : ''), f.aprovada ? 'Congelado na aprovação.' : 'Rico (+US$ 15.000) e Sem Lugar (US$ 0) são Traços.')}
-        ${f.origem === 'treinado' ? field('Família rica (Treinado)', checkbox('familiaRica', f.recursosOpcao === 'familia_rica', 'Troca 2 PT por US$ 10.000 iniciais', 'data-skip' + (travado ? ' disabled' : ''))) : ''}
+        ${semLugar ? field('Começa com', '<div class="ro-val">US$ 0</div>', 'Sem Lugar: sem casa, sem emprego, sem dinheiro.') : field('Começa com', select('recursos', LD.DINHEIRO_PARTIDA.map((x) => ({ key: x.key, nome: `${x.nome} (${R.fmtUS(x.valor)})` })), Math.min(2, num(f.recursos, 1)), travado ? 'disabled' : ''), f.aprovada ? 'Congelado na aprovação.' : 'Rico (+US$ 15.000) e Sem Lugar (US$ 0) são Traços.')}
+        ${f.origem === 'treinado' && !semLugar ? field('Família rica (Treinado)', checkbox('familiaRica', f.recursosOpcao === 'familia_rica', 'Troca 2 PT por US$ 10.000 iniciais', 'data-skip' + (travado ? ' disabled' : ''))) : ''}
         <div class="field"><label>Saldo agora</label><div class="ro-val">${esc(R.fmtUS(c.dinheiro))}</div><span class="hint">Inicial ${esc(R.fmtUS(c.dinheiroInicial))}${num(f.creditos) ? ` · créditos ${esc(R.fmtUS(f.creditos))}` : ''}${num(f.gastoTotal) ? ` · gastos ${esc(R.fmtUS(f.gastoTotal))}` : ''}</span></div>
       </div>
       ${checkbox('novaEgide', f.novaEgide, 'Faz parte da Nova Égide (o Arsenal do Observatório e os Kits são de graça)')}
       <div class="row" style="margin-top:16px">
-        ${field('Emprego', input('vidaCivil.emprego', f.vidaCivil.emprego, 'placeholder="Entregadora, enfermeira, estudante…"'), `Salário: ${f.salario ? R.fmtUS(f.salario) + ' por semana' : 'a mestragem define na aprovação'}.`)}
-        ${field('Onde mora', `<input name="vidaCivil.mora" list="moradias" value="${esc(f.vidaCivil.mora)}"><datalist id="moradias">${MORADIAS.map((x) => `<option value="${esc(x)}">`).join('')}</datalist>`)}
+        ${semLugar ? field('Emprego', '<div class="ro-val">—</div>', 'Sem Lugar.') : field('Emprego', input('vidaCivil.emprego', f.vidaCivil.emprego, 'placeholder="Entregadora, enfermeira, estudante…"'), `Salário: ${f.salario ? R.fmtUS(f.salario) + ' por semana' : 'a mestragem define na aprovação'}.`)}
+        ${semLugar ? field('Onde mora', '<div class="ro-val">Na rua</div>', 'Sem Lugar.') : field('Onde mora', `<input name="vidaCivil.mora" list="moradias" value="${esc(f.vidaCivil.mora)}"><datalist id="moradias">${MORADIAS.map((x) => `<option value="${esc(x)}">`).join('')}</datalist>`)}
       </div>
       ${checkbox('vidaCivil.identidadeSecreta', f.vidaCivil.identidadeSecreta, 'Tem identidade secreta')}
       ${field('Quem sabe', input('vidaCivil.quemSabe', f.vidaCivil.quemSabe, 'placeholder="A avó, um colega do DAME…"'))}
@@ -893,12 +924,12 @@
   function renderTreino(el, f, c, editar) {
     const t = R.treinoDe(f); const pode = R.podeTreinar(f);
     const st2 = st.treino = st.treino || {};
-    const form = st2[f.id] = st2[f.id] || Object.assign({ area: 'luta', intensidade: 'duro', lugar: '', mentor: '', cena: '' }, rascunho.ler(f.id) || {});
+    const form = st2[f.id] = st2[f.id] || Object.assign({ area: 'luta', intensidade: 'duro', lugar: '', cena: '' }, rascunho.ler(f.id) || {});
+    delete form.mentor;
     const areas = R.areasTreino();
     const b = R.bonusTreino(f, form.area, form.lugar);
     const pen = penalidade(f, 'tudo');
     const it = LD.INTENSIDADES.find((i) => i.key === form.intensidade);
-    const mentores = LD.MENTORES_TREINO.filter((m) => R.valeTreino(m.areas, form.area) || R.valeTreino(m.areas, b.area.pericia));
     const nivel = String(c.degrau); const teto = R.tetoPTTreino(f); const noNivel = num(t.porNivel[nivel]);
     const marcas = Object.entries(t.marcas).filter(([, v]) => v > 0);
     const podeTrocar = (f.origem === 'arcano' && num(t.ptArea.magia) >= 2 * (t.trocas + 1)) || (f.origem === 'engenhoso' && num(t.ptArea.tecnologia) >= 2 * (t.trocas + 1));
@@ -921,12 +952,11 @@
         </div>
         <div class="row">
           ${field('Onde', select('t_lugar', LD.LUGARES_TREINO.map((l) => ({ key: l.key, nome: l.nome + (l.key && (R.valeTreino(l.areas, form.area) || R.valeTreino(l.areas, b.area.pericia)) ? ' (+2)' : '') })), form.lugar), b.lugar ? 'Lugar de treino: +2.' : 'Sem bônus de lugar para esta área.')}
-          ${field('Mentor na cena', select('t_mentor', [{ key: '', nome: 'Sem mentor' }].concat(mentores.map((m) => ({ key: m.key, nome: m.nome }))), form.mentor), 'Vantagem · Vínculo 2')}
         </div>
         ${field(`A cena do treino (mínimo ${LD.TREINO_CENA_MIN} caracteres)`, textarea('t_cena', form.cena, 'rows="8" placeholder="Onde, o quê e como."'), `<span data-cont>${form.cena.trim().length}</span> / ${LD.TREINO_CENA_MIN}`)}
         <div class="treino-rolar">
           <div class="big-mod">${sinal(b.total + pen.p)}</div>
-          <div class="muted small">${esc(b.area.attr)} ${sinal(b.attr)} · Perícia ${sinal(b.pericia)}${b.lugar ? ' · lugar +2' : ''}${b.distensao ? ' · Distensão −2' : ''}${pen.p ? ` · ${esc(pen.motivos.join(', '))} ${pen.p}` : ''}${form.mentor ? ' · Vantagem' : ''} contra CD ${it.cd}</div>
+          <div class="muted small">${esc(b.area.attr)} ${sinal(b.attr)} · Perícia ${sinal(b.pericia)}${b.lugar ? ' · lugar +2' : ''}${b.distensao ? ' · Distensão −2' : ''}${pen.p ? ` · ${esc(pen.motivos.join(', '))} ${pen.p}` : ''} contra CD ${it.cd}</div>
           <button class="btn primary" data-treinar ${pode.ok && !falta ? '' : 'disabled'}>Treinar</button>
           <div class="muted small" data-motivo>${!pode.ok ? esc(pode.motivo) : falta ? `Faltam ${falta} caracteres na cena.` : ''}</div>
         </div>
@@ -938,7 +968,7 @@
             <b>${esc(nomeArea(e.area))}</b> · ${esc((LD.INTENSIDADES.find((i) => i.key === e.intensidade) || {}).nome || '')}
             · ${e.total} vs CD ${e.cd} <span class="tag ${e.passou ? 'ok' : 'bad'}">${e.passou ? `+${e.marcas} Marca${e.marcas > 1 ? 's' : ''}` : 'falhou'}</span>
             ${e.novosPT ? `<span class="tag gold">+${e.novosPT} PT</span>` : ''}${e.lesao ? `<span class="tag bad">${esc(e.lesao)}</span>` : ''}${e.fadiga ? `<span class="tag warn">+${e.fadiga} Fadiga</span>` : ''}</summary>
-          <div class="tlog-body"><p class="muted small">d20 [${esc((e.dados || []).join(', '))}]${e.lugar ? ' · ' + esc((LD.LUGARES_TREINO.find((l) => l.key === e.lugar) || {}).nome || '') : ''}${e.mentor ? ' · mentor: ' + esc((LD.MENTORES_TREINO.find((m) => m.key === e.mentor) || {}).nome || '') : ''}</p>
+          <div class="tlog-body"><p class="muted small">d20 [${esc((e.dados || []).join(', '))}]${e.lugar ? ' · ' + esc((LD.LUGARES_TREINO.find((l) => l.key === e.lugar) || {}).nome || '') : ''}</p>
             <p class="cena">${esc(e.cena).replace(/\n/g, '<br>')}</p></div>
         </details>`).join('')}</div>` : '<p class="muted">Nenhum treino ainda.</p>'}`;
 
@@ -946,8 +976,8 @@
     if (troca) troca.addEventListener('click', () => mudar(f.id, (x) => { const tt = R.treinoDe(x); tt.trocas += 1; x.treino = tt; }));
     if (!editar) return;
     const redesenhar = () => { rascunho.salvar(f.id, form); renderTreino(el, LD.fichas.ficha(f.id), R.calc(LD.fichas.ficha(f.id)), editar); };
-    [['t_area', 'area'], ['t_int', 'intensidade'], ['t_lugar', 'lugar'], ['t_mentor', 'mentor']].forEach(([n, k]) => {
-      el.querySelector(`[name="${n}"]`).addEventListener('change', (e) => { form[k] = e.target.value; if (k === 'area') form.mentor = ''; redesenhar(); });
+    [['t_area', 'area'], ['t_int', 'intensidade'], ['t_lugar', 'lugar']].forEach(([n, k]) => {
+      el.querySelector(`[name="${n}"]`).addEventListener('change', (e) => { form[k] = e.target.value; redesenhar(); });
     });
     const ta = el.querySelector('[name="t_cena"]'); const btn = el.querySelector('[data-treinar]');
     ta.addEventListener('input', () => {
@@ -961,9 +991,9 @@
       if (!p2.ok) { LD.ui.toast(p2.motivo, 'erro'); return; }
       if (form.cena.trim().length < LD.TREINO_CENA_MIN) return;
       const bb = R.bonusTreino(fx, form.area, form.lugar); const pp = penalidade(fx, 'tudo');
-      const r = LD.ui.rolarTeste(`${titulo(fx)} · Treino de ${bb.area.nome} (${it.nome})`, bb.total + pp.p, { modo: form.mentor ? 'vantagem' : 'normal', cd: it.cd });
+      const r = LD.ui.rolarTeste(`${titulo(fx)} · Treino de ${bb.area.nome} (${it.nome})`, bb.total + pp.p, { modo: 'normal', cd: it.cd });
       let entrada;
-      mudar(f.id, (x) => { entrada = R.aplicarTreino(x, { area: form.area, intensidade: form.intensidade, lugar: form.lugar, mentor: form.mentor, cena: form.cena.trim(), natural: r.natural, dados: r.dados, total: r.total }); });
+      mudar(f.id, (x) => { entrada = R.aplicarTreino(x, { area: form.area, intensidade: form.intensidade, lugar: form.lugar, cena: form.cena.trim(), natural: r.natural, dados: r.dados, total: r.total }); });
       form.cena = ''; rascunho.limpar(f.id); rascunho.salvar(f.id, Object.assign({}, form));
       if (entrada) LD.ui.toast(entrada.passou ? `Passou! +${entrada.marcas} Marca${entrada.marcas > 1 ? 's' : ''} em ${bb.area.nome}${entrada.novosPT ? `, e ${entrada.novosPT} PT novo` : ''}.${entrada.lesao ? ' Lesão: ' + entrada.lesao + '.' : ''}` : `Falhou.${entrada.lesao ? ' Lesão: ' + entrada.lesao + '.' : ''}`, entrada.lesao ? 'erro' : undefined);
     });
@@ -976,7 +1006,7 @@
       <div class="page-head" style="margin-bottom:12px">
         <div class="saldo-box">
           <div><span class="caps">Saldo</span><div class="saldo">${esc(R.fmtUS(c.dinheiro))}</div></div>
-          ${editar && num(f.salario) > 0 ? (f.semanaSalario === R.semanaAtual() ? `<span class="tag ok">Salário da semana recebido</span>` : `<button class="btn" data-salario>Receber o salário da semana (+${esc(R.fmtUS(f.salario))})</button>`) : `<span class="muted small">${num(f.salario) ? '' : 'Sem salário: a mestragem define.'}</span>`}
+          ${editar && R.salarioDe(f) > 0 ? (f.semanaSalario === R.semanaAtual() ? `<span class="tag ok">Salário da semana recebido</span>` : `<button class="btn" data-salario>Receber o salário da semana (+${esc(R.fmtUS(f.salario))})</button>`) : `<span class="muted small">${num(f.salario) ? '' : 'Sem salário: a mestragem define.'}</span>`}
           ${f.novaEgide ? '<span class="tag ok">Nova Égide: Observatório grátis</span>' : ''}
         </div>
         <a class="btn-primary" href="#/arsenal/${esc(f.id)}">Ir ao Arsenal</a>
@@ -1010,7 +1040,7 @@
     const sal = el.querySelector('[data-salario]');
     if (sal) sal.addEventListener('click', () => mudar(f.id, (x) => {
       if (x.semanaSalario === R.semanaAtual()) return;
-      x.semanaSalario = R.semanaAtual(); x.creditos = num(x.creditos) + num(x.salario);
+      if (!R.salarioDe(x)) return; x.semanaSalario = R.semanaAtual(); x.creditos = num(x.creditos) + num(x.salario);
       x.extrato = (x.extrato || []).concat({ quando: Date.now(), valor: num(x.salario), motivo: 'Salário da semana' }).slice(-80);
     }));
     const aj = el.querySelector('[data-ajuste]');

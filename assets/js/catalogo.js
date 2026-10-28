@@ -13,14 +13,14 @@
     // Armas
     I('faca', 'arma', 'Faca, porrete ou soco-inglês', 1, { preco: 40, pericia: 'laminas', bonusFixo: 1, dano: 'Lâminas + 1', potencia: 2, propriedades: 'Escondível.' }),
     I('espada', 'arma', 'Espada, lança ou bastão', 2, { preco: 300, pericia: 'laminas', dadosExtra: '1d6', dano: 'Lâminas + 1d6', potencia: 3, propriedades: 'Lança: alcance 3 m. Bastão: não letal.' }),
-    I('martelo', 'arma', 'Martelo ou machado grande', 2, { preco: 250, pericia: 'luta', dadosExtra: '1d6', dano: 'Luta + 1d6', potencia: 4, propriedades: 'Duas mãos. +1 de Quebra por acerto.' }),
-    I('arco', 'arma', 'Arco ou facas de arremesso', 2, { preco: 400, pericia: 'pontaria', dadosBase: '2d6', dano: '2d6', potencia: 3, propriedades: 'Silencioso. Alcance 50 m.' }),
+    I('martelo', 'arma', 'Martelo ou machado grande', 2, { preco: 250, pericia: 'pesadas', dadosExtra: '1d6', dano: 'Armas Pesadas + 1d6', potencia: 4, propriedades: 'Duas mãos. +1 de Quebra por acerto.' }),
+    I('arco', 'arma', 'Arco ou besta', 2, { preco: 400, pericia: 'pontaria', dadosBase: '2d6', dano: '2d6', potencia: 3, propriedades: 'Silencioso. Alcance 50 m.' }),
     I('pistola', 'arma', 'Pistola', 2, { preco: 600, pericia: 'pontaria', dadosBase: '2d6', dano: '2d6', potencia: 5, propriedades: 'Alcance 30 m. Barulho: todos na quadra ouvem.' }),
     I('escopeta', 'arma', 'Escopeta', 3, { preco: 1200, pericia: 'pontaria', dadosBase: '3d6', dano: '3d6, cone 6 m', potencia: 6, propriedades: 'Metade do dano além de 10 m.' }),
     I('fuzil', 'arma', 'Fuzil', 3, { preco: 3000, pericia: 'pontaria', dadosBase: '3d6', dano: '3d6', potencia: 8, propriedades: 'Alcance 200 m. Usado em público: +1 no Relógio do Registro.' }),
     I('explosivos', 'arma', 'Explosivos', 4, { preco: 5000, pericia: 'pontaria', dadosBase: '4d6', dano: '4d6, área 5 m', potencia: 10, propriedades: 'Estrago +1. Reflexos para metade.', cargas: 1 }),
     I('choque', 'arma', 'Arma de choque', 2, { preco: 350, pericia: 'pontaria', dadosBase: '2d6', dano: '2d6 Elétrico', potencia: 3, propriedades: 'Fortitude CD 14 ou Desligado (tecnologia) / Atordoado (pessoas).', observatorio: true }),
-    I('bumerangue', 'arma', 'Bumerangue ou disco', 1, { preco: 100, pericia: 'pontaria', dadosBase: '1d6', dano: '1d6', potencia: 2, propriedades: 'Arremesso que volta. Pode levar uma granada.' }),
+    I('bumerangue', 'arma', 'Bumerangue ou disco', 1, { preco: 100, pericia: 'arremesso', dadosBase: '1d6', dano: '1d6', potencia: 2, propriedades: 'Arremesso que volta. Pode levar uma granada.' }),
     // Proteção
     I('roupa', 'protecao', 'Roupa reforçada ou jaqueta de couro', 1, { preco: 150, protecao: 1, propriedades: 'Discreta.', observatorio: true }),
     I('colete', 'protecao', 'Colete à prova de balas', 2, { preco: 800, protecao: 3, propriedades: 'Por baixo da roupa. Rasga num crítico.', observatorio: true }),

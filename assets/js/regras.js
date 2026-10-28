@@ -25,48 +25,62 @@
   const PONTOS_DE_ATRIBUTO = 12;
 
   /* ---------- Perícias ----------
-   * 31 Perícias, separadas pelo Atributo que usam. Grau 0 a 5: cada grau custa 1 PT e dá +1 no teste. Teste = d20 + Atributo + Perícia.
+   * 42 Perícias, 7 por Atributo. Grau 0 a 5: cada grau custa 1 PT e dá +1 no teste. Teste = d20 + Atributo + Perícia.
    * "efeito" diz o que o site soma sozinho na ficha. */
   const P_ = (key, nome, attr, desc, efeito) => ({ key, nome, attr, desc, efeito: efeito || '' });
   const PERICIAS = [
     // Força
-    P_('luta', 'Luta', 'FOR', 'Socos, chutes, armas pesadas, briga de rua.', 'Ataque corpo a corpo +1 por grau. Dano desarmado: 1d6, mais 1d6 a cada 2 graus.'),
-    P_('atletismo', 'Atletismo', 'FOR', 'Escalar, nadar, saltar longe, correr.', 'Deslocamento +2 m por grau.'),
-    P_('agarrar', 'Agarrar', 'FOR', 'Agarrar, imobilizar, empurrar, derrubar, escapar.'),
-    P_('forca_bruta', 'Força Bruta', 'FOR', 'Arrombar, quebrar, carregar peso, segurar o que cai.', 'Carga +25% por grau.'),
+    P_('luta', 'Luta', 'FOR', 'Socos, chutes, briga de rua.', 'Ataque desarmado +1 por grau. Dano: 1d6, mais 1d6 a cada 2 graus.'),
+    P_('pesadas', 'Armas Pesadas', 'FOR', 'Martelos, machados, marretas, correntes.', 'Ataque com arma pesada +1 por grau. +1d6 de dano a cada 2 graus.'),
+    P_('arremesso', 'Arremesso', 'FOR', 'Facas, bumerangues, granadas, um carro.', 'Ataque de arremesso +1 por grau. +1d6 de dano a cada 2 graus.'),
+    P_('agarrar', 'Agarrar', 'FOR', 'Imobilizar, derrubar, escapar.', 'Manobras +1 por grau.'),
+    P_('guarda', 'Guarda', 'FOR', 'Bloquear golpes, cobrir quem está ao lado.', 'Bloquear +1 por grau.'),
+    P_('atletismo', 'Atletismo', 'FOR', 'Escalar, nadar, saltar.'),
+    P_('forca_bruta', 'Força Bruta', 'FOR', 'Arrombar, quebrar, erguer, segurar o que cai.', 'Empurrar +1 m por grau.'),
     // Agilidade
-    P_('laminas', 'Lâminas', 'AGI', 'Facas, espadas, lanças, armas leves.', 'Ataque com lâmina +1 por grau. Dano da arma, mais 1d6 a cada 2 graus.'),
-    P_('pontaria', 'Pontaria', 'AGI', 'Armas de fogo, arcos, arremesso.', 'Ataque à distância +1 por grau. Dano da arma, mais 1d6 a cada 2 graus.'),
+    P_('laminas', 'Lâminas', 'AGI', 'Facas, espadas, lanças.', 'Ataque com lâmina +1 por grau. +1d6 de dano a cada 2 graus.'),
+    P_('pontaria', 'Pontaria', 'AGI', 'Armas de fogo e arcos.', 'Ataque à distância +1 por grau. +1d6 de dano a cada 2 graus.'),
     P_('esquiva', 'Esquiva', 'AGI', 'Não estar onde o golpe chega.', 'Defesa e Esquivar +1 por grau.'),
-    P_('acrobacia', 'Acrobacia', 'AGI', 'Equilíbrio, quedas, telhados, escapar de amarras.', 'Reflexos +1 por grau.'),
+    P_('acrobacia', 'Acrobacia', 'AGI', 'Equilíbrio, quedas, telhados.', 'Reflexos +1 por grau.'),
     P_('furtividade', 'Furtividade', 'AGI', 'Esconder-se, andar sem ruído, seguir alguém.'),
-    P_('pilotagem', 'Pilotagem', 'AGI', 'Carros, motos, barcos, a Albatroz, perseguições.'),
-    P_('prestidigitacao', 'Prestidigitação', 'AGI', 'Mãos rápidas: bater carteira, fechaduras, truques.'),
+    P_('pilotagem', 'Pilotagem', 'AGI', 'Carros, motos, barcos, perseguições.'),
+    P_('prestidigitacao', 'Prestidigitação', 'AGI', 'Bater carteira, fechaduras, truques de mão.'),
     // Vigor
-    P_('resiliencia', 'Resiliência', 'VIG', 'Aguentar dor, veneno, doença, golpes.', 'Fortitude +1 por grau. PV +3 por grau.'),
-    P_('sobrevivencia', 'Sobrevivência', 'VIG', 'Frio, calor, fome, mata, mar, rastros.'),
-    P_('folego', 'Fôlego', 'VIG', 'Correr longe, prender a respiração, aguentar o cansaço.', 'Fôlego +1 rodada por grau. Energia +1 a cada 2 graus (quem não é Arcano).'),
+    P_('resiliencia', 'Resiliência', 'VIG', 'Aguentar dor e golpes.', 'Fortitude +1 por grau. PV +3 por grau.'),
+    P_('vitalidade', 'Vitalidade', 'VIG', 'Se recuperar rápido.', 'Segundo Fôlego e descanso curto: +2 PV por grau.'),
+    P_('imunidade', 'Imunidade', 'VIG', 'Veneno, gás, doença, bebida.', 'Contra veneno, gás e doença: +1 por grau.'),
+    P_('folego', 'Fôlego', 'VIG', 'Prender a respiração, aguentar o cansaço.', 'Fôlego +1 rodada por grau. Energia +1 a cada 2 graus (quem não é Arcano).'),
+    P_('corrida', 'Corrida', 'VIG', 'Correr rápido e longe, perseguições a pé.', 'Deslocamento +2 m por grau.'),
+    P_('aclimatacao', 'Aclimatação', 'VIG', 'Frio, calor, altitude, fundo do mar.', 'Contra o ambiente: +1 por grau.'),
+    P_('sobrevivencia', 'Sobrevivência', 'VIG', 'Mato, rua, fome, abrigo.'),
     // Intelecto
     P_('investigacao', 'Investigação', 'INT', 'Pistas, arquivos, deduções.'),
     P_('tatica', 'Tática', 'INT', 'Ler o combate, achar a Brecha, planejar.', 'Ler a Brecha +1 por grau.'),
-    P_('conhecimento', 'Conhecimento', 'INT', 'História, leis, idiomas, a política de Aldória.'),
-    P_('ciencia', 'Ciência', 'INT', 'Física, química, biologia, a estrela.'),
+    P_('conhecimento', 'Conhecimento', 'INT', 'História, leis, ciência, idiomas.'),
     P_('tecnologia', 'Tecnologia', 'INT', 'Máquinas, armaduras, consertar, sabotar.'),
     P_('computacao', 'Computação', 'INT', 'Hackear, redes, câmeras, rastrear sinais.'),
     P_('medicina', 'Medicina', 'INT', 'Primeiros socorros, cirurgia, levantar um Nocauteado.', 'Kit de Cura cura +1 por grau.'),
-    P_('ocultismo', 'Ocultismo', 'INT', 'Magia, Hespéria, a Fome, deuses, rituais.', 'Conjurar +1 por grau.'),
+    P_('ocultismo', 'Ocultismo', 'INT', 'Magia, deuses, rituais.', 'Conjurar +1 por grau.'),
     // Vontade
     P_('percepcao', 'Percepção', 'VON', 'Ver, ouvir, notar a emboscada.', 'Percepção passiva e Iniciativa +1 por grau.'),
     P_('intuicao', 'Intuição', 'VON', 'Sentir a mentira, ler intenções.'),
-    P_('concentracao', 'Concentração', 'VON', 'Sustentar poderes, resistir à mente e à Fome.', 'Mente +1 por grau. Para Arcanos, Energia +1 a cada 2 graus.'),
+    P_('rastreio', 'Rastreio', 'VON', 'Seguir trilhas, achar quem sumiu.'),
+    P_('concentracao', 'Concentração', 'VON', 'Sustentar poderes, resistir à mente.', 'Mente +1 por grau. Para Arcanos, Energia +1 a cada 2 graus.'),
+    P_('coragem', 'Coragem', 'VON', 'Não recuar diante do medo.', 'Contra Medo e Intimidação: +1 por grau.'),
     P_('dominio', 'Domínio do Poder', 'VON', 'Mirar e controlar os próprios poderes.', 'Acerto dos poderes +1 por grau.'),
+    P_('adestramento', 'Adestramento', 'VON', 'Animais e criaturas.'),
     // Presença
     P_('persuasao', 'Persuasão', 'PRE', 'Convencer, negociar, inspirar.'),
-    P_('enganacao', 'Enganação', 'PRE', 'Mentir, disfarçar, blefar, infiltrar.'),
-    P_('intimidacao', 'Intimidação', 'PRE', 'Ameaçar, interrogar, fazer o capanga largar a arma.'),
-    P_('lideranca', 'Liderança', 'PRE', 'Comandar, organizar, levantar o moral.', 'Ajudar um aliado dá +1 extra por grau.'),
-    P_('performance', 'Performance', 'PRE', 'Discurso, arte, distrair, chamar atenção.')
+    P_('enganacao', 'Enganação', 'PRE', 'Mentir, blefar.'),
+    P_('disfarce', 'Disfarce', 'PRE', 'Se passar por outra pessoa.'),
+    P_('intimidacao', 'Intimidação', 'PRE', 'Ameaçar, interrogar.'),
+    P_('lideranca', 'Liderança', 'PRE', 'Comandar, levantar o moral.', 'Ajudar um aliado dá +1 extra por grau.'),
+    P_('performance', 'Performance', 'PRE', 'Discurso, arte, distrair.'),
+    P_('malandragem', 'Malandragem', 'PRE', 'A rua, o submundo, quem vende o quê.')
   ];
+  // Perícias que saíram ou mudaram de nome: a ficha antiga é convertida (fica o maior grau).
+  const PERICIAS_ANTIGAS = { ciencia: 'conhecimento' };
+  const CARGA_MOCHILA = 25; // kg, sempre
   const GRAUS_PERICIA = ['—', 'Treinado', 'Experiente', 'Especialista', 'Mestre', 'Lenda'];
   const CUSTO_PERICIA = [0, 1, 2, 3, 4, 5]; // total: 1 PT por grau
 
@@ -126,9 +140,38 @@
     ['Fonte', 'O poder precisa de algo do ambiente. Sem ela, age uma Classe abaixo.', 'seria'],
     ['Coração mole', 'Com um civil em perigo ao alcance, a Ação do turno tem que ser o Resgate.', 'leve'],
     ['Passado', 'Alguém sabe quem ele é e cobra. Uma vez por edição, o mestre traz esse alguém.', 'leve'],
-    ['Carne e osso', '(Treinado) Controle Mental, Medo e Sussurro contra ele têm Vantagem.', 'leve'],
-    ['Descontrole', 'Num 1 natural com poder, o poder age sozinho e o Estrago sobe 2.', 'leve']
-  ].map(([nome, efeito, gravidade]) => ({ key: slug(nome), nome, efeito, gravidade }));
+    ['Descontrole', 'Num 1 natural com poder, o poder age sozinho e o Estrago sobe 2.', 'leve'],
+    // As da Origem: entram sozinhas na ficha e não saem.
+    ['Carne e osso', 'Controle Mental, Medo e Sussurro contra ele têm Vantagem.', 'leve', 'treinado'],
+    ['Meia-noite', 'Quando o fragmento falha, fica Apagado.', 'leve', 'desperto'],
+    ['Palavra dada', 'Quebrar a palavra tira toda a Energia.', 'leve', 'mitico'],
+    ['Equipamento', 'O equipamento pode ser roubado, quebrado e Desligado.', 'leve', 'engenhoso'],
+    ['Estranheza', '−2 em Persuasão e Enganação com humanos.', 'leve', 'visitante']
+  ].map(([nome, efeito, gravidade, origem]) => ({ key: slug(nome), nome, efeito, gravidade, origem: origem || null }));
+  // Fraquezas que a ficha tem: a da Origem (fixa) + as escolhidas.
+  function fraquezasDe(f) {
+    const fixas = FRAQUEZAS.filter((w) => w.origem && w.origem === f.origem).map((w) => Object.assign({ fixa: true }, w));
+    return fixas.concat((f.fraquezas || []).filter((w) => !FRAQUEZAS.some((x) => x.origem && x.key === w.key)));
+  }
+  // O que Traços e Fraquezas mudam em cada Perícia (aparece na ficha e na rolagem).
+  const MARCAS_TRACO = {
+    mentiroso_ruim: { enganacao: ['des', 'Mentiroso Ruim'] },
+    maos_de_ouro: { tecnologia: ['van', 'Mãos de Ouro (sem ferramentas)'] },
+    sangue_frio: { coragem: ['van', 'Sangue-Frio (Medo)'], concentracao: ['van', 'Sangue-Frio (Medo)'] },
+    memoria: { investigacao: ['van', 'Memória Fotográfica (lembrar)'], conhecimento: ['van', 'Memória Fotográfica (lembrar)'] },
+    rosto_comum: { furtividade: ['van', 'Rosto Comum (se misturar)'], disfarce: ['van', 'Rosto Comum (se misturar)'] },
+    bom_de_copo: { imunidade: ['van', 'Bom de Copo (venenos ingeridos)'] },
+    direcao: { sobrevivencia: ['van', 'Sentido de Direção (nunca se perde)'] },
+    maos_leves: {},
+    estranheza: { persuasao: ['menos2', 'Estranheza (com humanos)'], enganacao: ['menos2', 'Estranheza (com humanos)'] },
+    carne_e_osso: { concentracao: ['nota', 'Carne e osso: Controle Mental e Medo contra você têm Vantagem'], coragem: ['nota', 'Carne e osso: Medo contra você tem Vantagem'] }
+  };
+  function marcasPericias(f) {
+    const ks = (f.qualidades || []).concat(f.defeitos || [], fraquezasDe(f).map((w) => w.key));
+    const out = {};
+    ks.forEach((k) => Object.entries(MARCAS_TRACO[k] || {}).forEach(([p, m]) => { (out[p] = out[p] || []).push({ tipo: m[0], txt: m[1] }); }));
+    return out;
+  }
   const GRAVIDADES = [
     { key: 'leve', nome: 'Leve', efeito: '−2 em tudo, ou perde uma Reação, ou um poder age um Grau abaixo.' },
     { key: 'seria', nome: 'Séria', efeito: 'Desvantagem em tudo, ou um poder some, ou age uma Classe abaixo.' },
@@ -155,7 +198,6 @@
     ['rico', 'Rico', 2, 'Começa com US$ 15.000 a mais.'],
     ['sexto_sentido', 'Sexto Sentido', 2, 'Uma vez por cena, age primeiro numa emboscada.'],
     ['treino_militar', 'Treino Militar', 2, '+1 grau de graça em Pontaria (pode passar do teto).'],
-    ['mentor', 'Mentor', 2, 'Vínculo 1 com um mentor.'],
     ['fragmento_estavel', 'Fragmento Estável', 3, '(Despertos) A meia-noite dura uma rodada a menos.', 'desperto'],
     ['coracao_antigo', 'Coração Antigo', 3, '(Míticos) Fala com qualquer Vigia como igual.', 'mitico'],
     ['vontade_ferro', 'Vontade de Ferro', 3, 'Sussurro só pesa a partir de 2, e Controlado só acontece com 4.']
@@ -319,7 +361,7 @@
     ['pacto', 'Pacto', 'VON', 'ocultismo', 'Uma vez por sessão, o patrono paga a Energia de um feitiço.', 'Cada vez, a Dívida cresce.'],
     ['fe', 'Fé', 'PRE', 'ocultismo', 'Vida e Proteção com +2 na conjuração.', 'Um Juramento: quebrar tira a magia até a próxima sessão.'],
     ['cartas', 'Cartas e Sorte', 'VON', 'ocultismo', 'Uma vez por cena, rerrola uma conjuração.', 'Caos é obrigatória como primeira escola.'],
-    ['alquimia', 'Alquimia', 'INT', 'ciencia', 'Feitiços viram poções: até INT por descanso.', 'Sem laboratório, não prepara.'],
+    ['alquimia', 'Alquimia', 'INT', 'conhecimento', 'Feitiços viram poções: até INT por descanso.', 'Sem laboratório, não prepara.'],
     ['dom', 'Dom', 'VON', 'ocultismo', 'Feitiço livre de Grau 2 em vez de 1.', 'Não aprende escola nova sem a mestragem.']
   ].map(([key, nome, attr, pericia, vantagem, limite]) => ({ key, nome, attr, pericia, vantagem, limite }));
   const PRECOS_MAGIA = ['Memória: esquece algo.', 'Sangue: perde Grau × 3 PV.', 'Eco: o Estrago sobe 1.', 'Dívida: alguém do outro lado anota.', 'Apagão: a escola fica bloqueada até o fim da cena.', 'Atenção: algo olha para o Arcano. +1 Sussurro.'];
@@ -502,6 +544,7 @@
     return v;
   }
   function dinheiro(f) { return dinheiroInicial(f) + num(f.creditos) - num(f.gastoTotal); }
+  function salarioDe(f) { return hasTraco(f, 'sem_lugar') ? 0 : num(f.salario); }
   const fmtUS = (v) => 'US$ ' + Math.round(num(v)).toLocaleString('pt-BR');
   function semanaAtual(d) {
     d = d || new Date();
@@ -533,26 +576,16 @@
     { key: '', nome: 'Outro lugar da cidade', areas: [] },
     { key: 'sala_treino', nome: 'Sala de Treino (Observatório)', areas: [TUDO] },
     { key: 'simulacao', nome: 'Sala de Simulação (Observatório)', areas: [TUDO] },
-    { key: 'oficina', nome: 'A Oficina (Observatório)', areas: ['tecnologia', 'ciencia', 'computacao'] },
-    { key: 'biblioteca', nome: 'A Biblioteca (Observatório)', areas: ['ocultismo', 'investigacao', 'ciencia', 'conhecimento', 'magia'] },
-    { key: 'santuario', nome: 'O Santuário (Observatório)', areas: ['poder', 'dominio', 'concentracao', 'magia', 'intuicao'] },
+    { key: 'oficina', nome: 'A Oficina (Observatório)', areas: ['tecnologia', 'conhecimento', 'computacao'] },
+    { key: 'biblioteca', nome: 'A Biblioteca (Observatório)', areas: ['ocultismo', 'investigacao', 'conhecimento', 'magia'] },
+    { key: 'santuario', nome: 'O Santuário (Observatório)', areas: ['poder', 'dominio', 'concentracao', 'coragem', 'magia', 'intuicao'] },
     { key: 'enfermaria', nome: 'Enfermaria (Observatório)', areas: ['medicina'] },
-    { key: 'trilha', nome: 'Trilha do Monte Vigia', areas: ['atletismo', 'sobrevivencia', 'acrobacia', 'folego'] },
-    { key: 'academia', nome: 'Academia do Porto (Vésper)', areas: ['luta', 'atletismo', 'intimidacao', 'agarrar'] },
+    { key: 'trilha', nome: 'Trilha do Monte Vigia', areas: ['atletismo', 'corrida', 'sobrevivencia', 'aclimatacao', 'rastreio', 'acrobacia', 'folego'] },
+    { key: 'academia', nome: 'Academia do Porto (Vésper)', areas: ['luta', 'guarda', 'atletismo', 'intimidacao', 'agarrar', 'malandragem'] },
     { key: 'clinica', nome: 'Clínica de Rua (Vésper)', areas: ['medicina'] },
     { key: 'quartel', nome: 'Quartel dos Registrados (Lúmen)', areas: [TUDO] },
     { key: 'patio', nome: 'Pátio de Armas (Hespéria)', areas: [TUDO] },
-    { key: 'forja', nome: 'Forja dos Vigias (Hespéria)', areas: ['luta', 'laminas', 'tecnologia'] }
-  ];
-  const MENTORES = [
-    { key: 'penumbra', nome: 'Penumbra', areas: ['tatica', 'luta', 'esquiva', 'investigacao', 'furtividade', 'intimidacao'] },
-    { key: 'aurora', nome: 'Capitã Aurora', areas: ['lideranca', 'persuasao', 'esquiva', 'pilotagem'] },
-    { key: 'talia', nome: 'Tália ou um Vigia', areas: ['luta', 'laminas', 'pontaria', 'resiliencia'] },
-    { key: 'ferreiro', nome: 'Ferreiro', areas: ['luta', 'forca_bruta', 'tecnologia'] },
-    { key: 'duarte', nome: 'Duarte', areas: ['luta', 'atletismo', 'agarrar'] },
-    { key: 'sonia', nome: 'Dra. Sônia Arruda', areas: ['medicina'] },
-    { key: 'ismenia', nome: 'Ismênia ou a Oráculo', areas: ['ocultismo', 'concentracao', 'magia', 'poder', 'dominio'] },
-    { key: 'heroi', nome: 'Outro herói (grau acima do seu)', areas: [TUDO] }
+    { key: 'forja', nome: 'Forja dos Vigias (Hespéria)', areas: ['pesadas', 'laminas', 'arremesso', 'guarda', 'tecnologia'] }
   ];
   // Áreas: as 31 Perícias, mais Poder e Magia.
   function areasTreino() {
@@ -591,7 +624,7 @@
     const dist = treinoDe(f).distensao.includes(areaKey) ? -2 : 0;
     return { area: a, attr: A[a.attr], grau: g, pericia: g, lugar: bLugar, distensao: dist, total: A[a.attr] + g + bLugar + dist };
   }
-  // Aplica um treino já rolado à ficha x (muta). r = {area, intensidade, lugar, mentor, cena, natural, total}
+  // Aplica um treino já rolado à ficha x (muta). r = {area, intensidade, lugar, cena, natural, total}
   function aplicarTreino(x, r, agora) {
     agora = agora || Date.now();
     const t = treinoDe(x); const it = INTENSIDADES.find((i) => i.key === r.intensidade);
@@ -622,7 +655,7 @@
     }
     if (m && fadiga) m.fadiga = clamp(num(m.fadiga) + fadiga, 0, 3);
     if (m && pvPerdido) m.pv = num(m.pv) - pvPerdido;
-    const entrada = { quando: agora, area: r.area, intensidade: r.intensidade, lugar: r.lugar || '', mentor: r.mentor || '', natural: r.natural, dados: r.dados || [r.natural], total: r.total, cd: it.cd, passou, marcas, novosPT, fadiga, lesao: lesao ? `${lesao.nome} (1d6: ${lesao.d6})${pvPerdido ? `: −${pvPerdido} PV` : ''}` : '', cena: String(r.cena || '').slice(0, 4000) };
+    const entrada = { quando: agora, area: r.area, intensidade: r.intensidade, lugar: r.lugar || '', natural: r.natural, dados: r.dados || [r.natural], total: r.total, cd: it.cd, passou, marcas, novosPT, fadiga, lesao: lesao ? `${lesao.nome} (1d6: ${lesao.d6})${pvPerdido ? `: −${pvPerdido} PV` : ''}` : '', cena: String(r.cena || '').slice(0, 4000) };
     t.log = t.log.concat(entrada).slice(-20);
     x.treino = t;
     return entrada;
@@ -691,7 +724,7 @@
     (f.poderes || []).forEach((p) => { const b = LD.byKey(PODERES, p.base); if (b && b.iniciativa) iniciativa += b.iniciativa(num(p.grau, 1)); });
     if (hasTraco(f, 'reflexos_gato')) iniciativa += 2;
 
-    let deslocamento = 10 + (hasTraco(f, 'corredor') ? 5 : 0) + 2 * G('atletismo');
+    let deslocamento = 10 + (hasTraco(f, 'corredor') ? 5 : 0) + 2 * G('corrida');
     const percepcaoPassiva = 10 + A.VON + pericia('percepcao') - (hasTraco(f, 'distraido') ? 3 : 0);
 
     // Potência
@@ -719,8 +752,8 @@
       pot, classe: cls, classeDegrau: classeDoDegrau(f), rotuloClasse: rotuloClasse(f), nivel, degrau: nivel, A, protecao, tetoProt, detalheProt, defesa, profDef, bonusDef, pvMax, energiaMax, energiaAttr, detMax, recursoNome,
       resistencia: A.VIG + protecao, potPoder, potGolpe, iniciativa, deslocamento, percepcaoPassiva,
       reflexos: A.AGI + pericia('acrobacia'), fortitude: A.VIG + pericia('resiliencia'), mente: A.VON + pericia('concentracao'),
-      esquivar: A.AGI + pericia('esquiva'), brecha: A.INT + pericia('tatica'), kitCura: `2d6+${pericia('medicina')}`, folego: A.VIG + 1 + G('folego'),
-      carga: Math.round(A.FOR * 25 * (1 + 0.25 * G('forca_bruta'))), tetoPericia: tetoPericia(f), G, teto: 5 + Math.floor(cls), ptTotal, ptGastos, ptLivres: ptTotal - ptGastos, ptPericias, ptEstilos, ptQualidades, ptOpcao, defeitosPT, fe,
+      esquivar: A.AGI + pericia('esquiva'), brecha: A.INT + pericia('tatica'), kitCura: `2d6+${pericia('medicina')}`, folego: (A.VIG + 1 + G('folego')) * (hasTraco(f, 'mergulhador') ? 2 : 1), bloquear: A.FOR + pericia('guarda'),
+      carga: CARGA_MOCHILA, tetoPericia: tetoPericia(f), G, teto: 5 + Math.floor(cls), ptTotal, ptGastos, ptLivres: ptTotal - ptGastos, ptPericias, ptEstilos, ptQualidades, ptOpcao, defeitosPT, fe,
       ppTotal, ppGastos, ppLivres: ppTotal - ppGastos, grauMax: grauMaximo(f), profAtaque, profEnergetico,
       recursos: recursos(f), dinheiro: dinheiro(f), dinheiroInicial: dinheiroInicial(f), equip, pericia
     };
@@ -754,9 +787,9 @@
     armas.forEach((w) => {
       const p = LD.byKey(PERICIAS, w.pericia) || LD.byKey(PERICIAS, 'luta');
       const g = c.G(p.key);
-      const attr = p.key === 'luta' ? 'FOR' : 'AGI';
+      const attr = p.attr;
       let dados, pot;
-      if (p.key === 'pontaria') { dados = (d6(w.dadosBase) || 1) + extra(g); pot = num(w.potencia); }
+      if (p.key === 'pontaria' || (p.key === 'arremesso' && w.dadosBase)) { dados = (d6(w.dadosBase) || 1) + extra(g); pot = num(w.potencia); }
       else { dados = 1 + extra(g) + d6(w.dadosExtra); pot = Math.max(num(w.potencia), c.potGolpe); }
       const danoFixo = c.A[attr] + pot + num(w.bonusFixo);
       out.push({ nome: w.nome, sub: `${p.nome} ${g}`, attr, bonus: c.A[attr] + g, dados: `${dados}d6`, danoFixo, expr: `${dados}d6+${danoFixo}` });
@@ -813,7 +846,7 @@
     if ((f.defeitos || []).length > MAX_DEFEITOS) out.push({ passo: 'tracos', msg: `No máximo ${MAX_DEFEITOS} Defeitos.` });
     (f.qualidades || []).forEach((k) => { const q = LD.byKey(QUALIDADES, k); if (q && q.origem && q.origem !== f.origem) out.push({ passo: 'tracos', msg: `${q.nome} é só para ${(LD.byKey(ORIGENS, q.origem) || {}).nome}.` }); });
     // Fraquezas (Regra do Preço)
-    const fr = f.fraquezas || [];
+    const fr = fraquezasDe(f);
     if (!fr.length) out.push({ passo: 'tracos', msg: 'Falta a Fraqueza.' });
     const grav = (x) => x.gravidade || ((LD.byKey(FRAQUEZAS, x.key) || {}).gravidade) || 'leve';
     const temGrave = fr.some((x) => grav(x) === 'grave');
@@ -871,14 +904,14 @@
   LD.ATRIBUTOS = ATRIBUTOS; LD.ESCALA_ATRIBUTO = ESCALA_ATRIBUTO; LD.ESCALA_CLASSE = ESCALA_CLASSE; LD.ESCALA_HUMANA = ESCALA_HUMANA; LD.PONTOS_DE_ATRIBUTO = PONTOS_DE_ATRIBUTO;
   LD.PERICIAS = PERICIAS; LD.GRAUS_PERICIA = GRAUS_PERICIA; LD.CUSTO_PERICIA = CUSTO_PERICIA;
   LD.FAIXAS = FAIXAS; LD.FE_NO_DESTINO = FE_NO_DESTINO; LD.ORIGENS = ORIGENS; LD.ARQUETIPOS = ARQUETIPOS;
-  LD.FRAQUEZAS = FRAQUEZAS; LD.GRAVIDADES = GRAVIDADES; LD.QUALIDADES = QUALIDADES; LD.DEFEITOS = DEFEITOS;
+  LD.FRAQUEZAS = FRAQUEZAS; LD.PERICIAS_ANTIGAS = PERICIAS_ANTIGAS; LD.CARGA_MOCHILA = CARGA_MOCHILA; LD.GRAVIDADES = GRAVIDADES; LD.QUALIDADES = QUALIDADES; LD.DEFEITOS = DEFEITOS;
   LD.MAX_DEFEITOS = MAX_DEFEITOS; LD.MAX_PT_DEFEITOS = MAX_PT_DEFEITOS;
   LD.ESTILOS_PODER = ESTILOS_PODER; LD.GRAUS = GRAUS; LD.PODERES = PODERES; LD.GRUPOS_PODER = GRUPOS_PODER;
   LD.EXTRAS = EXTRAS; LD.FALHAS = FALHAS; LD.TRADICOES = TRADICOES; LD.PRECOS_MAGIA = PRECOS_MAGIA;
   LD.CONDICOES = CONDICOES; LD.RECURSOS = RECURSOS; LD.CDS = CDS; LD.FADIGA = FADIGA; LD.KITS = KITS; LD.KITS_PADRAO = KITS_PADRAO;
-  LD.INTENSIDADES = INTENSIDADES; LD.LUGARES_TREINO = LUGARES_TREINO; LD.MENTORES_TREINO = MENTORES; LD.TREINO_CENA_MIN = TREINO_CENA_MIN;
+  LD.INTENSIDADES = INTENSIDADES; LD.LUGARES_TREINO = LUGARES_TREINO; LD.TREINO_CENA_MIN = TREINO_CENA_MIN;
   LD.DEGRAUS_CLASSE = DEGRAUS_CLASSE;
   LD.DINHEIRO_PARTIDA = DINHEIRO_PARTIDA; LD.SALARIOS = SALARIOS;
   LD.DEGRAUS_CLASSE = DEGRAUS_CLASSE; LD.MARCOS = MARCOS;
-  LD.rules = { degrau, classeDoDegrau, rotuloClasse, areasTreino, treinoDe, podeTreinar, bonusTreino, aplicarTreino, tetoPTTreino, valeTreino: vale, dinheiro, dinheiroInicial, fmtUS, semanaAtual, fmtClasse, slug, clamp, num, faixaDe, resultadoAjustado, potencial, classe, atributos, grauMaximo, custoPoder, calc, tetoAtributo, escalaAtributo, ataquePoder, ataques, grau, tetoPericia, comandosBot, feitico, rolarD20, rolarExpr, recursos, hasTraco, combinarProtecoes };
+  LD.rules = { salarioDe, fraquezasDe, marcasPericias, degrau, classeDoDegrau, rotuloClasse, areasTreino, treinoDe, podeTreinar, bonusTreino, aplicarTreino, tetoPTTreino, valeTreino: vale, dinheiro, dinheiroInicial, fmtUS, semanaAtual, fmtClasse, slug, clamp, num, faixaDe, resultadoAjustado, potencial, classe, atributos, grauMaximo, custoPoder, calc, tetoAtributo, escalaAtributo, ataquePoder, ataques, grau, tetoPericia, comandosBot, feitico, rolarD20, rolarExpr, recursos, hasTraco, combinarProtecoes };
 })();

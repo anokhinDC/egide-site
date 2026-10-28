@@ -76,7 +76,7 @@
           ${field('Cargas', `<input name="cargas" type="number" min="0" max="20" value="${esc(it.cargas || '')}">`)}
         </div>
         <div class="row">
-          ${field('Perícia (armas)', select('pericia', [{ key: '', nome: '—' }, { key: 'luta', nome: 'Luta' }, { key: 'laminas', nome: 'Lâminas' }, { key: 'pontaria', nome: 'Pontaria' }], it.pericia || ''))}
+          ${field('Perícia (armas)', select('pericia', [{ key: '', nome: '—' }, { key: 'luta', nome: 'Luta' }, { key: 'pesadas', nome: 'Armas Pesadas' }, { key: 'laminas', nome: 'Lâminas' }, { key: 'arremesso', nome: 'Arremesso' }, { key: 'pontaria', nome: 'Pontaria' }], it.pericia || ''))}
           ${field('Dados (à distância: o dano; corpo a corpo: o extra)', `<input name="dados" value="${esc(it.dadosBase || it.dadosExtra || '')}" placeholder="2d6">`)}
           ${field('Texto do dano', `<input name="dano" value="${esc(it.dano || '')}" placeholder="Lâminas + 1d6">`)}
           ${field('Potência', `<input name="potencia" type="number" min="0" max="30" value="${esc(it.potencia || '')}">`)}
@@ -93,7 +93,7 @@
           const v = LD.ui.readForm(d.querySelector('.drawer-body'));
           if (!v.nome) { LD.ui.toast('Dê um nome.', 'erro'); return; }
           v.preco = num(v.preco);
-          if (v.pericia === 'pontaria') { v.dadosBase = v.dados; v.dadosExtra = ''; } else { v.dadosExtra = v.dados; v.dadosBase = ''; }
+          if (v.pericia === 'pontaria' || v.pericia === 'arremesso') { v.dadosBase = v.dados; v.dadosExtra = ''; } else { v.dadosExtra = v.dados; v.dadosBase = ''; }
           delete v.dados;
           ['cargas', 'potencia', 'protecao', 'defesa'].forEach((k) => { v[k] = num(v[k]); });
           LD.store.save('itens', Object.assign(it, v)).then(() => LD.ui.closeDrawer());

@@ -22,7 +22,7 @@ ATACAR   1d20 + atributo + Perícia (Luta, Lâminas, Pontaria ou Domínio do Pod
 DANO     dados + atributo + Potência − Resistência do alvo   (Brecha: Resistência = só o VIG)
 CRÍTICO  20 natural: dados no máximo + rola os dados de novo (+1 Energia)
 REAÇÕES  Esquivar 1d20 + AGI + Esquiva ≥ ataque → errou
-         Bloquear 1d20 + FOR + Luta ≥ ataque → metade (escudo: nada)
+         Bloquear 1d20 + FOR + Guarda ≥ ataque → metade (escudo: nada)
          Aguentar: sem rolar, soma o VIG de novo e ignora a condição
 ÁREA     AGI (ou VIG) contra a CD → metade. Proteção 5 ou menos: Evasão (nada)</pre>
       <p><b>Ataque de poder:</b> atributo do poder + Domínio do Poder (ou metade do Grau, o que for maior). <b>Ainda de Pé:</b> uma vez por cena, quem tem Proteção 5 ou menos e levaria de mais da metade dos PV direto a 0 fica com 1 PV.</p>
@@ -36,7 +36,7 @@ REAÇÕES  Esquivar 1d20 + AGI + Esquiva ≥ ataque → errou
     ['status', 'Valores derivados', () => tabela(['Valor', 'Fórmula'], [
       ['PV máximo', '20 + VIG × 5 + 3 por degrau de Classe'], ['Defesa', '10 + AGI + Esquiva + bônus'], ['Resistência', 'VIG + Proteção'], ['Potência', 'Classe × 5 (golpes: só com Força Sobre-humana; Ápices 5)'],
       ['Iniciativa', '1d20 + AGI + Percepção'], ['Energia máxima', '3 + VIG (Arcanos: 3 + VON), +1 na Classe 1,7, 2,7 e 3,7'], ['Percepção passiva', '10 + VON + Percepção'], ['CD dos poderes', '10 + Grau'],
-      ['Reflexos / Fortitude / Mente', 'AGI + Acrobacia / VIG + Resiliência / VON + Concentração'], ['Carga', 'FOR × 25 kg']])],
+      ['Reflexos / Fortitude / Mente', 'AGI + Acrobacia / VIG + Resiliência / VON + Concentração'], ['Carga', '25 kg (a mochila, sempre)']])],
     ['energia', 'Energia', () => `${tabela(['Gasto', 'Custo'], [['Intensificar (+2d6 no dano)', '1 por uso, até 3'], ['Técnica', '2'], ['Façanha de Poder', '2'], ['Suprema', '5'], ['Sustentar', '1 por rodada'], ['Feitiço', 'o Grau']])}
       <p>Ganha-se: 2 no início de cada combate; +1 num crítico, numa Quebra, num Resgate; +2 ao trazer a Fraqueza; tudo num descanso de verdade.</p>`],
     ['medidores', 'Fadiga, Sussurro e descanso', () => `

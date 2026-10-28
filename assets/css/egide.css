@@ -621,3 +621,11 @@ ol.graus-lista li::marker { font-family: var(--display); font-size: 16px; color:
 @media (max-width: 640px) { .treino-topo { grid-template-columns: 1fr; } .tt-box b { font-size: 32px; } }
 
 html { background: var(--paper); forced-color-adjust: none; }
+
+/* Marcas de Traços nas Perícias */
+.tag.mk { font-size: 9.5px; padding: 1px 5px; margin-left: 4px; vertical-align: middle; }
+.tag.mk-des, .tag.mk-menos2 { background: #ffd0d3; }
+.tag.mk-van { background: #c9f2d9; }
+.tag.mk-nota { background: var(--yellow-2); }
+.weak.fixa { border-style: dashed; margin-bottom: 8px; }
+.fraq-jogo { margin: 6px 0 0; padding-left: 18px; }

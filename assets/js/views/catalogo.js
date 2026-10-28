@@ -55,7 +55,7 @@
         </div>
         <div class="subsect"><span>Tradições</span></div>
         <table class="tbl"><thead><tr><th>Tradição</th><th>Conjura com</th><th>Vantagem</th><th>Limite</th></tr></thead><tbody>
-        ${LD.TRADICOES.map((t) => `<tr><td><b>${esc(t.nome)}</b></td><td>${t.attr} + ${t.pericia === 'ciencia' ? 'Ciência' : 'Ocultismo'}</td><td class="small">${esc(t.vantagem)}</td><td class="small">${esc(t.limite)}</td></tr>`).join('')}</tbody></table>`;
+        ${LD.TRADICOES.map((t) => `<tr><td><b>${esc(t.nome)}</b></td><td>${t.attr} + ${(LD.byKey(LD.PERICIAS, t.pericia) || {}).nome || 'Ocultismo'}</td><td class="small">${esc(t.vantagem)}</td><td class="small">${esc(t.limite)}</td></tr>`).join('')}</tbody></table>`;
     }
     main.querySelectorAll('[data-aba]').forEach((b) => b.addEventListener('click', () => { st.aba = b.dataset.aba; render(main); }));
   }
