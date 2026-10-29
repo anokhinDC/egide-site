@@ -19,11 +19,12 @@
     personagens: 'egide_personagens',
     poderes: 'egide_poderes',
     itens: 'egide_itens',
-    alteracoes: 'egide_alteracoes'
+    alteracoes: 'egide_alteracoes',
+    config: 'egide_config'
   };
 
   // Além do mestre, quem pode criar em cada coleção.
-  const JOGADOR_PODE_CRIAR = { personagens: true, poderes: true, itens: false, alteracoes: true };
+  const JOGADOR_PODE_CRIAR = { personagens: true, poderes: true, itens: false, alteracoes: true, config: false };
 
   // Só estas contas são mestre.
   const MESTRES = ['mestre@beyonddepths.com', 'admin@beyonddepths.com'];
@@ -32,7 +33,7 @@
 
   const state = {
     db: null, auth: null, user: null, local: true, ready: false, negadas: [],
-    data: { personagens: [], poderes: [], itens: [], alteracoes: [] }
+    data: { personagens: [], poderes: [], itens: [], alteracoes: [], config: [] }
   };
 
   const listeners = new Set();

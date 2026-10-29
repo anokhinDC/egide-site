@@ -37,6 +37,8 @@
     f.vidaCivil = Object.assign({}, d.vidaCivil, f.vidaCivil);
     f.bonus = Object.assign({ pt: 0, pp: 0, det: 0 }, f.bonus);
     f.potencial = Object.assign({ resultado: '', rolagens: 1 }, f.potencial);
+    f.nsfw = Object.assign({ galeria: [], respostas: {}, marcas: {} }, f.nsfw);
+    if (f.adulto && (f.adulto.fetiches || f.adulto.limites)) { f.nsfw.respostas.fetiches = f.nsfw.respostas.fetiches || f.adulto.fetiches || ''; f.nsfw.respostas.limites = f.nsfw.respostas.limites || f.adulto.limites || ''; delete f.adulto; }
     if (R.hasTraco(f, 'sem_lugar') && f.recursosOpcao === 'familia_rica') f.recursosOpcao = '';
     Object.entries(LD.PERICIAS_ANTIGAS).forEach(([velha, nova]) => { if (f.pericias[velha] != null) { f.pericias[nova] = Math.max(num(f.pericias[nova]), num(f.pericias[velha])); delete f.pericias[velha]; } });
     f.fraquezas = f.fraquezas.filter((w) => !LD.FRAQUEZAS.some((x) => x.origem && x.key === w.key));
@@ -186,7 +188,7 @@
         </div>
       </header>
       <nav class="tabs">
-        ${[['jogar', 'Jogar'], ['construcao', 'Construção'], ['treino', 'Treino'], ['inventario', 'Inventário'], ['historia', 'História'], ['alteracoes', 'Alterações']].map(([k, n]) =>
+        ${[['jogar', 'Jogar'], ['construcao', 'Construção'], ['treino', 'Treino'], ['inventario', 'Inventário'], ['historia', 'História'], ['nsfw', 'NSFW'], ['alteracoes', 'Alterações']].map(([k, n]) =>
           `<button class="${aba === k ? 'on' : ''}" data-aba="${k}">${n}${k === 'construcao' && c.avisos.filter((a) => !a.leve).length ? ` <sup class="badge">${c.avisos.filter((a) => !a.leve).length}</sup>` : ''}</button>`).join('')}
       </nav>
       <section data-corpo></section>`;
@@ -197,6 +199,7 @@
     else if (aba === 'treino') renderTreino(corpo, f, c);
     else if (aba === 'inventario') renderInventario(corpo, f, c, editar);
     else if (aba === 'alteracoes') renderAlteracoes(corpo, f);
+    else if (aba === 'nsfw') renderNsfw(corpo, f, editar);
     else renderHistoria(corpo, f, c, editar);
 
     main.querySelectorAll('[data-aba]').forEach((b) => b.addEventListener('click', () => { st.aba[id] = b.dataset.aba; renderFicha(main, id); }));
@@ -593,17 +596,17 @@
 
   /* ---------- 1. Conceito ---------- */
   // Reduz a imagem para caber na ficha (lado maior 480 px, JPEG).
-  function reduzirImagem(arq) {
+  function reduzirImagem(arq, ladoMax) {
     return new Promise((ok, erro) => {
       const leitor = new FileReader();
       leitor.onerror = erro;
       leitor.onload = () => {
         const img = new Image(); img.onerror = erro;
         img.onload = () => {
-          const lado = 480; const esc2 = Math.min(1, lado / Math.max(img.width, img.height));
+          const lado = ladoMax || 480; const esc2 = Math.min(1, lado / Math.max(img.width, img.height));
           const cv = document.createElement('canvas'); cv.width = Math.round(img.width * esc2); cv.height = Math.round(img.height * esc2);
           cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height);
-          ok(cv.toDataURL('image/jpeg', 0.82));
+          ok(cv.toDataURL('image/jpeg', ladoMax ? 0.74 : 0.82));
         };
         img.src = leitor.result;
       };
@@ -1152,15 +1155,67 @@
         ${tracos.length ? `<div class="subsect"><span>De onde vêm os Traços</span></div>
           ${tracos.map((t) => field(t.nome, `<input name="tracoNotas.${t.key}" value="${esc((f.tracoNotas || {})[t.key] || '')}" placeholder="Uma frase.">`)).join('')}` : ''}
         ${field('Notas', textarea('notas', f.notas, 'rows="5"'))}
-        <div class="subsect"><span>Fetiches e limites</span></div>
-        <div class="row">
-          ${field('Fetiches', textarea('adulto.fetiches', (f.adulto || {}).fetiches, 'rows="4"'))}
-          ${field('Limites', textarea('adulto.limites', (f.adulto || {}).limites, 'rows="4" placeholder="O que nunca entra em cena."'))}
-        </div>
       </div>`;
     bindCampos(el, f);
     if (!editar) el.querySelectorAll('input,textarea').forEach((x) => { x.disabled = true; });
   }
+
+
+  /* ---------- NSFW ---------- */
+  // Perguntas e marcações padrão. A mestragem pode trocar a lista (fica em egide_config/nsfw).
+  const NSFW_PADRAO = {
+    perguntas: ['Orientação', 'O que o personagem procura (romance, casual, os dois)', 'Papel (dominante, submisso, versátil)', 'Ritmo (devagar, direto ao ponto)', 'Fetiches', 'Limites', 'Como prefere as cenas (explícitas, corte na hora H)', 'Notas para a mestragem'],
+    marcacoes: ['Romance', 'Beijos e carícias', 'Cenas explícitas', 'Corte na hora H (fade to black)', 'Linguagem obscena', 'Dominação', 'Submissão', 'Amarras', 'Dor leve', 'Brinquedos', 'Exibicionismo', 'Voyeurismo', 'Mais de duas pessoas', 'Roleplay de autoridade', 'Ciúme e drama', 'Traição na história']
+  };
+  const chaveNsfw = (t) => R.slug(t).replace(/^o_que_o_personagem_procura.*/, 'procura').replace(/^papel.*/, 'papel').replace(/^ritmo.*/, 'ritmo').replace(/^como_prefere.*/, 'como_prefere');
+  function nsfwConfig() {
+    const cfg = LD.store.get('config', 'nsfw');
+    return { perguntas: (cfg && cfg.perguntas && cfg.perguntas.length ? cfg.perguntas : NSFW_PADRAO.perguntas), marcacoes: (cfg && cfg.marcacoes && cfg.marcacoes.length ? cfg.marcacoes : NSFW_PADRAO.marcacoes) };
+  }
+  const OPCOES = [['sim', 'Sim'], ['talvez', 'Talvez'], ['nao', 'Não']];
+  function renderNsfw(el, f, editar) {
+    const cfg = nsfwConfig(); const n = f.nsfw;
+    const mestre = LD.store.isMaster();
+    el.innerHTML = `
+      <div class="nsfw">
+        <div class="subsect"><span>Galeria</span><span class="tag">${n.galeria.length}/${MAX_GALERIA}</span></div>
+        <div class="galeria">${n.galeria.map((url, i) => `<figure><a href="${esc(url)}" target="_blank" rel="noopener"><img src="${esc(url)}" alt="Imagem ${i + 1}" loading="lazy"></a>${editar ? `<button class="btn plain danger small-btn" data-gal-rm="${i}">Tirar</button>` : ''}</figure>`).join('') || '<p class="muted">Nenhuma imagem.</p>'}</div>
+        ${editar && n.galeria.length < MAX_GALERIA ? `<div class="btn-row"><label class="btn">Enviar imagem<input type="file" accept="image/*" data-gal-file hidden multiple></label><input data-gal-url placeholder="ou cole um link (https://…)" style="min-width:260px"><button class="btn plain" data-gal-add>Pôr o link</button></div>` : ''}
+
+        <div class="subsect"><span>Perguntas</span>${mestre ? '<button class="btn plain small-btn" data-nsfw-cfg>Editar perguntas e marcações</button>' : ''}</div>
+        <div class="nsfw-perg">${cfg.perguntas.map((q) => field(q, textarea('nsfw.respostas.' + chaveNsfw(q), n.respostas[chaveNsfw(q)] || '', 'rows="3"'))).join('')}</div>
+
+        <div class="subsect"><span>Concorda ou não</span></div>
+        <div class="marcas">${cfg.marcacoes.map((m) => { const k = chaveNsfw(m); const v = n.marcas[k] || ''; return `<div class="marca"><span>${esc(m)}</span><div class="seg" data-marca="${esc(k)}">${OPCOES.map(([o, t]) => `<button class="${v === o ? 'on m-' + o : ''}" data-v="${o}" ${editar ? '' : 'disabled'}>${t}</button>`).join('')}</div></div>`; }).join('')}</div>
+      </div>`;
+    bindCampos(el, f);
+    if (!editar) { el.querySelectorAll('input,textarea').forEach((x) => { x.disabled = true; }); }
+    el.querySelectorAll('[data-marca] [data-v]').forEach((b) => b.addEventListener('click', () => {
+      const k = b.closest('[data-marca]').dataset.marca;
+      mudar(f.id, (x) => { x.nsfw.marcas[k] = x.nsfw.marcas[k] === b.dataset.v ? '' : b.dataset.v; });
+    }));
+    el.querySelectorAll('[data-gal-rm]').forEach((b) => b.addEventListener('click', () => mudar(f.id, (x) => { x.nsfw.galeria.splice(+b.dataset.galRm, 1); })));
+    const gf = el.querySelector('[data-gal-file]');
+    if (gf) gf.addEventListener('change', () => {
+      const arqs = [...gf.files].slice(0, MAX_GALERIA - n.galeria.length);
+      Promise.all(arqs.map((a) => reduzirImagem(a, 640))).then((urls) => mudar(f.id, (x) => { x.nsfw.galeria = x.nsfw.galeria.concat(urls).slice(0, MAX_GALERIA); })).catch(() => LD.ui.toast('Não deu para ler a imagem.', 'erro'));
+    });
+    const ga = el.querySelector('[data-gal-add]');
+    if (ga) ga.addEventListener('click', () => { const v = el.querySelector('[data-gal-url]').value.trim(); if (!/^https?:\/\//.test(v)) { LD.ui.toast('O link precisa começar com https://', 'erro'); return; } mudar(f.id, (x) => { x.nsfw.galeria = x.nsfw.galeria.concat(v).slice(0, MAX_GALERIA); }); });
+    const cb = el.querySelector('[data-nsfw-cfg]');
+    if (cb) cb.addEventListener('click', () => LD.ui.openDrawer({
+      eyebrow: 'NSFW · para todas as fichas', title: 'Perguntas e marcações',
+      body: `${field('Perguntas (uma por linha)', `<textarea data-cfg-p rows="10">${esc(cfg.perguntas.join('\n'))}</textarea>`)}
+        ${field('Marcações de Sim / Talvez / Não (uma por linha)', `<textarea data-cfg-m rows="14">${esc(cfg.marcacoes.join('\n'))}</textarea>`, 'As respostas ficam guardadas pelo texto: mudar o texto de uma linha zera as respostas dela.')}`,
+      foot: '<button class="btn-primary" data-cfg-salvar>Salvar</button>',
+      onMount: (d) => d.querySelector('[data-cfg-salvar]').addEventListener('click', () => {
+        const linhas = (t) => t.split('\n').map((x) => x.trim()).filter(Boolean).slice(0, 60);
+        LD.store.save('config', { id: 'nsfw', perguntas: linhas(d.querySelector('[data-cfg-p]').value), marcacoes: linhas(d.querySelector('[data-cfg-m]').value) })
+          .then(() => { LD.ui.closeDrawer(); LD.ui.toast('Perguntas salvas.'); });
+      })
+    }));
+  }
+  const MAX_GALERIA = 8;
 
   /* ---------- Alterações ---------- */
   function linhaAlteracao(a, comFicha) {

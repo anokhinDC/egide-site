@@ -7,7 +7,7 @@
   // Campos que não entram no log (técnicos ou repetidos em outro lugar).
   const IGNORAR = new Set(['updatedAt', 'ownerId', 'ownerName', 'id', 'extrato', 'compras', 'aluguelAte', 'semanaSalario', 'kits', 'estilos', 'potencial.rolagens']);
   // Textos longos: só avisa que mudou.
-  const TEXTOS = { historia: 'História', aparencia: 'Aparência', notas: 'Notas', perda: 'A Perda', 'adulto.fetiches': 'Fetiches', 'adulto.limites': 'Limites', retrato: 'Imagem do personagem', conceito: 'Conceito' };
+  const TEXTOS = { 'nsfw.galeria': 'Galeria NSFW', historia: 'História', aparencia: 'Aparência', notas: 'Notas', perda: 'A Perda', 'adulto.fetiches': 'Fetiches', 'adulto.limites': 'Limites', retrato: 'Imagem do personagem', conceito: 'Conceito' };
 
   const NOMES = {
     nome: 'Nome civil', codinome: 'Nome de herói', simbolo: 'Símbolo', alinhamento: 'Alinhamento', origem: 'Origem', arquetipo: 'Arquétipo',
@@ -83,6 +83,8 @@
       if (c.startsWith('treino')) return; // o treino tem o próprio diário
       if (LISTAS[c]) { out.push(...difLista(c, LISTAS[c], A[c], B[c])); return; }
       if (TEXTOS[c]) { out.push(`${TEXTOS[c]} editado`); return; }
+      if (c.startsWith('nsfw.respostas.')) { out.push(`NSFW: resposta "${c.slice(15).replace(/_/g, ' ')}" editada`); return; }
+      if (c.startsWith('nsfw.marcas.')) { out.push(`NSFW: ${c.slice(12).replace(/_/g, ' ')}: ${mostrar(A[c])} → ${mostrar(B[c])}`); return; }
       out.push(`${nomeCampo(c)}: ${valorCampo(c, A[c])} → ${valorCampo(c, B[c])}`);
     });
     const ta = (antes.treino || {}).log || []; const tb = (depois.treino || {}).log || [];

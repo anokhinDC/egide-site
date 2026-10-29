@@ -236,7 +236,7 @@ service cloud.firestore {
         && texto(d, 'historia', 20000) && texto(d, 'aparencia', 5000) && texto(d, 'notas', 20000) && texto(d, 'perda', 5000)
         && lista(d, 'poderes', 60) && lista(d, 'grimorio', 80) && lista(d, 'inventario', 300) && lista(d, 'compras', 80) && lista(d, 'extrato', 80)
         && lista(d, 'fraquezas', 10) && lista(d, 'qualidades', 30) && lista(d, 'defeitos', 5)
-        && mapa(d, 'adulto', 5) && texto(d.get('adulto', {}), 'fetiches', 3000) && texto(d.get('adulto', {}), 'limites', 3000)
+        && mapa(d, 'adulto', 5) && mapa(d, 'nsfw', 5) && (!('nsfw' in d) || d.nsfw.get('galeria', []).size() <= 8) && texto(d.get('adulto', {}), 'fetiches', 3000) && texto(d.get('adulto', {}), 'limites', 3000)
         && mapa(d, 'atributos', 6) && mapa(d, 'pericias', 60) && mapa(d, 'estilos', 20) && mapa(d, 'kits', 6);
     }
     function poderEgideOk(d) {
@@ -257,6 +257,11 @@ service cloud.firestore {
           && dinheiroOk(request.resource.data, resource.data)
           && treinoOk(request.resource.data, resource.data)));
       allow delete: if dono() || mestre();
+    }
+    // Configuração da mesa (perguntas da aba NSFW): todos leem, só a mestragem escreve.
+    match /egide_config/{id} {
+      allow read: if logado();
+      allow write: if mestre();
     }
     // Log de alterações das fichas: todos leem; cada um grava as próprias entradas; ninguém edita (só a mestragem apaga).
     match /egide_alteracoes/{id} {

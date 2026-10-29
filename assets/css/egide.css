@@ -654,3 +654,17 @@ html { background: var(--paper); forced-color-adjust: none; }
 button.link { background: none; border: 0; padding: 0; color: var(--ink); text-align: left; cursor: pointer; font: inherit; text-decoration: underline; text-decoration-color: var(--blue); text-underline-offset: 3px; }
 button.link:hover { color: var(--blue); }
 select { font-family: var(--ui); }
+
+/* NSFW */
+.galeria { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; margin-bottom: 12px; }
+.galeria figure { margin: 0; background: var(--white); border: var(--bd-thin); box-shadow: var(--shadow-sm); padding: 6px; display: flex; flex-direction: column; gap: 6px; }
+.galeria img { width: 100%; aspect-ratio: 3 / 4; object-fit: cover; display: block; }
+.nsfw-perg { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 0 16px; }
+.marcas { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 8px 16px; }
+.marca { display: flex; align-items: center; justify-content: space-between; gap: 10px; background: var(--white); border: var(--bd-thin); padding: 6px 10px; }
+.marca .seg button.m-sim { background: #c9f2d9; color: var(--ink); }
+.marca .seg button.m-talvez { background: var(--yellow); color: var(--ink); }
+.marca .seg button.m-nao { background: var(--red); color: #fff; }
+@media (max-width: 640px) { .marcas, .nsfw-perg { grid-template-columns: 1fr; } }
+.marca .seg { flex: none; white-space: nowrap; display: inline-flex; }
+.marca > span { min-width: 0; }
