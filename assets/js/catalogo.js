@@ -112,6 +112,28 @@
     I('esconderijo', 'servico', 'Esconderijo por uma semana', 2, { preco: 400, propriedades: 'Um quarto que ninguém conhece.' }),
     I('conserto', 'servico', 'Conserto de equipamento', 1, { preco: 300, propriedades: 'Um item quebrado volta novo em um dia.' }),
     I('informante', 'servico', 'Informante no DAME', 4, { preco: 1000, propriedades: 'Uma resposta sobre um registro ou uma operação do DAME.' }),
+    // ===== +18 (só aparece para quem liga "Mostrar itens +18" na Loja) =====
+    I('vinho', 'adulto', 'Garrafa de vinho', 1, { preco: 40, cargas: 1, propriedades: 'Uma noite boa. Quem bebe a garrafa sozinho fica Cansado (Fadiga 1) até dormir.' }),
+    I('champanhe', 'adulto', 'Champanhe importado', 2, { preco: 250, cargas: 1, propriedades: 'Abre portas na Avenida das Nações: Vantagem em Persuasão numa festa.' }),
+    I('whisky', 'adulto', 'Whisky envelhecido', 2, { preco: 180, cargas: 3, propriedades: 'Três doses. Uma dose: +1 em Coragem até o fim da cena, −1 em Percepção.' }),
+    I('cigarros', 'adulto', 'Maço de cigarros', 1, { preco: 12, cargas: 10, propriedades: 'Puxa conversa em qualquer esquina de Vésper.' }),
+    I('charutos', 'adulto', 'Caixa de charutos', 2, { preco: 150, cargas: 10, propriedades: 'O presente certo para um chefão do porto.' }),
+    I('fichas_cassino', 'adulto', 'Fichas do Cassino Lua Nova', 2, { preco: 500, propriedades: 'Entrada e US$ 500 em fichas. Sorte: role 1d20; 15+ dobra, 5 ou menos perde tudo.' }),
+    I('clube_privado', 'adulto', 'Entrada num clube privado', 3, { preco: 800, propriedades: 'Uma noite num clube discreto da Avenida das Nações. Ninguém pergunta, ninguém conta.' }),
+    I('motel', 'adulto', 'Noite no motel', 1, { preco: 90, propriedades: 'Um quarto por uma noite, sem nome no registro.' }),
+    I('suite', 'adulto', 'Suíte temática', 2, { preco: 350, propriedades: 'Hidromassagem, espelhos e serviço de quarto. Uma noite.' }),
+    I('preservativos', 'adulto', 'Preservativos', 1, { preco: 10, cargas: 6, propriedades: 'Seis unidades.' }),
+    I('lubrificante', 'adulto', 'Lubrificante', 1, { preco: 15, cargas: 5, propriedades: 'Cinco usos.' }),
+    I('oleo_massagem', 'adulto', 'Óleo de massagem', 1, { preco: 35, cargas: 4, propriedades: 'Aroma de baunilha ou sândalo.' }),
+    I('velas', 'adulto', 'Velas aromáticas', 1, { preco: 30, cargas: 3, propriedades: 'Para o clima. Uma noite cada.' }),
+    I('lingerie', 'adulto', 'Lingerie', 1, { preco: 120, propriedades: 'Renda, seda ou couro, à escolha.' }),
+    I('fantasia', 'adulto', 'Fantasia', 1, { preco: 150, propriedades: 'Enfermeira, policial, super-herói (genérico)… Não engana ninguém de verdade.' }),
+    I('venda', 'adulto', 'Venda de cetim', 1, { preco: 25, propriedades: 'Para os olhos.' }),
+    I('algemas_pelucia', 'adulto', 'Algemas de pelúcia', 1, { preco: 40, propriedades: 'Seguram quem quer ser segurado. Abrem com um puxão (não servem para prender ninguém).' }),
+    I('chicote', 'adulto', 'Chicote de couro', 1, { preco: 70, propriedades: 'De brinquedo: não serve como arma.' }),
+    I('vibrador', 'adulto', 'Vibrador', 1, { preco: 90, propriedades: 'Discreto, recarregável.' }),
+    I('kit_casal', 'adulto', 'Kit para casal', 2, { preco: 200, propriedades: 'Uma caixa-surpresa com um pouco de tudo desta seção.' }),
+    I('ensaio', 'adulto', 'Ensaio fotográfico sensual', 2, { preco: 400, propriedades: 'Um estúdio discreto em Lúmen. As fotos são suas, e só suas.' }),
     // Especiais (só a mestragem dá)
     I('bronze', 'arma', 'Arma de bronze celeste', 5, { especial: true, pericia: 'laminas', dadosExtra: '1d6', dano: 'Lâminas + 1d6', potencia: 8, propriedades: 'Místico (+5 de Potência, Brecha contra o sobrenatural). Exige o Juramento dos Vigias ou permissão de Tália.' }),
     I('pedra_vidro', 'especial', 'Pedra de vidro', 5, { especial: true, cargas: 1, propriedades: '+1 Grau num poder de Fonte, uma vez. Depois vira pó.' }),
@@ -125,7 +147,7 @@
   LD.CATEGORIAS = [
     { key: 'arma', nome: 'Armas' }, { key: 'protecao', nome: 'Proteção' }, { key: 'kit', nome: 'Kits' },
     { key: 'gadget', nome: 'Gadgets' }, { key: 'veiculo', nome: 'Veículos' }, { key: 'servico', nome: 'Serviços' },
-    { key: 'especial', nome: 'Especiais' }
+    { key: 'especial', nome: 'Especiais' }, { key: 'adulto', nome: '+18' }
   ];
   LD.seed = { itens };
 })();
