@@ -206,7 +206,9 @@ service cloud.firestore {
     }
     // Dinheiro: o jogador só gasta (gastoTotal sobe) e recebe o salário uma vez por semana.
     function dinheiroOk(d, r) {
-      return d.get('gastoTotal', 0) >= r.get('gastoTotal', 0)
+      return (r.get('aprovada', false) == true
+          || (d.get('gastoTotal', 0) == r.get('gastoTotal', 0) && d.get('creditos', 0) == r.get('creditos', 0)))
+        && d.get('gastoTotal', 0) >= r.get('gastoTotal', 0)
         && (d.get('creditos', 0) == r.get('creditos', 0)
           || (d.get('semanaSalario', '') != r.get('semanaSalario', '')
             && d.get('creditos', 0) == r.get('creditos', 0) + r.get('salario', 0)));

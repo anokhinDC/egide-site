@@ -21,6 +21,7 @@
     const preco = num(item.preco);
     if (item.especial) return { k: 'especial', txt: 'Só a mestragem dá', cls: 'warn' };
     if (!f) return { k: 'sem', txt: R.fmtUS(preco), cls: '' };
+    if (!f.aprovada) return { k: 'pendente', txt: 'Ficha não aprovada', cls: 'warn' };
     if (item.observatorio && f.novaEgide) return { k: 'gratis', txt: 'Grátis no Observatório', cls: 'ok' };
     if (preco <= c.dinheiro) return { k: 'paga', txt: 'Dá para comprar', cls: 'ok' };
     return { k: 'longe', txt: `Faltam ${R.fmtUS(preco - c.dinheiro)}`, cls: 'bad' };
@@ -64,7 +65,7 @@
     const preco = num(item.preco);
     if (s.k === 'gratis') return entregar(fichaId, item, 'observatorio', 'Arsenal do Observatório');
     if (s.k === 'paga') return entregar(fichaId, item, 'compra', `pago ${R.fmtUS(preco)}`, preco);
-    LD.ui.toast(s.k === 'especial' ? 'Só a mestragem dá este item.' : `Saldo insuficiente: ${s.txt}.`, 'erro');
+    LD.ui.toast(s.k === 'especial' ? 'Só a mestragem dá este item.' : s.k === 'pendente' ? 'A ficha precisa ser aprovada antes de comprar.' : `Saldo insuficiente: ${s.txt}.`, 'erro');
   }
 
   function editarItem(item) {
@@ -158,7 +159,7 @@
       ${fichas.length ? `<div class="buyer panel">
         <label class="inline">Comprando para ${select('ficha', fichas.map((x) => ({ key: x.id, nome: x.codinome || x.nome || 'Herói' })), st.fichaId, 'data-ficha')}</label>
         ${c ? `<span class="buyer-r"><span class="caps">Saldo</span><b>${esc(R.fmtUS(c.dinheiro))}</b></span>
-          <span class="tag ${f.novaEgide ? 'ok' : ''}">${f.novaEgide ? 'Nova Égide: Observatório grátis' : 'Fora da Nova Égide'}</span>
+          ${f.aprovada ? `<span class="tag ${f.novaEgide ? 'ok' : ''}">${f.novaEgide ? 'Nova Égide: Observatório grátis' : 'Fora da Nova Égide'}</span>` : '<span class="tag warn">Ficha não aprovada: ainda não compra</span>'}
           <a class="btn plain" href="#/ficha/${esc(f.id)}">Abrir a ficha</a>` : ''}
       </div>` : '<div class="empty small-empty">Crie uma ficha para comprar. <a href="#/fichas">Fichas</a></div>'}
       <div class="toolbar">
