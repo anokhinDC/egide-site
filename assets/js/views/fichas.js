@@ -341,7 +341,7 @@
               ${stat('Deslocamento', c.deslocamento + ' m', 'por rodada')}
               ${stat('Carga', c.carga + ' kg', 'a mochila, sempre')}
               ${stat('Dinheiro', R.fmtUS(c.dinheiro), R.salarioDe(f) ? `salário ${R.fmtUS(R.salarioDe(f))}/semana` : 'sem salário')}
-              ${c.protecao <= 5 ? stat('Evasão', '✓', 'Ainda de Pé e Evasão valem') : ''}
+              ${c.protecaoPoder <= 5 ? stat('Evasão', '✓', 'Ainda de Pé e Evasão valem') : ''}
             </div>
           </details>
         </div>
@@ -470,7 +470,7 @@
       const antes = m.pv;
       m.pv = R.clamp(m.pv + delta, delta < 0 ? -c.pvMax : -c.pvMax, c.pvMax);
       // Ainda de Pé: Proteção 5 ou menos, um golpe de mais da metade direto para 0
-      if (delta < 0 && c.protecao <= 5 && antes > c.pvMax / 2 && m.pv <= 0 && !m.aindaDePe) {
+      if (delta < 0 && c.protecaoPoder <= 5 && antes > c.pvMax / 2 && m.pv <= 0 && !m.aindaDePe) {
         m.pv = 1; m.aindaDePe = true; LD.ui.toast('Ainda de Pé: fica com 1 PV, Por um Fio.');
       }
       if (m.pv <= c.pvMax / 4 && m.pv > 0 && antes > c.pvMax / 4 && !m.reservaUsada) {

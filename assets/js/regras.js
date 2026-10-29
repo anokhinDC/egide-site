@@ -728,7 +728,11 @@
     if (origem && origem.protecaoFonte) { const v = Math.round(cls * origem.protecaoFonte); fontesProt.push(v); detalheProt.push(`Fonte ${v}`); }
     equip.forEach((i) => { if (num(i.protecao) > 0) { fontesProt.push(num(i.protecao)); detalheProt.push(`${i.nome} ${num(i.protecao)}`); } });
     const tetoProt = x5(cls) + 5;
-    const protecao = Math.min(combinarProtecoes(fontesProt), tetoProt);
+    const protecaoPoder = Math.min(combinarProtecoes(fontesProt), tetoProt);
+    // O corpo aguenta a própria Classe: Proteção mínima = Potência da Classe (Treinados 5). Poder e armadura valem se forem maiores.
+    const protecaoClasse = f.origem === 'treinado' ? 5 : x5(cls);
+    const protecao = Math.max(protecaoClasse, protecaoPoder);
+    if (protecaoPoder < protecaoClasse) detalheProt.unshift(`Classe ${protecaoClasse}`);
 
     // Defesa
     const profDef = G('esquiva');
@@ -781,7 +785,7 @@
     const profEnergetico = G('dominio');
 
     const c = {
-      pot, classe: cls, classeDegrau: classeDoDegrau(f), rotuloClasse: rotuloClasse(f), nivel, degrau: nivel, A, protecao, tetoProt, detalheProt, defesa, profDef, bonusDef, pvMax, energiaMax, energiaAttr, detMax, recursoNome,
+      pot, protecaoPoder, protecaoClasse, classe: cls, classeDegrau: classeDoDegrau(f), rotuloClasse: rotuloClasse(f), nivel, degrau: nivel, A, protecao, tetoProt, detalheProt, defesa, profDef, bonusDef, pvMax, energiaMax, energiaAttr, detMax, recursoNome,
       resistencia: A.VIG + protecao, potPoder, potGolpe, dadosForca, iniciativa, deslocamento, percepcaoPassiva,
       reflexos: A.AGI + pericia('acrobacia'), fortitude: A.VIG + pericia('resiliencia'), mente: A.VON + pericia('concentracao'),
       esquivar: A.AGI + pericia('esquiva'), brecha: A.INT + pericia('tatica'), kitCura: `2d6+${pericia('medicina')}`, folego: (A.VIG + 1 + G('folego')) * (hasTraco(f, 'mergulhador') ? 2 : 1), bloquear: A.FOR + pericia('guarda'),
