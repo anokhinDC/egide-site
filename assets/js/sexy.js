@@ -30,7 +30,7 @@ const QUALIDADES = [
   ['lingua', 'Provocação Discreta', 1, 'Provocar e flertar em público sem chamar atenção: Vantagem em Charme discreto.'],
   ['corpo', 'Corpo Atraente', 2, '+1 em Charme sempre que a aparência física é relevante.'],
   ['incansavel', 'Resistência Elevada', 2, 'Vantagem em Fôlego.'],
-  ['ferro', 'Autocontrole Elevado', 2, 'Vantagem em Controle.'],
+  ['Cum Dump', 'Regenerativo', 2, 'Ao beber sêmen, recupera 10% da vida máxima.'],
   ['experiente', 'Experiência Íntima', 2, 'Uma vez por cena, pode rerrolar um teste íntimo.'],
   ['dominante', 'Presença Dominante', 2, 'Quem cede a você em uma cena testa Controle com Desvantagem para retomar o controle.'],
   ['rendicao', 'Rendição Consciente', 2, 'Quando escolhe ceder, o parceiro ganha Vantagem e você recebe +2 no próximo teste íntimo da cena.'],
