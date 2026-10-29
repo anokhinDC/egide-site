@@ -1188,7 +1188,7 @@
       <div class="nsfw">
         <div class="subsect"><span>Pontos Sexy</span><span class="tag ${X.livres < 0 ? 'bad' : 'gold'}">${X.gastos} / ${X.total} PS</span></div>
         ${X.avisos.length ? `<div class="falta"><ol>${X.avisos.map((a) => `<li>${esc(a)}</li>`).join('')}</ol></div>` : ''}
-        <p class="muted small">${SX.PS_INICIAIS} PS para gastar${X.ganhoFracos ? ` + ${X.ganhoFracos} dos Pontos Fracos` : ''}${X.d.bonusPS ? ` + ${X.d.bonusPS} da mestragem` : ''}. Atributo íntimo: 1 PS por ponto (até ${SX.TETO_CRIACAO} na criação). Teste íntimo = d20 + Atributo íntimo.</p>
+        <p class="muted small">${SX.PS_INICIAIS} PS para gastar${X.ganhoFracos ? ` + ${X.ganhoFracos} dos Pontos Fracos` : ''}${X.d.bonusPS ? ` + ${X.d.bonusPS} da mestragem` : ''}. Atributo íntimo: 1 PS por ponto, até ${SX.TETO}. Teste íntimo = d20 + Atributo íntimo.</p>
         <div class="sx-attrs">${SX.ATRIBUTOS_INTIMOS.map((a) => `<div class="sx-attr">
           <div><b>${esc(a.nome)}</b>${tagM(X.marcas[a.key])}<div class="muted small">${esc(a.desc)}</div></div>
           ${editar ? stepper('sx_' + a.key, X.A[a.key], 0, f.aprovada && !mestre ? X.A[a.key] : (mestre ? SX.TETO : SX.TETO_CRIACAO)) : `<b class="num">${X.A[a.key]}</b>`}

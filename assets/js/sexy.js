@@ -6,9 +6,9 @@
   const LD = window.LD;
   const num = (v, d) => { const n = Number(v); return Number.isFinite(n) ? n : (d || 0); };
 
-  const PS_INICIAIS = 8;
+  const PS_INICIAIS = 4;
   const TETO_CRIACAO = 3;   // Atributo íntimo na criação
-  const TETO = 5;
+  const TETO = 3;            // limite de cada Atributo íntimo, sempre
   const MAX_PS_FRACOS = 4;  // Pontos Fracos devolvem no máximo 4 PS
 
   const ATRIBUTOS_INTIMOS = [
