@@ -37,7 +37,7 @@
     f.vidaCivil = Object.assign({}, d.vidaCivil, f.vidaCivil);
     f.bonus = Object.assign({ pt: 0, pp: 0, det: 0 }, f.bonus);
     f.potencial = Object.assign({ resultado: '', rolagens: 1 }, f.potencial);
-    f.nsfw = Object.assign({ galeria: [], respostas: {}, marcas: {} }, f.nsfw);
+    f.nsfw = Object.assign({ galeria: [], respostas: {}, marcas: {}, atributos: {}, qualidades: [], fracos: [], detalhes: {}, bonusPS: 0 }, f.nsfw);
     if (f.adulto && (f.adulto.fetiches || f.adulto.limites)) { f.nsfw.respostas.fetiches = f.nsfw.respostas.fetiches || f.adulto.fetiches || ''; f.nsfw.respostas.limites = f.nsfw.respostas.limites || f.adulto.limites || ''; delete f.adulto; }
     if (R.hasTraco(f, 'sem_lugar') && f.recursosOpcao === 'familia_rica') f.recursosOpcao = '';
     Object.entries(LD.PERICIAS_ANTIGAS).forEach(([velha, nova]) => { if (f.pericias[velha] != null) { f.pericias[nova] = Math.max(num(f.pericias[nova]), num(f.pericias[velha])); delete f.pericias[velha]; } });
@@ -1176,8 +1176,29 @@
   function renderNsfw(el, f, editar) {
     const cfg = nsfwConfig(); const n = f.nsfw;
     const mestre = LD.store.isMaster();
+    const X = LD.SEXY.calc(f); const SX = LD.SEXY;
+    const tagM = (l) => (l || []).map((m) => ` <span class="tag mk mk-${m.tipo}" title="${esc(m.txt)}">${{ des: 'Desv.', van: 'Vant.', menos2: '−2', nota: '!' }[m.tipo]}</span>`).join('');
+    const traco = (t, lista, sinalTxt) => {
+      const on = lista.includes(t.key);
+      return `<label class="trait ${on ? 'on' : ''} ${sinalTxt === '+' ? 'def' : ''}"><input type="checkbox" data-sx="${sinalTxt === '+' ? 'fracos' : 'qualidades'}" value="${t.key}" ${on ? 'checked' : ''} ${editar ? '' : 'disabled'}>
+        <span class="t-n">${esc(t.nome)}</span><span class="tag ${sinalTxt === '+' ? 'ok' : 'gold'}">${sinalTxt}${t.custo || t.ps} PS</span><span class="t-e">${esc(t.efeito)}</span>
+        ${on && t.detalhe ? `<input class="sx-det" data-sx-det="${t.key}" value="${esc(X.d.detalhes[t.key] || '')}" placeholder="Qual?" ${editar ? '' : 'disabled'}>` : ''}</label>`;
+    };
     el.innerHTML = `
       <div class="nsfw">
+        <div class="subsect"><span>Pontos Sexy</span><span class="tag ${X.livres < 0 ? 'bad' : 'gold'}">${X.gastos} / ${X.total} PS</span></div>
+        ${X.avisos.length ? `<div class="falta"><ol>${X.avisos.map((a) => `<li>${esc(a)}</li>`).join('')}</ol></div>` : ''}
+        <p class="muted small">${SX.PS_INICIAIS} PS para gastar${X.ganhoFracos ? ` + ${X.ganhoFracos} dos Pontos Fracos` : ''}${X.d.bonusPS ? ` + ${X.d.bonusPS} da mestragem` : ''}. Atributo íntimo: 1 PS por ponto (até ${SX.TETO_CRIACAO} na criação). Teste íntimo = d20 + Atributo íntimo.</p>
+        <div class="sx-attrs">${SX.ATRIBUTOS_INTIMOS.map((a) => `<div class="sx-attr">
+          <div><b>${esc(a.nome)}</b>${tagM(X.marcas[a.key])}<div class="muted small">${esc(a.desc)}</div></div>
+          ${editar ? stepper('sx_' + a.key, X.A[a.key], 0, f.aprovada && !mestre ? X.A[a.key] : (mestre ? SX.TETO : SX.TETO_CRIACAO)) : `<b class="num">${X.A[a.key]}</b>`}
+          <button class="btn" data-sx-rolar="${a.key}">⚄ ${sinal(X.A[a.key] + (X.bonusFixo[a.key] || 0))}</button></div>`).join('')}</div>
+        <div class="grid two">
+          <div><div class="subsect"><span>Qualidades</span></div><div class="trait-list">${SX.QUALIDADES.map((t) => traco(t, X.d.qualidades, '')).join('')}</div></div>
+          <div><div class="subsect"><span>Pontos Fracos</span><span class="tag">até +${SX.MAX_PS_FRACOS} PS</span></div><div class="trait-list">${SX.FRACOS.map((t) => traco(t, X.d.fracos, '+')).join('')}</div></div>
+        </div>
+        ${mestre ? `<div class="row" style="margin-top:10px">${field('Bônus de PS (mestragem)', `<input type="number" name="nsfw.bonusPS" value="${X.d.bonusPS}">`)}</div>` : ''}
+
         <div class="subsect"><span>Galeria</span><span class="tag">${n.galeria.length}/${MAX_GALERIA}</span></div>
         <div class="galeria">${n.galeria.map((url, i) => `<figure><a href="${esc(url)}" target="_blank" rel="noopener"><img src="${esc(url)}" alt="Imagem ${i + 1}" loading="lazy"></a>${editar ? `<button class="btn plain danger small-btn" data-gal-rm="${i}">Tirar</button>` : ''}</figure>`).join('') || '<p class="muted">Nenhuma imagem.</p>'}</div>
         ${editar && n.galeria.length < MAX_GALERIA ? `<div class="btn-row"><label class="btn">Enviar imagem<input type="file" accept="image/*" data-gal-file hidden multiple></label><input data-gal-url placeholder="ou cole um link (https://…)" style="min-width:260px"><button class="btn plain" data-gal-add>Pôr o link</button></div>` : ''}
@@ -1188,8 +1209,21 @@
         <div class="subsect"><span>Concorda ou não</span></div>
         <div class="marcas">${cfg.marcacoes.map((m) => { const k = chaveNsfw(m); const v = n.marcas[k] || ''; return `<div class="marca"><span>${esc(m)}</span><div class="seg" data-marca="${esc(k)}">${OPCOES.map(([o, t]) => `<button class="${v === o ? 'on m-' + o : ''}" data-v="${o}" ${editar ? '' : 'disabled'}>${t}</button>`).join('')}</div></div>`; }).join('')}</div>
       </div>`;
-    bindCampos(el, f);
+    bindCampos(el, f, (x, k) => { if (k === 'nsfw.bonusPS') x.nsfw.bonusPS = num(x.nsfw.bonusPS); });
     if (!editar) { el.querySelectorAll('input,textarea').forEach((x) => { x.disabled = true; }); }
+    bindSteppers(el, (k, v) => { if (k.startsWith('sx_')) mudar(f.id, (x) => { x.nsfw.atributos = Object.assign({}, x.nsfw.atributos, { [k.slice(3)]: v }); }); });
+    el.querySelectorAll('[data-sx]').forEach((b) => b.addEventListener('change', () => mudar(f.id, (x) => {
+      const lista = (x.nsfw[b.dataset.sx] || []).filter((k) => k !== b.value);
+      if (b.checked) lista.push(b.value);
+      x.nsfw[b.dataset.sx] = lista;
+    })));
+    el.querySelectorAll('[data-sx-det]').forEach((i) => i.addEventListener('change', () => mudar(f.id, (x) => { x.nsfw.detalhes = Object.assign({}, x.nsfw.detalhes, { [i.dataset.sxDet]: i.value.slice(0, 80) }); })));
+    el.querySelectorAll('[data-sx-rolar]').forEach((b) => b.addEventListener('click', () => {
+      const k = b.dataset.sxRolar; const a = LD.SEXY.ATRIBUTOS_INTIMOS.find((z) => z.key === k);
+      const mk = X.marcas[k] || [];
+      const modo = mk.some((m) => m.tipo === 'van') && !mk.some((m) => m.tipo === 'des') ? 'vantagem' : mk.some((m) => m.tipo === 'des') && !mk.some((m) => m.tipo === 'van') ? 'desvantagem' : 'normal';
+      LD.ui.rolarTeste(`${titulo(f)} · ${a.nome}`, X.A[k] + (X.bonusFixo[k] || 0), { modo });
+    }));
     el.querySelectorAll('[data-marca] [data-v]').forEach((b) => b.addEventListener('click', () => {
       const k = b.closest('[data-marca]').dataset.marca;
       mudar(f.id, (x) => { x.nsfw.marcas[k] = x.nsfw.marcas[k] === b.dataset.v ? '' : b.dataset.v; });

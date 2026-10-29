@@ -668,3 +668,11 @@ select { font-family: var(--ui); }
 @media (max-width: 640px) { .marcas, .nsfw-perg { grid-template-columns: 1fr; } }
 .marca .seg { flex: none; white-space: nowrap; display: inline-flex; }
 .marca > span { min-width: 0; }
+
+/* Pontos Sexy */
+.sx-attrs { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 10px; margin-bottom: 16px; }
+.sx-attr { display: flex; align-items: center; gap: 12px; background: var(--white); border: var(--bd-thin); box-shadow: var(--shadow-sm); padding: 10px 12px; }
+.sx-attr > div:first-child { flex: 1; min-width: 0; }
+.sx-det { margin-top: 6px; width: 100%; border: var(--bd-thin); padding: 4px 8px; font: 500 13px var(--ui); background: var(--white); }
+.trait input.sx-det { appearance: auto; grid-column: 2 / -1; width: 100%; height: auto; cursor: text; }
+.trait input.sx-det::after { content: none; }
