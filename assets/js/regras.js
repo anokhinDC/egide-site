@@ -739,7 +739,8 @@
     let bonusDef = 0;
     equip.forEach((i) => { bonusDef += num(i.defesa); });
     (f.poderes || []).forEach((p) => { if (p.base === 'defesa' && p.modo === 'defesa') bonusDef += Math.ceil(num(p.grau, 1) / 2); });
-    const defesa = 10 + A.AGI + profDef + bonusDef;
+    // Defesa = 10 + Esquiva + bônus. A AGI entra na Reação de Esquivar, não aqui.
+    const defesa = 10 + profDef + bonusDef;
 
     // PV
     let pvMax = 20 + A.VIG * 5 + nivel * 3 + 3 * G('resiliencia');
