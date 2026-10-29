@@ -43,11 +43,13 @@
     if (!f.kits) f.kits = Object.fromEntries(LD.KITS.map((k) => [k.key, { atual: LD.KITS_PADRAO[k.key], max: LD.KITS_PADRAO[k.key] }]));
     const c = R.calc(f);
     if (f.kits.pulso && !f.kits.energia) { f.kits.energia = f.kits.pulso; delete f.kits.pulso; }
-    if (!f.kits.energia) f.kits.energia = { atual: LD.KITS_PADRAO.energia, max: LD.KITS_PADRAO.energia };
+    if (!f.kits.energia) f.kits.energia = { atual: 0, max: 0 };
     if (!f.medidores) f.medidores = { pv: c.pvMax, energia: c.energiaMax, det: c.detMax, fadiga: 0, sussurro: 0, condicoes: [] };
     if (f.medidores.energia === undefined) f.medidores.energia = f.medidores.pulso !== undefined ? f.medidores.pulso : c.energiaMax;
     const m = f.medidores;
     m.condicoes = m.condicoes || [];
+    // Antes da aprovação a ficha está sendo montada: PV, Energia e Determinação ficam sempre cheios.
+    if (!f.aprovada) { m.pv = c.pvMax; m.energia = c.energiaMax; m.det = c.detMax; }
     m.pv = R.clamp(num(m.pv, c.pvMax), -c.pvMax, c.pvMax);
     m.energia = R.clamp(num(m.energia, c.energiaMax), 0, c.energiaMax);
     m.det = R.clamp(num(m.det, c.detMax), 0, Math.max(5, c.detMax));
@@ -120,6 +122,31 @@
     </article>`;
   }
 
+  // Aprovar: congela o dinheiro inicial, enche os medidores e começa a contar o aluguel.
+  function aprovar(x) {
+    const c = R.calc(x);
+    x.inicialFixo = R.dinheiroInicial(x); x.aprovada = true;
+    x.medidores = Object.assign(x.medidores || {}, { pv: c.pvMax, energia: c.energiaMax, det: c.detMax });
+    x.aluguelAte = R.ultimoDomingo();
+  }
+  // Cobra os domingos de aluguel que passaram (uma vez por domingo).
+  function cobrarAluguel(f) {
+    if (!f.aprovada) return;
+    const pend = R.domingosPendentes(f.aluguelAte || R.ultimoDomingo(), new Date());
+    if (!pend.length) return;
+    mudar(f.id, (x) => {
+      const valor = R.aluguelDe(x);
+      const nome = (R.moradiaDe(x) || {}).nome || 'Moradia';
+      R.domingosPendentes(x.aluguelAte || R.ultimoDomingo(), new Date()).forEach((dom) => {
+        if (valor > 0) {
+          x.gastoTotal = num(x.gastoTotal) + valor;
+          x.extrato = (x.extrato || []).concat({ quando: new Date(dom + 'T12:00:00').getTime(), valor: -valor, motivo: `Aluguel · ${nome}` }).slice(-80);
+        }
+        x.aluguelAte = dom;
+      });
+    });
+  }
+
   /* =====================================================================
    * Ficha
    * ===================================================================== */
@@ -128,6 +155,8 @@
     if (!f) { main.innerHTML = '<div class="empty">Ficha não encontrada. <a href="#/fichas">Voltar</a></div>'; return; }
     const c = R.calc(f);
     const editar = podeEditar(f);
+    if (editar && !st.aluguelVisto) { st.aluguelVisto = {}; }
+    if (editar && f.aprovada && !st.aluguelVisto[id]) { st.aluguelVisto[id] = true; cobrarAluguel(f); }
     if (!st.aba[id]) st.aba[id] = c.avisos.some((a) => !a.leve) && editar && !f.aprovada ? 'construcao' : 'jogar';
     const aba = st.aba[id];
     const o = LD.byKey(LD.ORIGENS, f.origem);
@@ -165,7 +194,7 @@
     const corpo = main.querySelector('[data-corpo]');
     if (aba === 'jogar') renderJogar(corpo, f, c, editar);
     else if (aba === 'construcao') renderConstrucao(corpo, f, c, editar);
-    else if (aba === 'treino') renderTreino(corpo, f, c, editar);
+    else if (aba === 'treino') renderTreino(corpo, f, c);
     else if (aba === 'inventario') renderInventario(corpo, f, c, editar);
     else renderHistoria(corpo, f, c, editar);
 
@@ -173,7 +202,7 @@
     main.querySelector('[data-bot]').addEventListener('click', () => abrirComandos(f));
     const ap = main.querySelector('[data-aprovar]');
     if (ap) ap.addEventListener('click', () => mudar(id, (x) => {
-      if (!x.aprovada) { x.inicialFixo = R.dinheiroInicial(x); x.aprovada = true; } else { x.aprovada = false; }
+      if (!x.aprovada) { aprovar(x); } else { x.aprovada = false; }
     }));
     const dup = main.querySelector('[data-dup]');
     if (dup) dup.addEventListener('click', () => {
@@ -251,7 +280,7 @@
           <div class="v">${m.pv}<small> / ${c.pvMax}</small></div>
           <div class="bar hp ${pct <= 25 ? 'low' : pct <= 50 ? 'mid' : ''}"><i style="width:${pct}%"></i></div>
           ${editar ? `<div class="meter-c"><input type="number" data-qtd="pv" value="5" min="1" aria-label="Quanto">
-            <button class="btn hit" data-pv="-1">Dano</button><button class="btn heal" data-pv="1">Curar</button></div>` : ''}
+            <button class="btn hit" data-pv="-1">Dano</button><button class="btn heal" data-pv="1">Curar</button><button class="btn plain" data-folego title="Ação Rápida, uma vez por combate">Segundo Fôlego +${c.A.VIG + c.degrau + 2 * c.G('vitalidade')}</button></div>` : ''}
         </div>
         <div class="meter">
           <div class="meter-h"><span class="caps">Energia</span><span class="muted tiny">vem do ${c.energiaAttr === 'VON' ? 'Vontade' : 'Vigor'}</span></div>
@@ -346,21 +375,12 @@
           ${editar && kk.atual ? `<button class="btn" data-kit="${k.key}" data-d="-1">Usar</button>` : ''}
         </div>`; }).join('')}</div>` : ''}
 
-      ${editar ? `<div class="subsect"><span>Entre as cenas</span></div>
-      <div class="btn-row">
-        <button class="btn" data-folego title="Ação Rápida, uma vez por combate: VIG + degrau de Classe em PV">Segundo Fôlego (+${c.A.VIG + c.degrau + 2 * c.G('vitalidade')} PV)</button>
-        <button class="btn" data-descanso="curto" title="¼ do PV, Energia até a metade, −1 Fadiga">Descanso curto</button>
-        <button class="btn" data-descanso="longo" title="PV e Energia cheios, −1 Fadiga">Descanso longo</button>
-        <button class="btn" data-descanso="seguro" title="E ainda Fadiga 0, −1 Sussurro, Kits reabastecidos">Lugar seguro</button>
-        <button class="btn" data-descanso="sessao" title="Determinação cheia">Nova sessão</button>
-      </div>
-      <details class="more" ${keep('cond-' + f.id)}><summary>Condições, Fadiga, Sussurro e Kits</summary>
+      ${editar ? `<details class="more" ${keep('cond-' + f.id)}><summary>Condições, Fadiga e Sussurro</summary>
         <div class="row" style="margin-bottom:12px">
           <div class="field"><label>Fadiga · ${esc(LD.FADIGA[m.fadiga])}</label>${stepper('fadiga', m.fadiga, 0, 3)}</div>
           <div class="field"><label>Sussurro · ${m.sussurro ? `−${m.sussurro} em tudo` : 'em silêncio'}</label>${stepper('sussurro', m.sussurro, 0, 3)}</div>
         </div>
         <div class="cond-row">${LD.CONDICOES.map((k) => `<button class="cond ${m.condicoes.includes(k) ? 'on' : ''} ${k === 'Brilhando' ? 'good' : ''}" data-cond="${esc(k)}">${esc(k)}</button>`).join('')}</div>
-        <div class="kit-row" style="margin-top:12px">${LD.KITS.map((k) => { const kk = f.kits[k.key] || { atual: 0, max: 0 }; return `<div class="kit"><span class="kit-n">${esc(k.nome.replace('Kit de ', ''))}</span> ${kk.atual}/${kk.max} <button class="btn plain" data-kit="${k.key}" data-d="1">+1</button></div>`; }).join('')}</div>
       </details>` : ''}
     `;
 
@@ -553,6 +573,24 @@
   }
 
   /* ---------- 1. Conceito ---------- */
+  // Reduz a imagem para caber na ficha (lado maior 480 px, JPEG).
+  function reduzirImagem(arq) {
+    return new Promise((ok, erro) => {
+      const leitor = new FileReader();
+      leitor.onerror = erro;
+      leitor.onload = () => {
+        const img = new Image(); img.onerror = erro;
+        img.onload = () => {
+          const lado = 480; const esc2 = Math.min(1, lado / Math.max(img.width, img.height));
+          const cv = document.createElement('canvas'); cv.width = Math.round(img.width * esc2); cv.height = Math.round(img.height * esc2);
+          cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height);
+          ok(cv.toDataURL('image/jpeg', 0.82));
+        };
+        img.src = leitor.result;
+      };
+      leitor.readAsDataURL(arq);
+    });
+  }
   function passoConceito(el, f) {
     const mestre = LD.store.isMaster();
     el.innerHTML = `
@@ -563,8 +601,16 @@
         ${field('Símbolo', input('simbolo', f.simbolo, 'maxlength="4" placeholder="⚡"'), 'Um emoji ou uma letra.')}
       </div>
       ${field('Conceito em uma frase', input('conceito', f.conceito, 'placeholder="Entregadora de bicicleta que brilha quando está com raiva."'))}
-      <details class="more"><summary>Retrato e alinhamento</summary><div class="row">
-        ${field('Retrato (link de imagem)', input('retrato', f.retrato, 'placeholder="https://..."'))}
+      <div class="retrato-box">
+        <div class="retrato-prev">${f.retrato ? `<img src="${esc(f.retrato)}" alt="Retrato">` : '<span>Sem imagem</span>'}</div>
+        <div class="retrato-ctl">
+          <label class="caps">Imagem do personagem</label>
+          <label class="btn">Enviar imagem<input type="file" accept="image/*" data-retrato-file hidden></label>
+          ${f.retrato ? '<button class="btn plain danger" data-retrato-tirar>Tirar</button>' : ''}
+          <input data-retrato-url placeholder="ou cole um link (https://…)" value="${esc(f.retrato && !f.retrato.startsWith('data:') ? f.retrato : '')}">
+        </div>
+      </div>
+      <details class="more"><summary>Alinhamento</summary><div class="row">
         ${field('Alinhamento', select('alinhamento', [{ key: 'heroi', nome: 'Herói' }, { key: 'anti_heroi', nome: 'Anti-herói (Rancor)' }, { key: 'vilao', nome: 'Vilão (Ambição)' }], f.alinhamento))}
       </div></details>
       <div class="subsect"><span>Arquétipo</span></div>
@@ -578,6 +624,12 @@
         ${field('Habilidade', input('arquetipoProprio.habilidade', f.arquetipoProprio.habilidade, 'placeholder="Começa toda luta escondido: o primeiro ataque tem Vantagem."'))}
       </div>` : ''}`;
     bindCampos(el, f);
+    const fileIn = el.querySelector('[data-retrato-file]');
+    if (fileIn) fileIn.addEventListener('change', () => { const arq = fileIn.files[0]; if (arq) reduzirImagem(arq).then((url) => mudar(f.id, (x) => { x.retrato = url; })).catch(() => LD.ui.toast('Não deu para ler a imagem.', 'erro')); });
+    const urlIn = el.querySelector('[data-retrato-url]');
+    if (urlIn) urlIn.addEventListener('change', () => { const v = urlIn.value.trim(); if (!v || /^https?:\/\//.test(v)) mudar(f.id, (x) => { x.retrato = v; }); else LD.ui.toast('O link precisa começar com https://', 'erro'); });
+    const tirar = el.querySelector('[data-retrato-tirar]');
+    if (tirar) tirar.addEventListener('click', () => mudar(f.id, (x) => { x.retrato = ''; }));
     el.querySelectorAll('[data-arq]').forEach((b) => b.addEventListener('click', () => mudar(f.id, (x) => { x.arquetipo = b.dataset.arq; })));
   }
 
@@ -890,7 +942,8 @@
       ${checkbox('novaEgide', f.novaEgide, 'Faz parte da Nova Égide (o Arsenal do Observatório e os Kits são de graça)')}
       <div class="row" style="margin-top:16px">
         ${semLugar ? field('Emprego', '<div class="ro-val">—</div>', 'Sem Lugar.') : field('Emprego', input('vidaCivil.emprego', f.vidaCivil.emprego, 'placeholder="Entregadora, enfermeira, estudante…"'), `Salário: ${f.salario ? R.fmtUS(f.salario) + ' por semana' : 'a mestragem define na aprovação'}.`)}
-        ${semLugar ? field('Onde mora', '<div class="ro-val">Na rua</div>', 'Sem Lugar.') : field('Onde mora', `<input name="vidaCivil.mora" list="moradias" value="${esc(f.vidaCivil.mora)}"><datalist id="moradias">${MORADIAS.map((x) => `<option value="${esc(x)}">`).join('')}</datalist>`)}
+        ${semLugar ? '' : field('Moradia', select('vidaCivil.moradia', [{ key: '', nome: '— escolha —' }].concat(LD.MORADIAS_TIPOS.filter((m) => m.key !== 'rua' && (m.key !== 'observatorio' || f.novaEgide)).map((m) => ({ key: m.key, nome: `${m.nome} · ${m.aluguel ? R.fmtUS(m.aluguel) + '/semana' : 'grátis'}` }))), (f.vidaCivil || {}).moradia || ''), 'O aluguel sai do saldo todo domingo.')}
+        ${semLugar ? field('Onde mora', '<div class="ro-val">Na rua</div>', 'Sem Lugar.') : field('Bairro', `<input name="vidaCivil.mora" list="moradias" value="${esc(f.vidaCivil.mora)}"><datalist id="moradias">${MORADIAS.map((x) => `<option value="${esc(x)}">`).join('')}</datalist>`)}
       </div>
       ${checkbox('vidaCivil.identidadeSecreta', f.vidaCivil.identidadeSecreta, 'Tem identidade secreta')}
       ${field('Quem sabe', input('vidaCivil.quemSabe', f.vidaCivil.quemSabe, 'placeholder="A avó, um colega do DAME…"'))}
@@ -915,17 +968,12 @@
   /* =====================================================================
    * Treino
    * ===================================================================== */
-  const rascunho = {
-    ler(id) { try { return JSON.parse(localStorage.getItem('egide-treino-' + id) || 'null'); } catch (e) { return null; } },
-    salvar(id, v) { try { localStorage.setItem('egide-treino-' + id, JSON.stringify(v)); } catch (e) { /* sem armazenamento */ } },
-    limpar(id) { try { localStorage.removeItem('egide-treino-' + id); } catch (e) { /* sem armazenamento */ } }
-  };
   function nomeArea(k) { const a = R.areasTreino().find((x) => x.key === k); return a ? a.nome : k; }
-  function renderTreino(el, f, c, editar) {
+  function renderTreino(el, f, c) {
+    const mestre = LD.store.isMaster();
     const t = R.treinoDe(f); const pode = R.podeTreinar(f);
     const st2 = st.treino = st.treino || {};
-    const form = st2[f.id] = st2[f.id] || Object.assign({ area: 'luta', intensidade: 'duro', lugar: '', cena: '' }, rascunho.ler(f.id) || {});
-    delete form.mentor;
+    const form = st2[f.id] = st2[f.id] || { area: 'luta', intensidade: 'duro', lugar: '', d20: '', nota: '' };
     const areas = R.areasTreino();
     const b = R.bonusTreino(f, form.area, form.lugar);
     const pen = penalidade(f, 'tudo');
@@ -933,7 +981,6 @@
     const nivel = String(c.degrau); const teto = R.tetoPTTreino(f); const noNivel = num(t.porNivel[nivel]);
     const marcas = Object.entries(t.marcas).filter(([, v]) => v > 0);
     const podeTrocar = (f.origem === 'arcano' && num(t.ptArea.magia) >= 2 * (t.trocas + 1)) || (f.origem === 'engenhoso' && num(t.ptArea.tecnologia) >= 2 * (t.trocas + 1));
-    const falta = Math.max(0, LD.TREINO_CENA_MIN - form.cena.trim().length);
     el.innerHTML = `
       <div class="treino-topo">
         <div class="tt-box"><span class="caps">Treinos na semana</span><b>${pode.naSemana}<small>/${pode.limite}</small></b></div>
@@ -942,25 +989,27 @@
       </div>
       ${marcas.length || t.distensao.length ? `<div class="marcas-row">${marcas.map(([k, v]) => `<span class="marca-chip"><b>${esc(nomeArea(k))}</b> ${'●'.repeat(Math.min(v, 5))}${'○'.repeat(Math.max(0, 5 - v))}${v > 5 ? ` +${v - 5}` : ''}</span>`).join('')}
         ${t.distensao.map((k) => `<span class="cond on" title="−2 nos treinos desta área até um descanso longo">Distensão: ${esc(nomeArea(k))}</span>`).join('')}</div>` : ''}
-      ${podeTrocar && editar ? `<p><button class="btn" data-trocar>Trocar 2 PT de ${f.origem === 'arcano' ? 'Magia' : 'Tecnologia'} por 1 PP</button></p>` : ''}
+      ${!mestre ? `<p class="muted">O treino é escrito no chat. A mestragem anota aqui.${pode.ok ? '' : ' ' + esc(pode.motivo)}</p>` : ''}
+      ${podeTrocar && mestre ? `<p><button class="btn" data-trocar>Trocar 2 PT de ${f.origem === 'arcano' ? 'Magia' : 'Tecnologia'} por 1 PP</button></p>` : ''}
 
-      ${editar ? `<div class="card treino-form">
-        <h3>Novo treino</h3>
+      ${mestre ? `<div class="card treino-form">
+        <h3>Anotar treino</h3>
         <div class="row">
-          ${field('Área', select('t_area', areas.map((a) => ({ key: a.key, nome: a.nome })), form.area), `Rola ${esc(b.area.attr)} + ${esc(b.area.key === 'poder' || b.area.key === 'magia' ? LD.byKey(LD.PERICIAS, b.area.pericia).nome : 'a Perícia')}. O PT vai para: ${esc(b.area.destino)}.`)}
+          ${field('Área', select('t_area', areas.map((a) => ({ key: a.key, nome: a.nome })), form.area), `${esc(b.area.attr)} + ${esc(LD.byKey(LD.PERICIAS, b.area.pericia).nome)}`)}
           ${field('Intensidade', select('t_int', LD.INTENSIDADES.map((i) => ({ key: i.key, nome: `${i.nome} · CD ${i.cd} · ${i.marcas} Marca${i.marcas > 1 ? 's' : ''}` })), form.intensidade), esc(it.risco))}
+          ${field('Onde', select('t_lugar', LD.LUGARES_TREINO.map((l) => ({ key: l.key, nome: l.nome + (l.key && (R.valeTreino(l.areas, form.area) || R.valeTreino(l.areas, b.area.pericia)) ? ' (+2)' : '') })), form.lugar))}
         </div>
         <div class="row">
-          ${field('Onde', select('t_lugar', LD.LUGARES_TREINO.map((l) => ({ key: l.key, nome: l.nome + (l.key && (R.valeTreino(l.areas, form.area) || R.valeTreino(l.areas, b.area.pericia)) ? ' (+2)' : '') })), form.lugar), b.lugar ? 'Lugar de treino: +2.' : 'Sem bônus de lugar para esta área.')}
+          ${field('d20 do chat', '<input type="number" min="1" max="20" name="t_d20" value="' + esc(form.d20) + '" placeholder="vazio: o site rola">')}
+          ${field('Link da cena', '<input name="t_nota" value="' + esc(form.nota) + '" placeholder="link da mensagem no Discord">')}
         </div>
-        ${field(`A cena do treino (mínimo ${LD.TREINO_CENA_MIN} caracteres)`, textarea('t_cena', form.cena, 'rows="8" placeholder="Onde, o quê e como."'), `<span data-cont>${form.cena.trim().length}</span> / ${LD.TREINO_CENA_MIN}`)}
         <div class="treino-rolar">
           <div class="big-mod">${sinal(b.total + pen.p)}</div>
           <div class="muted small">${esc(b.area.attr)} ${sinal(b.attr)} · Perícia ${sinal(b.pericia)}${b.lugar ? ' · lugar +2' : ''}${b.distensao ? ' · Distensão −2' : ''}${pen.p ? ` · ${esc(pen.motivos.join(', '))} ${pen.p}` : ''} contra CD ${it.cd}</div>
-          <button class="btn primary" data-treinar ${pode.ok && !falta ? '' : 'disabled'}>Treinar</button>
-          <div class="muted small" data-motivo>${!pode.ok ? esc(pode.motivo) : falta ? `Faltam ${falta} caracteres na cena.` : ''}</div>
+          <button class="btn primary" data-treinar>Anotar</button>
+          ${pode.ok ? '' : `<div class="muted small warn">${esc(pode.motivo)}</div>`}
         </div>
-      </div>` : pode.ok ? '' : `<p class="muted">${esc(pode.motivo)}</p>`}
+      </div>` : ''}
 
       ${t.log.length ? `<div class="subsect"><span>Diário de treino</span></div>
         <div class="treino-log">${t.log.slice().reverse().map((e) => `<details class="tlog ${e.passou ? 't-ok' : 't-bad'}">
@@ -969,33 +1018,28 @@
             · ${e.total} vs CD ${e.cd} <span class="tag ${e.passou ? 'ok' : 'bad'}">${e.passou ? `+${e.marcas} Marca${e.marcas > 1 ? 's' : ''}` : 'falhou'}</span>
             ${e.novosPT ? `<span class="tag gold">+${e.novosPT} PT</span>` : ''}${e.lesao ? `<span class="tag bad">${esc(e.lesao)}</span>` : ''}${e.fadiga ? `<span class="tag warn">+${e.fadiga} Fadiga</span>` : ''}</summary>
           <div class="tlog-body"><p class="muted small">d20 [${esc((e.dados || []).join(', '))}]${e.lugar ? ' · ' + esc((LD.LUGARES_TREINO.find((l) => l.key === e.lugar) || {}).nome || '') : ''}</p>
-            <p class="cena">${esc(e.cena).replace(/\n/g, '<br>')}</p></div>
+            ${e.cena ? (/^https?:\/\//.test(e.cena) ? `<p><a href="${esc(e.cena)}" target="_blank" rel="noopener">Ver a cena</a></p>` : `<p class="cena">${esc(e.cena)}</p>`) : ''}</div>
         </details>`).join('')}</div>` : '<p class="muted">Nenhum treino ainda.</p>'}`;
 
     const troca = el.querySelector('[data-trocar]');
     if (troca) troca.addEventListener('click', () => mudar(f.id, (x) => { const tt = R.treinoDe(x); tt.trocas += 1; x.treino = tt; }));
-    if (!editar) return;
-    const redesenhar = () => { rascunho.salvar(f.id, form); renderTreino(el, LD.fichas.ficha(f.id), R.calc(LD.fichas.ficha(f.id)), editar); };
+    if (!mestre) return;
+    const redesenhar = () => { const fx = LD.fichas.ficha(f.id); renderTreino(el, fx, R.calc(fx)); };
     [['t_area', 'area'], ['t_int', 'intensidade'], ['t_lugar', 'lugar']].forEach(([n, k]) => {
       el.querySelector(`[name="${n}"]`).addEventListener('change', (e) => { form[k] = e.target.value; redesenhar(); });
     });
-    const ta = el.querySelector('[name="t_cena"]'); const btn = el.querySelector('[data-treinar]');
-    ta.addEventListener('input', () => {
-      form.cena = ta.value; rascunho.salvar(f.id, form);
-      const n = ta.value.trim().length; el.querySelector('[data-cont]').textContent = n;
-      const ok = pode.ok && n >= LD.TREINO_CENA_MIN; btn.disabled = !ok;
-      el.querySelector('[data-motivo]').textContent = !pode.ok ? pode.motivo : n < LD.TREINO_CENA_MIN ? `Faltam ${LD.TREINO_CENA_MIN - n} caracteres na cena.` : '';
-    });
-    btn.addEventListener('click', () => {
-      const fx = LD.fichas.ficha(f.id); const p2 = R.podeTreinar(fx);
-      if (!p2.ok) { LD.ui.toast(p2.motivo, 'erro'); return; }
-      if (form.cena.trim().length < LD.TREINO_CENA_MIN) return;
+    el.querySelector('[name="t_d20"]').addEventListener('input', (e) => { form.d20 = e.target.value; });
+    el.querySelector('[name="t_nota"]').addEventListener('input', (e) => { form.nota = e.target.value; });
+    el.querySelector('[data-treinar]').addEventListener('click', () => {
+      const fx = LD.fichas.ficha(f.id);
       const bb = R.bonusTreino(fx, form.area, form.lugar); const pp = penalidade(fx, 'tudo');
-      const r = LD.ui.rolarTeste(`${titulo(fx)} · Treino de ${bb.area.nome} (${it.nome})`, bb.total + pp.p, { modo: 'normal', cd: it.cd });
-      let entrada;
-      mudar(f.id, (x) => { entrada = R.aplicarTreino(x, { area: form.area, intensidade: form.intensidade, lugar: form.lugar, cena: form.cena.trim(), natural: r.natural, dados: r.dados, total: r.total }); });
-      form.cena = ''; rascunho.limpar(f.id); rascunho.salvar(f.id, Object.assign({}, form));
-      if (entrada) LD.ui.toast(entrada.passou ? `Passou! +${entrada.marcas} Marca${entrada.marcas > 1 ? 's' : ''} em ${bb.area.nome}${entrada.novosPT ? `, e ${entrada.novosPT} PT novo` : ''}.${entrada.lesao ? ' Lesão: ' + entrada.lesao + '.' : ''}` : `Falhou.${entrada.lesao ? ' Lesão: ' + entrada.lesao + '.' : ''}`, entrada.lesao ? 'erro' : undefined);
+      const bonus = bb.total + pp.p;
+      let natural = R.clamp(Math.floor(num(form.d20)), 0, 20); let dados;
+      if (natural >= 1) { dados = [natural]; } else { const r = LD.ui.rolarTeste(`${titulo(fx)} · Treino de ${bb.area.nome} (${it.nome})`, bonus, { modo: 'normal', cd: it.cd }); natural = r.natural; dados = r.dados; }
+      let entrada; const nota = form.nota.trim();
+      form.d20 = ''; form.nota = '';
+      mudar(f.id, (x) => { entrada = R.aplicarTreino(x, { area: form.area, intensidade: form.intensidade, lugar: form.lugar, cena: nota, natural, dados, total: natural + bonus }); });
+      if (entrada) LD.ui.toast(entrada.passou ? `Passou: +${entrada.marcas} Marca${entrada.marcas > 1 ? 's' : ''} em ${bb.area.nome}${entrada.novosPT ? `, +${entrada.novosPT} PT` : ''}.${entrada.lesao ? ' Lesão: ' + entrada.lesao + '.' : ''}` : `Falhou.${entrada.lesao ? ' Lesão: ' + entrada.lesao + '.' : ''}`, entrada.lesao ? 'erro' : undefined);
     });
   }
 
@@ -1086,12 +1130,20 @@
         ${tracos.length ? `<div class="subsect"><span>De onde vêm os Traços</span></div>
           ${tracos.map((t) => field(t.nome, `<input name="tracoNotas.${t.key}" value="${esc((f.tracoNotas || {})[t.key] || '')}" placeholder="Uma frase.">`)).join('')}` : ''}
         ${field('Notas', textarea('notas', f.notas, 'rows="5"'))}
+        <details class="more adulto" ${keep('adulto-' + f.id)}><summary>Conteúdo adulto (opcional)</summary>
+          <p class="muted small">Só para personagens adultos. As fichas são públicas para quem entra no site.</p>
+          ${checkbox('adulto.maior', (f.adulto || {}).maior, 'O personagem tem 18 anos ou mais')}
+          ${(f.adulto || {}).maior ? `<div class="row">
+            ${field('Fetiches', textarea('adulto.fetiches', (f.adulto || {}).fetiches, 'rows="4"'))}
+            ${field('Limites', textarea('adulto.limites', (f.adulto || {}).limites, 'rows="4" placeholder="O que nunca entra em cena."'))}
+          </div>` : ''}
+        </details>
       </div>`;
     bindCampos(el, f);
     if (!editar) el.querySelectorAll('input,textarea').forEach((x) => { x.disabled = true; });
   }
 
-  LD.fichas = { normalizar, ficha, mudar, titulo };
+  LD.fichas = { normalizar, ficha, mudar, titulo, aprovar };
   LD.views.fichas = { titulo: 'Fichas', numeral: 'I', render: renderLista };
   LD.views.ficha = { titulo: 'Ficha', numeral: 'I', render: renderFicha };
 })();

@@ -378,7 +378,7 @@
   ];
   const CDS = [{ key: 10, nome: 'Fácil' }, { key: 15, nome: 'Médio' }, { key: 20, nome: 'Difícil' }, { key: 25, nome: 'Heroico' }, { key: 30, nome: 'Lendário' }];
   const FADIGA = ['Descansado', 'Cansado (−2 em Perícias)', 'Exausto (−2 em tudo)', 'Esgotado (−2, metade do Deslocamento, sem Reação)'];
-  const KITS_PADRAO = { cura: 3, energia: 2, reerguer: 1, contencao: 0 };
+  const KITS_PADRAO = { cura: 0, energia: 0, reerguer: 0, contencao: 0 }; // os Kits vêm do Arsenal
   const KITS = [
     { key: 'cura', nome: 'Kit de Cura', efeito: '2d6 + Medicina de quem usa, e tira Sangramento.' },
     { key: 'energia', nome: 'Kit de Energia', efeito: '+3 Energia.' },
@@ -544,6 +544,36 @@
     return v;
   }
   function dinheiro(f) { return dinheiroInicial(f) + num(f.creditos) - num(f.gastoTotal); }
+  // Moradia: o aluguel sai do saldo todo domingo.
+  const MORADIAS_TIPOS = [
+    { key: 'rua', nome: 'Na rua', aluguel: 0 },
+    { key: 'observatorio', nome: 'O Observatório (Nova Égide)', aluguel: 0 },
+    { key: 'familia', nome: 'Com a família', aluguel: 0 },
+    { key: 'quarto', nome: 'Quarto de pensão', aluguel: 80 },
+    { key: 'kitnet', nome: 'Kitnet', aluguel: 150 },
+    { key: 'apartamento', nome: 'Apartamento', aluguel: 250 },
+    { key: 'apartamento_bom', nome: 'Apartamento bom', aluguel: 500 },
+    { key: 'casa', nome: 'Casa', aluguel: 800 },
+    { key: 'cobertura', nome: 'Cobertura', aluguel: 2000 }
+  ];
+  function moradiaDe(f) {
+    if (hasTraco(f, 'sem_lugar')) return MORADIAS_TIPOS[0];
+    return MORADIAS_TIPOS.find((m) => m.key === ((f.vidaCivil || {}).moradia || '')) || null;
+  }
+  function aluguelDe(f) { const m = moradiaDe(f); return m ? m.aluguel : 0; }
+  // Último domingo (hoje, se for domingo), como 'AAAA-MM-DD'.
+  function ultimoDomingo(d) {
+    d = d ? new Date(d) : new Date();
+    d.setHours(12, 0, 0, 0); d.setDate(d.getDate() - d.getDay());
+    return d.toISOString().slice(0, 10);
+  }
+  // Domingos que ainda não foram cobrados desde 'desde' (exclusive) até o último domingo.
+  function domingosPendentes(desde, hoje) {
+    const fim = ultimoDomingo(hoje); if (!desde || desde >= fim) return [];
+    const out = []; const d = new Date(desde + 'T12:00:00'); d.setDate(d.getDate() + 7);
+    while (d.toISOString().slice(0, 10) <= fim && out.length < 52) { out.push(d.toISOString().slice(0, 10)); d.setDate(d.getDate() + 7); }
+    return out;
+  }
   function salarioDe(f) { return hasTraco(f, 'sem_lugar') ? 0 : num(f.salario); }
   const fmtUS = (v) => 'US$ ' + Math.round(num(v)).toLocaleString('pt-BR');
   function semanaAtual(d) {
@@ -913,5 +943,6 @@
   LD.DEGRAUS_CLASSE = DEGRAUS_CLASSE;
   LD.DINHEIRO_PARTIDA = DINHEIRO_PARTIDA; LD.SALARIOS = SALARIOS;
   LD.DEGRAUS_CLASSE = DEGRAUS_CLASSE; LD.MARCOS = MARCOS;
-  LD.rules = { salarioDe, fraquezasDe, marcasPericias, degrau, classeDoDegrau, rotuloClasse, areasTreino, treinoDe, podeTreinar, bonusTreino, aplicarTreino, tetoPTTreino, valeTreino: vale, dinheiro, dinheiroInicial, fmtUS, semanaAtual, fmtClasse, slug, clamp, num, faixaDe, resultadoAjustado, potencial, classe, atributos, grauMaximo, custoPoder, calc, tetoAtributo, escalaAtributo, ataquePoder, ataques, grau, tetoPericia, comandosBot, feitico, rolarD20, rolarExpr, recursos, hasTraco, combinarProtecoes };
+  LD.MORADIAS_TIPOS = MORADIAS_TIPOS;
+  LD.rules = { moradiaDe, aluguelDe, ultimoDomingo, domingosPendentes, salarioDe, fraquezasDe, marcasPericias, degrau, classeDoDegrau, rotuloClasse, areasTreino, treinoDe, podeTreinar, bonusTreino, aplicarTreino, tetoPTTreino, valeTreino: vale, dinheiro, dinheiroInicial, fmtUS, semanaAtual, fmtClasse, slug, clamp, num, faixaDe, resultadoAjustado, potencial, classe, atributos, grauMaximo, custoPoder, calc, tetoAtributo, escalaAtributo, ataquePoder, ataques, grau, tetoPericia, comandosBot, feitico, rolarD20, rolarExpr, recursos, hasTraco, combinarProtecoes };
 })();

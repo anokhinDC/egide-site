@@ -102,7 +102,7 @@
     main.querySelector('[data-pot]').addEventListener('click', () => { const a = 1 + Math.floor(Math.random() * 100), b = 1 + Math.floor(Math.random() * 100); const fx = R.faixaDe(Math.max(a, b)); LD.ui.registrarRolagem({ titulo: 'Potencial (teste)', total: Math.max(a, b), detalhe: `2d100 [${a}, ${b}] · ${fx.emoji} ${fx.nome}` }); });
 
     if (!mestre) return;
-    main.querySelectorAll('[data-aprovar]').forEach((b) => b.addEventListener('click', () => LD.fichas.mudar(b.dataset.aprovar, (x) => { x.inicialFixo = R.dinheiroInicial(x); x.aprovada = true; })));
+    main.querySelectorAll('[data-aprovar]').forEach((b) => b.addEventListener('click', () => LD.fichas.mudar(b.dataset.aprovar, (x) => { LD.fichas.aprovar(x); })));
     const ses = main.querySelector('[data-sessao]');
     if (ses) ses.addEventListener('click', () => {
       if (!LD.ui.confirmar('Encher a Determinação de todas as fichas?')) return;

@@ -201,21 +201,8 @@ service cloud.firestore {
     // Treino: cada treino conta +1 em treino.n, com 12 horas (menos uma folga) desde o anterior, e rende no máximo 3 PT.
     // Fora de um treino, Marcas e PT de treino não mudam. Cada 1 PP trocado custa 2 PT de treino.
     function treinoOk(d, r) {
-      let a = d.get('treino', {});
-      let b = r.get('treino', {});
-      return a.get('trocas', 0) >= b.get('trocas', 0)
-        && a.get('trocas', 0) * 2 <= a.get('ptGanho', 0)
-        && a.get('ptGanho', 0) >= b.get('ptGanho', 0)
-        && (
-          (a.get('n', 0) == b.get('n', 0)
-            && a.get('ptGanho', 0) == b.get('ptGanho', 0)
-            && a.get('marcas', {}) == b.get('marcas', {})
-            && a.get('em', 0) == b.get('em', 0))
-          || (a.get('n', 0) == b.get('n', 0) + 1
-            && a.get('em', 0) >= b.get('em', 0) + 42000000
-            && a.get('em', 0) <= request.time.toMillis() + 600000
-            && a.get('ptGanho', 0) <= b.get('ptGanho', 0) + 3)
-        );
+      // O treino é anotado só pela mestragem.
+      return d.get('treino', {}) == r.get('treino', {});
     }
     // Dinheiro: o jogador só gasta (gastoTotal sobe) e recebe o salário uma vez por semana.
     function dinheiroOk(d, r) {
@@ -243,10 +230,11 @@ service cloud.firestore {
     function fichaEgideOk(d) {
       return d.keys().size() <= 80
         && texto(d, 'nome', 120) && texto(d, 'codinome', 120) && texto(d, 'conceito', 400)
-        && texto(d, 'simbolo', 16) && texto(d, 'retrato', 2000) && texto(d, 'ownerName', 120)
+        && texto(d, 'simbolo', 16) && texto(d, 'retrato', 400000) && texto(d, 'ownerName', 120)
         && texto(d, 'historia', 20000) && texto(d, 'aparencia', 5000) && texto(d, 'notas', 20000) && texto(d, 'perda', 5000)
         && lista(d, 'poderes', 60) && lista(d, 'grimorio', 80) && lista(d, 'inventario', 300) && lista(d, 'compras', 80) && lista(d, 'extrato', 80)
         && lista(d, 'fraquezas', 10) && lista(d, 'qualidades', 30) && lista(d, 'defeitos', 5)
+        && mapa(d, 'adulto', 5) && texto(d.get('adulto', {}), 'fetiches', 3000) && texto(d.get('adulto', {}), 'limites', 3000)
         && mapa(d, 'atributos', 6) && mapa(d, 'pericias', 60) && mapa(d, 'estilos', 20) && mapa(d, 'kits', 6);
     }
     function poderEgideOk(d) {
