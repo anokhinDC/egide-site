@@ -261,48 +261,48 @@
   // tipo: ataque (dano), protecao (Proteção), defesa (Defesa), outro.
   const P = (key, nome, grupo, custo, attrs, efeito, extra) => Object.assign({ key, nome, grupo, custo, attrs, efeito, tipo: 'outro' }, extra);
   const PODERES = [
-    P('forca', 'Força Sobre-humana', 'Corpo', 2, ['FOR'], 'Golpes físicos: +1d6 de dano a cada 2 Graus. Levanta conforme a Classe.'),
-    P('atributo', 'Atributo Sobre-humano', 'Corpo', 1, [], '+1 num Atributo a cada 2 Graus (até 5). O Atributo trabalha na escala da Classe.', { alvoAtributo: true }),
-    P('invulnerabilidade', 'Invulnerabilidade', 'Corpo', 2, ['VIG'], 'Proteção = Grau × 5 (teto Classe × 5).', { tipo: 'protecao', protecao: (g, c) => Math.min(g * 5, x5(c)) }),
-    P('armadura', 'Armadura', 'Corpo', 2, ['INT'], 'Traje tecnológico: Proteção = Grau × 4 (teto Classe × 5). Sempre Removível.', { tipo: 'protecao', protecao: (g, c) => Math.min(g * 4, x5(c)), falhaPadrao: 'removivel' }),
-    P('regeneracao', 'Regeneração', 'Corpo', 2, ['VIG'], 'No início do turno, recupera Grau × 2 PV. Grau 4+: volta de Cicatrizes em uma semana.'),
-    P('elasticidade', 'Elasticidade', 'Corpo', 2, ['AGI'], 'Alcance corpo a corpo de Grau × 2 m, +Grau em Agarrar e Escapar.'),
-    P('crescer', 'Crescer / Encolher', 'Corpo', 2, ['FOR', 'AGI'], 'Crescer: +Grau em FOR, −Grau/2 em Defesa. Encolher: +Grau em Defesa e Furtividade.'),
-    P('adaptacao', 'Adaptação', 'Corpo', 1, ['VIG'], 'Por Grau, ignora um ambiente: frio, calor, fundo do mar, vácuo, veneno, fome e sono.'),
-    P('armas_naturais', 'Armas Naturais', 'Corpo', 1, ['FOR'], 'Garras, presas, espinhos: +1d6 por Grau nos golpes, e Sangramento num crítico.'),
-    P('voo', 'Voo', 'Movimento', 2, ['AGI'], 'Voa com a velocidade da Classe. +1 de Defesa contra quem não voa.'),
-    P('velocidade', 'Supervelocidade', 'Movimento', 2, ['AGI'], 'Deslocamento × Grau, +Grau na Iniciativa. Grau 3+: uma ação extra só para mover, Resgatar ou Ajudar.', { iniciativa: (g) => g }),
-    P('teleporte', 'Teleporte', 'Movimento', 2, ['VON'], 'Some e aparece até o alcance do Grau. Grau 4+: leva outras pessoas.'),
-    P('movimento', 'Movimento Especial', 'Movimento', 1, ['AGI'], 'Andar em paredes, respirar na água, saltar prédios, balançar em cabos. Um por Grau.'),
-    P('intangibilidade', 'Intangibilidade', 'Movimento', 2, ['VON'], 'Atravessa matéria. Só Energia, Mental e Místico o afetam. 1 Energia por rodada.'),
-    P('rajada', 'Rajada', 'Energia', 2, ['VON', 'AGI'], 'Ataque à distância de Energia, Luz, Fogo, Gelo, Elétrico, Sônico ou Sombra.', { tipo: 'ataque' }),
-    P('elemento', 'Elemento', 'Energia', 2, ['VON'], 'Controla um elemento: ataca, defende, cria, molda.', { tipo: 'ataque' }),
-    P('todos_elementos', 'Todos os Elementos', 'Energia', 3, ['VON'], 'Como Elemento, para todos.', { tipo: 'ataque' }),
-    P('construtos', 'Construtos', 'Energia', 3, ['VON', 'INT'], 'Objetos sólidos de energia com Grau × 5 PV.'),
-    P('campo_forca', 'Campo de Força', 'Energia', 2, ['VON'], 'Proteção Grau × 5 enquanto sustentado (1 Energia por rodada).', { tipo: 'protecao', sustentado: true, protecao: (g, c) => Math.min(g * 5, x5(c)) }),
-    P('absorcao', 'Absorção', 'Energia', 2, ['VIG'], 'Absorve Grau × 3 de um tipo de dano por golpe e ganha 1 Energia.'),
-    P('telepatia', 'Telepatia', 'Mente', 2, ['VON'], 'Ler e falar com mentes no alcance do Grau.'),
-    P('controle_mental', 'Controle Mental', 'Mente', 3, ['VON'], 'VON do alvo contra a CD, ou fica Controlado. Grau 5+: um grupo. Pede um Preço narrativo.'),
-    P('ilusao', 'Ilusão', 'Mente', 2, ['PRE', 'VON'], 'Imagens e sons falsos. Quem desconfiar faz Intuição contra a CD.'),
-    P('telecinese', 'Telecinese', 'Mente', 3, ['VON'], 'Move objetos e pessoas com a força da Classe. Ataca e defende.', { tipo: 'ataque' }),
-    P('sentidos', 'Sentidos', 'Mente', 1, ['VON'], 'Por Grau, um sentido especial.'),
-    P('precognicao', 'Precognição', 'Mente', 2, ['VON'], 'Grau vezes por sessão, rerrola um d20 de qualquer pessoa na cena.'),
-    P('metamorfose', 'Metamorfose', 'Matéria', 3, ['VIG', 'PRE'], 'Muda de forma: pessoas (Grau 2), animais (3), formas monstruosas (4+).'),
-    P('duplicacao', 'Duplicação', 'Matéria', 2, ['VIG'], 'Grau cópias que agem como Lacaios e somem com um acerto.'),
-    P('invisibilidade', 'Invisibilidade', 'Matéria', 2, ['AGI'], 'Atacá-lo é com Desvantagem; ele ataca com Vantagem. 1 Energia por rodada em combate.'),
-    P('controle_materia', 'Controle de Matéria', 'Matéria', 3, ['INT'], 'Transforma uma substância em outra. Grau 2: objetos pequenos. Grau 5: prédios.'),
-    P('probabilidade', 'Probabilidade', 'Matéria', 3, ['VON'], 'Grau vezes por cena, Vantagem a um aliado ou Desvantagem a um inimigo.'),
-    P('drenar', 'Drenar', 'Matéria', 2, ['VON'], 'Toque que rouba PV ou Energia, ou copia um poder por uma cena (Grau 4+).', { tipo: 'ataque' }),
-    P('animais', 'Animais', 'Matéria', 2, ['PRE'], 'Comanda animais. Grau 4+: um enxame ataca em área.'),
-    P('necromancia', 'Necromancia', 'Matéria', 3, ['VON'], 'Fala com os mortos, ergue ossos e sombras como Lacaios. É Sombra.'),
-    P('tempo', 'Tempo', 'Cósmico', 4, ['INT'], 'Grau 1: uma ação extra por cena. Grau 2: volta 1 rodada, uma vez por sessão.', { cosmico: true }),
-    P('realidade', 'Realidade', 'Cósmico', 4, ['VON'], 'Grau 1: um "e se" pequeno por sessão. Grau 2: um milagre por arco, com preço.', { cosmico: true }),
+    P('forca', 'Força Sobre-humana', 'Corpo', 2, ['FOR'], 'Força acima do humano. Ergue e arremessa o que a sua Classe ergue (um carro na Classe 2, um prédio na 3). Nos golpes físicos, +1d6 de dano a cada 2 Graus.'),
+    P('atributo', 'Atributo Sobre-humano', 'Corpo', 1, [], 'Um Atributo além do humano. +1 nele a cada 2 Graus (até 5), e ele passa a trabalhar na escala da sua Classe.', { alvoAtributo: true }),
+    P('invulnerabilidade', 'Invulnerabilidade', 'Corpo', 2, ['VIG'], 'Pele dura como aço. Proteção = Grau × 5 (até Classe × 5), sempre ligada.', { tipo: 'protecao', protecao: (g, c) => Math.min(g * 5, x5(c)) }),
+    P('armadura', 'Armadura', 'Corpo', 2, ['INT'], 'Um traje tecnológico. Proteção = Grau × 4 (até Classe × 5). Pode ser roubado ou quebrado (Removível).', { tipo: 'protecao', protecao: (g, c) => Math.min(g * 4, x5(c)), falhaPadrao: 'removivel' }),
+    P('regeneracao', 'Regeneração', 'Corpo', 2, ['VIG'], 'O corpo se cura sozinho. No começo de cada turno, recupera Grau × 2 PV. Grau 4+: Cicatrizes somem em uma semana.'),
+    P('elasticidade', 'Elasticidade', 'Corpo', 2, ['AGI'], 'Estica e torce o corpo. Alcança Grau × 2 m corpo a corpo e soma +Grau para Agarrar e escapar.'),
+    P('crescer', 'Crescer / Encolher', 'Corpo', 2, ['FOR', 'AGI'], 'Muda de tamanho. Crescer: +Grau na FOR (até 5) e −Grau/2 na Defesa. Encolher: +Grau na Defesa e em Furtividade.'),
+    P('adaptacao', 'Adaptação', 'Corpo', 1, ['VIG'], 'O corpo aguenta o que mataria alguém. Cada Grau escolhe um ambiente que não faz mal: frio, calor, fundo do mar, vácuo, veneno, fome ou sono.'),
+    P('armas_naturais', 'Armas Naturais', 'Corpo', 1, ['FOR'], 'Garras, presas ou espinhos. +1d6 de dano por Grau nos golpes; um crítico causa Sangramento.'),
+    P('voo', 'Voo', 'Movimento', 2, ['AGI'], 'Voa. Grau 1: 10 m por rodada; cada Grau dobra a velocidade (Grau 4: um carro na estrada; Grau 6: um avião). +1 de Defesa contra quem não voa.'),
+    P('velocidade', 'Supervelocidade', 'Movimento', 2, ['AGI'], 'Corre muito rápido. Deslocamento × Grau e +Grau na Iniciativa. Grau 3+: uma ação extra por turno, só para se mover, Resgatar ou Ajudar.', { iniciativa: (g) => g }),
+    P('teleporte', 'Teleporte', 'Movimento', 2, ['VON'], 'Some e aparece em outro lugar que veja ou conheça. Alcance pelo Grau (Grau 1: 5 m; 3: 50 m; 5: 500 m). Grau 4+: leva outras pessoas.'),
+    P('movimento', 'Movimento Especial', 'Movimento', 1, ['AGI'], 'Um jeito especial de se mover por Grau: andar em paredes, respirar na água, saltar prédios, balançar em cabos, atravessar sombras.'),
+    P('intangibilidade', 'Intangibilidade', 'Movimento', 2, ['VON'], 'Fica fantasma: atravessa paredes e golpes. Só dano de Energia, Mental e Místico o atinge. Custa 1 Energia por rodada. Grau 3+: leva alguém junto.'),
+    P('rajada', 'Rajada', 'Energia', 2, ['VON', 'AGI'], 'Um disparo à distância (energia, luz, fogo, gelo, raio, som ou sombra). Dano Grau d6 + Atributo + Potência. Alcance pelo Grau (Grau 2: 20 m; 4: 100 m).', { tipo: 'ataque' }),
+    P('elemento', 'Elemento', 'Energia', 2, ['VON'], 'Controla um elemento (fogo, água, terra, ar, eletricidade, gelo…). Ataca com Grau d6 de dano, ergue barreiras, molda e move o que já existe.', { tipo: 'ataque' }),
+    P('todos_elementos', 'Todos os Elementos', 'Energia', 3, ['VON'], 'Como Elemento, mas com todos eles. Muda de elemento como Ação Rápida.', { tipo: 'ataque' }),
+    P('construtos', 'Construtos', 'Energia', 3, ['VON', 'INT'], 'Cria objetos sólidos de energia: paredes, pontes, escudos, armas. Cada construto tem Grau × 5 PV e dura a cena.'),
+    P('campo_forca', 'Campo de Força', 'Energia', 2, ['VON'], 'Uma bolha de força em volta de si ou de um aliado. Proteção = Grau × 5 (até Classe × 5) enquanto sustenta (1 Energia por rodada).', { tipo: 'protecao', sustentado: true, protecao: (g, c) => Math.min(g * 5, x5(c)) }),
+    P('absorcao', 'Absorção', 'Energia', 2, ['VIG'], 'Absorve um tipo de dano (escolha: fogo, elétrico, físico…). Ignora Grau × 3 desse dano por golpe e ganha 1 Energia cada vez.'),
+    P('telepatia', 'Telepatia', 'Mente', 2, ['VON'], 'Lê e fala com mentes. Grau 1: pensamentos de quem toca. Grau 3: qualquer um num quarteirão. Grau 5: uma cidade. Quem resiste usa a Mente.'),
+    P('controle_mental', 'Controle Mental', 'Mente', 3, ['VON'], 'Manda em alguém. O alvo testa a Mente contra a CD (10 + Grau); se falhar, fica Controlado. Grau 5+: um grupo. Tem sempre um Preço na história.'),
+    P('ilusao', 'Ilusão', 'Mente', 2, ['PRE', 'VON'], 'Cria imagens e sons falsos do tamanho do Grau (Grau 1: um objeto; 3: uma sala; 5: um quarteirão). Quem desconfiar testa Intuição contra a CD.'),
+    P('telecinese', 'Telecinese', 'Mente', 3, ['VON'], 'Move coisas e pessoas com a mente, com a força da sua Classe. Arremessa (Grau d6 de dano), segura e defende.', { tipo: 'ataque' }),
+    P('sentidos', 'Sentidos', 'Mente', 1, ['VON'], 'Sentidos além do humano. Cada Grau dá um: visão no escuro, visão de raio X, audição a quilômetros, faro de rastreador, sentir mentiras, sentir perigo (nunca é surpreendido) ou ver o invisível.'),
+    P('precognicao', 'Precognição', 'Mente', 2, ['VON'], 'Vê lampejos do futuro. Grau vezes por sessão, rerrola um d20 de qualquer pessoa na cena, antes de saber o resultado.'),
+    P('metamorfose', 'Metamorfose', 'Matéria', 3, ['VIG', 'PRE'], 'Muda de forma. Grau 2: vira outra pessoa (voz e rosto). Grau 3: um animal. Grau 4+: formas monstruosas, com armas naturais.'),
+    P('duplicacao', 'Duplicação', 'Matéria', 2, ['VIG'], 'Cria cópias de si. Grau = número de cópias. Elas agem como Lacaios (somem com qualquer acerto) e duram a cena.'),
+    P('invisibilidade', 'Invisibilidade', 'Matéria', 2, ['AGI'], 'Fica invisível. Quem o ataca tem Desvantagem; ele ataca com Vantagem. Em combate, custa 1 Energia por rodada. Grau 3+: leva alguém junto.'),
+    P('controle_materia', 'Controle de Matéria', 'Matéria', 3, ['INT'], 'Transforma uma substância em outra (ferro em vidro, pedra em areia). O tamanho vai pelo Grau: Grau 2, objetos pequenos; 4, um carro; 5, um prédio.'),
+    P('probabilidade', 'Probabilidade', 'Matéria', 3, ['VON'], 'Mexe na sorte. Grau vezes por cena, dá Vantagem a um aliado ou Desvantagem a um inimigo.'),
+    P('drenar', 'Drenar', 'Matéria', 2, ['VON'], 'Um toque que rouba. Tira Grau d6 de PV (e cura a si mesmo) ou Grau de Energia. Grau 4+: copia um poder do alvo por uma cena.', { tipo: 'ataque' }),
+    P('animais', 'Animais', 'Matéria', 2, ['PRE'], 'Fala com animais e dá ordens. Grau 2: um animal. Grau 4+: um bando ou enxame, que ataca em área.'),
+    P('necromancia', 'Necromancia', 'Matéria', 3, ['VON'], 'O poder sobre os mortos. Fala com eles, ergue ossos e sombras como Lacaios (Grau = quantos). É dano de Sombra.'),
+    P('tempo', 'Tempo', 'Cósmico', 4, ['INT'], 'Mexe no tempo. Grau 1: uma ação extra por cena. Grau 2: volta uma rodada, uma vez por sessão. Só com a mestragem.', { cosmico: true }),
+    P('realidade', 'Realidade', 'Cósmico', 4, ['VON'], 'Muda o que é real. Grau 1: um pequeno "e se" por sessão. Grau 2: um milagre por arco, com preço. Só com a mestragem.', { cosmico: true }),
     // Efeitos básicos (Criando Poderes)
     P('ataque', 'Ataque', 'Efeito básico', 2, ['VON', 'AGI', 'FOR', 'INT', 'PRE', 'VIG'], 'Grau d6 + atributo + Potência, contra a Defesa (ou área contra Reflexos).', { tipo: 'ataque' }),
     P('defesa', 'Defesa', 'Efeito básico', 2, ['VIG', 'VON', 'AGI', 'INT'], 'Proteção Grau × 5 (teto Classe × 5), ou +Grau/2 de Defesa, ou Absorção Grau × 3.', { tipo: 'protecao', protecao: (g, c) => Math.min(g * 5, x5(c)), modos: true }),
-    P('mov_especial', 'Movimento (especial)', 'Efeito básico', 1, ['AGI'], 'Um movimento especial: paredes, água, sombras.'),
-    P('mov_rapido', 'Movimento (rápido)', 'Efeito básico', 2, ['AGI', 'VON'], 'Voo, Supervelocidade ou Teleporte.'),
-    P('sentido', 'Sentido', 'Efeito básico', 1, ['VON', 'INT'], 'Um sentido novo por Grau, ou o alcance de um sentido.'),
+    P('mov_especial', 'Movimento (especial)', 'Efeito básico', 1, ['AGI'], 'Um movimento especial: andar em paredes, nadar como peixe, atravessar sombras.'),
+    P('mov_rapido', 'Movimento (rápido)', 'Efeito básico', 2, ['AGI', 'VON'], 'Voo, Supervelocidade ou Teleporte, montado do zero. O Grau dá a velocidade ou o alcance.'),
+    P('sentido', 'Sentido', 'Efeito básico', 1, ['VON', 'INT'], 'Um sentido novo por Grau (visão no escuro, raio X, faro…), ou o alcance de um sentido (Grau 3: um quarteirão).'),
     P('controle', 'Controle', 'Efeito básico', 2, ['VON', 'INT', 'PRE'], 'Lento, Agarrado, Derrubado, Desequilibrado, Cego ou Medo, contra Salvaguarda.'),
     P('controle_forte', 'Controle (forte)', 'Efeito básico', 3, ['VON', 'INT', 'PRE'], 'Controlado, Atordoado ou Congelado, contra Salvaguarda.'),
     P('alteracao', 'Alteração', 'Efeito básico', 2, ['VIG', 'FOR', 'AGI'], 'Muda o próprio corpo: +Grau num atributo físico ou +Grau/2 de Defesa.'),
@@ -479,6 +479,9 @@
     return { classe: ef, nome, pct: Math.round((v / teto) * 100), teto };
   }
 
+  // Quantos poderes a ficha pode ter: 3 na criação, +1 na Classe 2, na 3 e na 4 (6 no máximo).
+  function limitePoderes(f) { const n = degrau(f); return 3 + [4, 7, 10].filter((d) => n >= d).length; }
+
   function grauMaximo(f) {
     const n = degrau(f);
     let g = n >= MARCOS.grau7 ? 7 : n >= MARCOS.grau6 ? 6 : n >= MARCOS.grau5 ? 5 : 4;
@@ -500,7 +503,9 @@
     porGrau -= (p.falhas || []).filter((k) => LD.byKey(FALHAS, k)).length;
     porGrau = Math.max(1, porGrau);
     const variacoes = (p.variacoes || []).filter((v) => v && (v.nome || v.efeito)).length;
-    return { porGrau, fixo, variacoes, total: porGrau * g + fixo + variacoes };
+    // Cada Grau custa o preço do poder × o número do Grau: o 1º custa 1×, o 2º 2×, o 3º 3×…
+    const graus = porGrau * g * (g + 1) / 2;
+    return { porGrau, graus, proximo: porGrau * (g + 1), fixo, variacoes, total: graus + fixo + variacoes };
   }
 
   // Grau de uma Perícia, já com os Traços que dão grau de graça.
@@ -783,7 +788,7 @@
     const ptQualidades = (f.qualidades || []).reduce((s, k) => s + ((LD.byKey(QUALIDADES, k) || {}).custo || 0), 0);
     const ptOpcao = f.recursosOpcao === 'familia_rica' ? 2 : f.recursosOpcao === 'lendarios' ? 6 : 0;
     const ptGastos = ptPericias + ptEstilos + ptQualidades + ptOpcao;
-    const ppTotal = (treinado ? num((f.bonus || {}).pp) : pot.pp + 2 * (nivel - 1) + num((f.bonus || {}).pp)) + treinoDe(f).trocas;
+    const ppTotal = (treinado ? num((f.bonus || {}).pp) : pot.pp + 4 * (nivel - 1) + num((f.bonus || {}).pp)) + treinoDe(f).trocas;
     const ppGastos = (f.poderes || []).reduce((s, p) => s + custoPoder(p).total, 0);
 
     const profAtaque = 0;
@@ -895,6 +900,7 @@
     if ((Math.floor(c.classe) >= 4 || c.pot.nome === 'Supernova' || f.origem === 'visitante') && !temGrave) out.push({ passo: 'tracos', msg: 'Classe 4, Supernova e Visitantes pedem uma Fraqueza grave.' });
     else if (Math.floor(c.classe) === 3 && !temSeria) out.push({ passo: 'tracos', msg: 'Classe 3 pede uma Fraqueza séria (Regra do Preço).' });
     if (c.pot.nome === 'Incêndio' && fr.length < 2) out.push({ passo: 'tracos', msg: 'Incêndio traz uma segunda Fraqueza.' });
+    if ((f.poderes || []).length > limitePoderes(f)) out.push({ passo: 'poderes', msg: `No máximo ${limitePoderes(f)} poderes (agora: ${f.poderes.length}).` });
     if (!f.arquetipo) out.push({ passo: 'conceito', msg: 'Escolha um Arquétipo.' });
     if (f.origem === 'arcano' && !f.tradicao) out.push({ passo: 'poderes', msg: 'Arcanos escolhem uma Tradição.' });
     return out;
@@ -955,5 +961,5 @@
   LD.DINHEIRO_PARTIDA = DINHEIRO_PARTIDA; LD.SALARIOS = SALARIOS;
   LD.DEGRAUS_CLASSE = DEGRAUS_CLASSE; LD.MARCOS = MARCOS;
   LD.MORADIAS_TIPOS = MORADIAS_TIPOS;
-  LD.rules = { moradiaDe, aluguelDe, ultimoDomingo, domingosPendentes, salarioDe, fraquezasDe, marcasPericias, degrau, classeDoDegrau, rotuloClasse, areasTreino, treinoDe, podeTreinar, bonusTreino, aplicarTreino, tetoPTTreino, valeTreino: vale, dinheiro, dinheiroInicial, fmtUS, semanaAtual, fmtClasse, slug, clamp, num, faixaDe, resultadoAjustado, potencial, classe, atributos, grauMaximo, custoPoder, calc, tetoAtributo, escalaAtributo, ataquePoder, ataques, grau, tetoPericia, comandosBot, feitico, rolarD20, rolarExpr, recursos, hasTraco, combinarProtecoes };
+  LD.rules = { limitePoderes, moradiaDe, aluguelDe, ultimoDomingo, domingosPendentes, salarioDe, fraquezasDe, marcasPericias, degrau, classeDoDegrau, rotuloClasse, areasTreino, treinoDe, podeTreinar, bonusTreino, aplicarTreino, tetoPTTreino, valeTreino: vale, dinheiro, dinheiroInicial, fmtUS, semanaAtual, fmtClasse, slug, clamp, num, faixaDe, resultadoAjustado, potencial, classe, atributos, grauMaximo, custoPoder, calc, tetoAtributo, escalaAtributo, ataquePoder, ataques, grau, tetoPericia, comandosBot, feitico, rolarD20, rolarExpr, recursos, hasTraco, combinarProtecoes };
 })();

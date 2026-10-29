@@ -12,7 +12,7 @@
 
   function opcoesBase(sel) {
     return LD.GRUPOS_PODER.map((g) => `<optgroup label="${esc(g)}">${LD.PODERES.filter((p) => p.grupo === g)
-      .map((p) => `<option value="${p.key}" ${p.key === sel ? 'selected' : ''}>${esc(p.nome)} · ${p.custo} PP/Grau</option>`).join('')}</optgroup>`).join('');
+      .map((p) => `<option value="${p.key}" ${p.key === sel ? 'selected' : ''}>${esc(p.nome)} · ${p.custo} PP no Grau 1</option>`).join('')}</optgroup>`).join('');
   }
 
   function minhasFichas() {
@@ -130,9 +130,9 @@
           if (cp.porGrau === 1 && (x.falhas.length > 0)) avisos.push('Falhas não descem de 1 PP por Grau.');
           const sobra = f ? c.ppTotal - gastosSem - cp.total : null;
           d.querySelector('[data-prev]').innerHTML = `
-            <div class="eyebrow">Custo</div>
+            <div class="eyebrow">Preço na ficha (pago uma vez)</div>
             <div class="cost-big"><b>${cp.total}</b><span>PP</span></div>
-            <div class="small muted">${cp.porGrau} por Grau × ${x.grau}${cp.fixo ? ` + ${cp.fixo}` : ''}${cp.variacoes ? ` + ${cp.variacoes}` : ''}</div>
+            <div class="small muted">${cp.porGrau} × (${Array.from({ length: num(x.grau) }, (_, i) => i + 1).join(' + ')}) = ${cp.graus}${cp.fixo ? ` + ${cp.fixo}` : ''}${cp.variacoes ? ` + ${cp.variacoes}` : ''}</div>
             ${f ? `<div class="orc ${sobra < 0 ? 'bad' : ''}" style="margin-top:12px"><div class="orc-h"><span>Sobram na ficha</span><b>${sobra}</b><small>de ${c.ppTotal} PP</small></div></div>` : ''}
             <div class="caps" style="margin-top:14px;color:var(--ink)">No Grau ${x.grau}</div>
             <ul class="mini">
@@ -141,8 +141,8 @@
               ${b.protecao && (!b.modos || x.modo === 'protecao') ? `<li><span>Proteção</span><b>${b.protecao(x.grau, cls)}</b></li>` : ''}
               ${b.modos && x.modo === 'defesa' ? `<li><span>Defesa</span><b>+${Math.ceil(x.grau / 2)}</b></li>` : ''}
               ${b.modos && x.modo === 'absorcao' ? `<li><span>Absorção</span><b>${x.grau * 3}</b></li>` : ''}
-              ${b.alvoAtributo ? `<li><span>${esc(x.alvo || 'FOR')}</span><b>+${x.grau}</b></li>` : ''}
-              <li><span>CD</span><b>${10 + at + x.grau}</b></li>
+              ${b.alvoAtributo ? `<li><span>${esc(x.alvo || 'FOR')}</span><b>+${Math.ceil(x.grau / 2)}</b></li>` : ''}
+              ${['controle_mental', 'ilusao', 'telepatia', 'controle', 'controle_forte', 'mente', 'transformacao', 'controle_materia'].includes(x.base) || (b.tipo === 'ataque' && x.extras.includes('area')) ? `<li><span>CD para resistir</span><b>${10 + x.grau}</b></li>` : ''}
               <li><span>Alcance</span><b>${esc(x.extras.includes('longo') ? (LD.GRAUS[Math.min(8, x.grau + 2)] || g).alcance : g.alcance)}</b></li>
             </ul>
             <details class="more"><summary>Mais</summary><ul class="mini"><li><span>Área</span><b>${esc(g.area)}</b></li><li><span>Duração</span><b>${esc(g.duracao)}</b></li></ul>
@@ -164,7 +164,7 @@
           const alvo = d.querySelector('[data-alvo-ficha]');
           const fichaId = alvo && alvo.value;
           publicar(x, true).then(() => {
-            if (fichaId) LD.fichas.mudar(fichaId, (fx) => { fx.poderes.push(Object.assign({}, x, { id: LD.store.newId('pd') })); }).then(() => LD.ui.toast(`${x.nome} foi para a ficha.`));
+            if (fichaId) LD.fichas.mudar(fichaId, (fx) => { if (fx.poderes.length >= R.limitePoderes(fx)) { LD.ui.toast(`Limite de ${R.limitePoderes(fx)} poderes.`, 'erro'); return; } fx.poderes.push(Object.assign({}, x, { id: LD.store.newId('pd') })); }).then(() => LD.ui.toast(`${x.nome} foi para a ficha.`));
           });
           LD.ui.closeDrawer();
         });
@@ -278,7 +278,7 @@
   function cartaoPronto(p, acao) {
     return `<article class="card pcard pronto">
       <div class="card-title">${esc(p.nome)}</div>
-      <div class="card-meta"><span class="tag gold">${custoPorGrau(p)} PP por Grau</span><span class="tag">${esc(p.grupo)}</span></div>
+      <div class="card-meta"><span class="tag gold" title="Grau 2: +${2 * custoPorGrau(p)} · Grau 3: +${3 * custoPorGrau(p)} · Grau 4: +${4 * custoPorGrau(p)}">${custoPorGrau(p)} PP no Grau 1</span><span class="tag">${esc(p.grupo)}</span></div>
       <div class="small">${esc(p.desc)}</div>
       <div class="caption" style="margin:4px 0 0"><b>Grau 1:</b> ${esc(p.graus[0])}</div>
       <details class="more"><summary>Como melhora</summary><ol class="graus-lista">${p.graus.map((t) => `<li>${esc(t)}</li>`).join('')}</ol></details>
@@ -342,7 +342,7 @@
           eyebrow: 'Poderes prontos', title: 'Para qual ficha?',
           body: fichas.map((x) => `<button class="pick" data-f="${esc(x.id)}"><b>${esc(x.codinome || x.nome || 'Herói')}</b></button>`).join(''),
           onMount: (d) => d.querySelectorAll('[data-f]').forEach((bt) => bt.addEventListener('click', () => {
-            LD.fichas.mudar(bt.dataset.f, (fx) => { fx.poderes.push(novoPronto(b.dataset.pfic, 1)); }).then(() => LD.ui.toast('Poder adicionado à ficha.'));
+            LD.fichas.mudar(bt.dataset.f, (fx) => { if (fx.poderes.length >= R.limitePoderes(fx)) { LD.ui.toast(`Limite de ${R.limitePoderes(fx)} poderes.`, 'erro'); return; } fx.poderes.push(novoPronto(b.dataset.pfic, 1)); }).then(() => LD.ui.toast('Poder adicionado à ficha.'));
             LD.ui.closeDrawer();
           }))
         });
@@ -355,7 +355,7 @@
         <div class="grid cards">${lista.map((p) => `
           <article class="card pcard">
             <div class="card-title">${esc(p.nome)}</div>
-            <div class="card-meta"><span class="tag gold">${p.custo} PP por Grau</span>${p.cosmico ? '<span class="tag warn">Mestragem</span>' : ''}</div>
+            <div class="card-meta"><span class="tag gold" title="Grau 2: +${2 * p.custo} · Grau 3: +${3 * p.custo} · Grau 4: +${4 * p.custo}">${p.custo} PP no Grau 1</span>${p.cosmico ? '<span class="tag warn">Mestragem</span>' : ''}</div>
             <details class="more"><summary>O que faz</summary><div class="small">${esc(p.efeito)}</div><div class="caps" style="margin-top:4px">${p.attrs.slice(0, 3).join(' · ')}</div></details>
             <div class="card-foot"><button class="btn" data-usar="${p.key}">Montar</button><span class="caps">${esc(p.grupo)}</span></div>
           </article>`).join('')}</div>`;
@@ -381,13 +381,13 @@
       corpo.querySelectorAll('[data-pegar]').forEach((b) => b.addEventListener('click', () => pegarParaFicha(b.dataset.pegar)));
     } else {
       corpo.innerHTML = `
-        <table class="tbl"><thead><tr><th>Grau</th><th>Dano</th><th>Alcance</th><th>Área</th><th>Duração</th><th>CD (atributo 4)</th></tr></thead><tbody>
-          ${LD.GRAUS.slice(1).map((g) => `<tr><td>${g.g}</td><td>${g.dano}</td><td>${esc(g.alcance)}</td><td>${esc(g.area)}</td><td>${esc(g.duracao)}</td><td>${14 + g.g}</td></tr>`).join('')}</tbody></table>
+        <table class="tbl"><thead><tr><th>Grau</th><th>Dano</th><th>Alcance</th><th>Área</th><th>Duração</th><th>CD para resistir</th></tr></thead><tbody>
+          ${LD.GRAUS.slice(1).map((g) => `<tr><td>${g.g}</td><td>${g.dano}</td><td>${esc(g.alcance)}</td><td>${esc(g.area)}</td><td>${esc(g.duracao)}</td><td>${10 + g.g}</td></tr>`).join('')}</tbody></table>
         <p class="muted small">Dano de um poder = Grau d6 + Atributo-chave + Potência (Classe × 5, arredondada). Grau máximo 4 na criação (5 com Incêndio e Supernova), 5 na Classe 1,7, 6 na 2,7 e 7 na 3,7.</p>
         <div class="grid two" style="margin-top:20px">
           <div><div class="subsect"><span>Extras</span></div><table class="tbl"><tbody>${LD.EXTRAS.map((x) => `<tr><td><b>${esc(x.nome)}</b></td><td class="r">+${x.custo}${x.tipo === 'grau' ? '/Grau' : ''}</td><td class="small">${esc(x.efeito)}</td></tr>`).join('')}</tbody></table></div>
           <div><div class="subsect"><span>Falhas</span></div><table class="tbl"><tbody>${LD.FALHAS.map((x) => `<tr><td><b>${esc(x.nome)}</b></td><td class="r">−1/Grau</td><td class="small">${esc(x.efeito)}</td></tr>`).join('')}</tbody></table>
-          <p class="muted small">Falhas não descem de 1 PP por Grau. Variações custam +1 PP cada.</p></div>
+          <p class="muted small"><b>Cada Grau custa mais:</b> o preço do poder × o número do Grau (um poder de 2 PP: Grau 1 = 2, Grau 2 = +4, Grau 3 = +6, Grau 4 = +8; total 20). Falhas não descem de 1 PP. Variações custam +1 PP cada.</p></div>
         </div>
         <div class="subsect"><span>Façanhas de Poder</span></div>
         <p class="paper-2">Uma vez por cena, 2 Energia: um uso novo do poder, coerente com o descritor, com efeito de Grau − 1. Atributo do poder + Domínio do Poder contra CD 15. Se a mesa gostar, vira uma Variação comprada no próximo nível.</p>`;
@@ -408,7 +408,7 @@
         const novo = Object.assign({}, p, { id: LD.store.newId('pd'), bibliotecaId: p.id });
         delete novo.ownerId; delete novo.ownerName; delete novo.updatedAt;
         LD.ui.closeDrawer();
-        setTimeout(() => construtor({ ficha: f, poder: novo, onSave: (x) => LD.fichas.mudar(f.id, (fx) => { fx.poderes.push(x); }) }), 350);
+        setTimeout(() => construtor({ ficha: f, poder: novo, onSave: (x) => LD.fichas.mudar(f.id, (fx) => { if (fx.poderes.length >= R.limitePoderes(fx)) { LD.ui.toast(`Limite de ${R.limitePoderes(fx)} poderes.`, 'erro'); return; } fx.poderes.push(x); }) }), 350);
       }))
     });
   }

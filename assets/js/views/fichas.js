@@ -441,6 +441,17 @@
     return `<div class="stat"><span class="caps">${esc(nome)}</span><b>${esc(valor)}</b><small>${esc(sub || '')}</small></div>`;
   }
 
+  // Como o poder é usado: sempre ligado (passivo), sustentado (custa Energia por rodada) ou uma ação.
+  const PASSIVOS = ['forca', 'atributo', 'invulnerabilidade', 'armadura', 'regeneracao', 'elasticidade', 'adaptacao', 'armas_naturais', 'voo', 'velocidade', 'movimento', 'sentidos', 'sentido', 'mov_especial', 'mov_rapido', 'absorcao', 'alteracao'];
+  const SUSTENTADOS = ['campo_forca', 'intangibilidade', 'invisibilidade'];
+  // Poderes que o alvo resiste com uma Salvaguarda (aí a CD importa).
+  const RESISTE = ['controle_mental', 'ilusao', 'telepatia', 'controle', 'controle_forte', 'mente', 'transformacao', 'controle_materia'];
+  function usoPoder(p, b) {
+    if (SUSTENTADOS.includes(p.base) || b.sustentado) return 'sustentado';
+    if (PASSIVOS.includes(p.base) || (b.protecao && b.tipo === 'protecao')) return 'passivo';
+    if (p.pronto && LD.byKey(LD.PRONTOS || [], p.pronto) && LD.byKey(LD.PRONTOS, p.pronto).passivo) return 'passivo';
+    return 'acao';
+  }
   function poderResumo(f, p, c, acoes) {
     const b = LD.byKey(LD.PODERES, p.base) || {};
     const g = LD.GRAUS[R.clamp(num(p.grau, 1), 1, 8)];
@@ -455,7 +466,7 @@
         ${ef ? `<div class="caption" style="margin:0"><b>Grau ${p.grau}:</b> ${esc(ef.agora)}${ef.proximo ? `<br><span class="small"><b>Grau ${num(p.grau) + 1}:</b> ${esc(ef.proximo)}</span>` : ''}</div>` : ''}
         ${p.descritor && !ef ? `<div class="italic">${esc(p.descritor)}</div>` : ''}
         ${ef ? '' : `<div>${esc(b.nome || '')} ${p.grau}: ${esc(b.efeito || '')}</div>`}
-        <div class="facts">${ef && b.tipo !== 'ataque' ? '' : `<span class="fact">Alcance<b>${esc(g.alcance)}</b></span><span class="fact">Área<b>${esc(g.area)}</b></span><span class="fact">Duração<b>${esc(g.duracao)}</b></span>`}<span class="fact">CD<b>${a.cd}</b></span>${b.tipo === 'ataque' ? `<span class="fact">Acerto<b>${sinal(a.bonus)}</b></span>` : ''}<span class="fact">Custo<b>${R.custoPoder(p).total} PP</b></span></div>
+        <div class="facts">${usoPoder(p, b) === 'passivo' ? '<span class="fact">Uso<b>Sempre ligado</b></span>' : usoPoder(p, b) === 'sustentado' ? '<span class="fact">Uso<b>1 Energia por rodada</b></span>' : '<span class="fact">Uso<b>Ação</b></span>'}${usoPoder(p, b) === 'passivo' || (ef && b.tipo !== 'ataque') ? '' : `<span class="fact">Alcance<b>${esc(g.alcance)}</b></span>${(p.extras || []).includes('area') ? `<span class="fact">Área<b>${esc(g.area)}</b></span>` : ''}`}${b.tipo === 'ataque' ? `<span class="fact">Acerto<b>${sinal(a.bonus)}</b></span>` : ''}${RESISTE.includes(p.base) || (b.tipo === 'ataque' && (p.extras || []).includes('area')) ? `<span class="fact" title="O número que o alvo precisa tirar para resistir">CD para resistir<b>${a.cd}</b></span>` : ''}${acoes ? `<span class="fact" title="Pago uma vez, ao montar a ficha">Preço na ficha<b>${R.custoPoder(p).total} PP</b></span>` : ''}</div>
         ${extras.length || falhas.length ? `<div class="facts">${extras.map((x) => `<span class="tag ok">+ ${esc(x)}</span>`).join('')}${falhas.map((x) => `<span class="tag warn">− ${esc(x)}</span>`).join('')}</div>` : ''}
         ${(p.variacoes || []).length ? `<div><span class="caps">Variações</span> ${(p.variacoes || []).map((v) => esc(`${v.nome} (Grau ${v.grau || p.grau})`)).join(' · ')}</div>` : ''}
         ${b.tipo === 'cura' && !acoes ? `<div><button class="roll dmg" data-podatk="${esc(p.id)}">Curar ${p.grau}d6+${c.A[a.attr]}</button></div>` : ''}
@@ -761,20 +772,21 @@
         ${f.assinatura2 ? `<div><span class="caps">2ª Assinatura</span> ${esc((LD.byKey(LD.ESTILOS_PODER, f.assinatura2) || {}).assinatura || '')}</div>` : ''}</div>` : ''}
       ${f.tradicao ? (() => { const t = LD.byKey(LD.TRADICOES, f.tradicao); return `<div class="sig panel"><div><span class="caps">Conjura com</span> ${t.attr} + ${(LD.byKey(LD.PERICIAS, t.pericia) || {}).nome || 'Ocultismo'}</div><div><span class="caps">Vantagem</span> ${esc(t.vantagem)}</div><div><span class="caps">Limite</span> ${esc(t.limite)}</div></div>`; })() : ''}
 
-      <div class="subsect"><span>Poderes da ficha</span><span class="tag gold">${c.ppGastos} / ${c.ppTotal} PP</span></div>
-      <div class="pow-play">${f.poderes.map((p) => poderResumo(f, p, c, `${num(p.grau) < c.grauMax ? `<button class="btn-primary small-btn" data-sobe="${esc(p.id)}" ${R.custoPoder(p).porGrau > c.ppLivres ? 'disabled title="Faltam PP"' : ''}>Aprimorar (+${R.custoPoder(p).porGrau} PP)</button>` : '<span class="tag">Grau máximo</span>'}<button class="btn" data-editp="${esc(p.id)}">Editar</button><button class="btn plain" data-libp="${esc(p.id)}">Pôr na biblioteca</button><button class="btn plain danger" data-rmp="${esc(p.id)}">Tirar</button>`)).join('') || '<div class="empty small-empty">Nenhum poder ainda.</div>'}</div>
+      <div class="subsect"><span>Poderes da ficha</span><span class="tag ${f.poderes.length >= R.limitePoderes(f) ? 'warn' : ''}">${f.poderes.length} / ${R.limitePoderes(f)} poderes</span><span class="tag gold">${c.ppGastos} / ${c.ppTotal} PP</span></div>
+      <div class="pow-play">${f.poderes.map((p) => poderResumo(f, p, c, `${num(p.grau) < c.grauMax ? `<button class="btn-primary small-btn" data-sobe="${esc(p.id)}" ${R.custoPoder(p).proximo > c.ppLivres ? 'disabled title="Faltam PP"' : ''}>Aprimorar (+${R.custoPoder(p).proximo} PP)</button>` : '<span class="tag">Grau máximo</span>'}<button class="btn" data-editp="${esc(p.id)}">Editar</button><button class="btn plain" data-libp="${esc(p.id)}">Pôr na biblioteca</button><button class="btn plain danger" data-rmp="${esc(p.id)}">Tirar</button>`)).join('') || '<div class="empty small-empty">Nenhum poder ainda.</div>'}</div>
       ${(() => {
         if (c.ppLivres <= 0) return '';
-        const sobe = f.poderes.filter((p) => num(p.grau) < c.grauMax && R.custoPoder(p).porGrau <= c.ppLivres && !(LD.byKey(LD.PODERES, p.base) || {}).cosmico);
-        const baratos = ['sentidos', 'adaptacao', 'movimento', 'armas_naturais'].filter((k) => !f.poderes.some((p) => p.base === k));
+        const sobe = f.poderes.filter((p) => num(p.grau) < c.grauMax && R.custoPoder(p).proximo <= c.ppLivres && !(LD.byKey(LD.PODERES, p.base) || {}).cosmico);
+        const baratos = f.poderes.length >= R.limitePoderes(f) ? [] : ['sentidos', 'adaptacao', 'movimento', 'armas_naturais'].filter((k) => !f.poderes.some((p) => p.base === k));
         return `<div class="caption"><b>Sobram ${c.ppLivres} PP.</b> Sugestões:
-          ${sobe.map((p) => `<button class="btn" data-sobe="${esc(p.id)}">+1 Grau em ${esc(p.nome || '')} (${R.custoPoder(p).porGrau} PP)</button>`).join(' ')}
+          ${sobe.map((p) => `<button class="btn" data-sobe="${esc(p.id)}">+1 Grau em ${esc(p.nome || '')} (${R.custoPoder(p).proximo} PP)</button>`).join(' ')}
           ${baratos.map((k) => `<button class="btn" data-barato="${k}" title="${esc(LD.byKey(LD.PODERES, k).efeito)}">${esc(LD.byKey(LD.PODERES, k).nome)} 1 (1 PP)</button>`).join(' ')}</div>`;
       })()}
       <div class="btn-row">
+        ${f.poderes.length >= R.limitePoderes(f) ? `<span class="muted small">Limite de ${R.limitePoderes(f)} poderes. Aprimore os que já tem (mais um na Classe 2, 3 e 4).</span>` : `
         <button class="btn-primary" data-pronto>＋ Poder pronto</button>
         <button class="btn" data-novop>Montar do zero</button>
-        <button class="btn" data-bib>Escolher da biblioteca</button>
+        <button class="btn" data-bib>Escolher da biblioteca</button>`}
         <a class="btn plain" href="#/poderes">Ver o catálogo</a>
       </div>
 
@@ -791,13 +803,15 @@
     bindCampos(el, f);
     const salvarPoder = (p) => mudar(f.id, (x) => {
       const i = x.poderes.findIndex((y) => y.id === p.id);
-      if (i > -1) x.poderes[i] = p; else x.poderes.push(p);
+      if (i > -1) x.poderes[i] = p;
+      else if (x.poderes.length >= R.limitePoderes(x)) LD.ui.toast(`Limite de ${R.limitePoderes(x)} poderes.`, 'erro');
+      else x.poderes.push(p);
     });
     el.querySelectorAll('[data-sobe]').forEach((b) => b.addEventListener('click', () => mudar(f.id, (x) => { const p = x.poderes.find((y) => y.id === b.dataset.sobe); if (p) p.grau = num(p.grau) + 1; })));
     el.querySelectorAll('[data-barato]').forEach((b) => b.addEventListener('click', () => mudar(f.id, (x) => { const k = b.dataset.barato; x.poderes.push({ id: LD.store.newId('pd'), base: k, nome: LD.byKey(LD.PODERES, k).nome, grau: 1, extras: [], falhas: [], variacoes: [] }); })));
-    el.querySelector('[data-pronto]').addEventListener('click', () => LD.poderUI.escolherPronto(f, salvarPoder));
-    el.querySelector('[data-novop]').addEventListener('click', () => LD.poderUI.construtor({ ficha: f, onSave: salvarPoder }));
-    el.querySelector('[data-bib]').addEventListener('click', () => LD.poderUI.escolherDaBiblioteca(f, salvarPoder));
+    const bPronto = el.querySelector('[data-pronto]'); if (bPronto) bPronto.addEventListener('click', () => LD.poderUI.escolherPronto(f, salvarPoder));
+    const bNovo = el.querySelector('[data-novop]'); if (bNovo) bNovo.addEventListener('click', () => LD.poderUI.construtor({ ficha: f, onSave: salvarPoder }));
+    const bBib = el.querySelector('[data-bib]'); if (bBib) bBib.addEventListener('click', () => LD.poderUI.escolherDaBiblioteca(f, salvarPoder));
     el.querySelectorAll('[data-editp]').forEach((b) => b.addEventListener('click', () => LD.poderUI.construtor({ ficha: f, poder: f.poderes.find((p) => p.id === b.dataset.editp), onSave: salvarPoder })));
     el.querySelectorAll('[data-rmp]').forEach((b) => b.addEventListener('click', () => mudar(f.id, (x) => { x.poderes = x.poderes.filter((p) => p.id !== b.dataset.rmp); })));
     el.querySelectorAll('[data-libp]').forEach((b) => b.addEventListener('click', () => LD.poderUI.publicar(f.poderes.find((p) => p.id === b.dataset.libp))));

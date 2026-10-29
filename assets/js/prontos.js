@@ -2,7 +2,7 @@
  * Égide · Poderes prontos
  * Os poderes clássicos dos quadrinhos, prontos para pôr na ficha. Cada um usa um efeito do catálogo
  * (que dá o custo e as contas) e diz, em números concretos, o que cada Grau faz.
- * Aprimorar = subir o Grau (custa o PP por Grau do poder). A Classe continua sendo o teto da escala.
+ * Aprimorar = subir o Grau (o Grau n custa o preço do poder × n). A Classe continua sendo o teto da escala.
  */
 (function () {
   const LD = (window.LD = window.LD || {});
