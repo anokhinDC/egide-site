@@ -5,7 +5,7 @@
   const MENU = [
     { rota: 'fichas', nome: 'Fichas', rn: 'I', ativo: ['fichas', 'ficha'] },
     { rota: 'poderes', nome: 'Poderes', rn: 'II' },
-    { rota: 'arsenal', nome: 'Arsenal', rn: 'III' },
+    { rota: 'loja', nome: 'Loja', rn: 'III', ativo: ['loja', 'arsenal'] },
     { rota: 'referencia', nome: 'Referência', rn: 'IV' },
     { sep: true },
     { rota: 'oficina', nome: 'Oficina', rn: 'V' },

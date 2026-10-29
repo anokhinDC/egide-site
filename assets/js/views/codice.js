@@ -53,7 +53,7 @@ REAÇÕES  Esquivar 1d20 + AGI + Esquiva ≥ ataque → errou
       <p><a class="btn" href="#/fichas">Criar uma ficha</a></p>`],
     ['dinheiro', 'Dinheiro', () => `<p>O dinheiro da Égide é em <b>dólares (US$)</b> e fica no site. O saldo de cada herói = dinheiro inicial + salário e recompensas − compras.</p>
       ${tabela(['Começa com', 'Valor'], [['Sem nada', 'US$ 50'], ['Apertado (padrão)', 'US$ 500'], ['Com emprego', 'US$ 1.500'], ['Família rica (Treinado, 2 PT)', 'US$ 10.000'], ['Oficina lendária (Engenhoso, 6 PT)', 'US$ 50.000'], ['Traço Rico', '+US$ 15.000']])}
-      <p>O salário (definido pela mestragem) cai uma vez por semana, no botão do Inventário. Recompensas e multas, a mestragem lança na ficha. <a href="#/arsenal">Arsenal</a></p>`],
+      <p>O salário (definido pela mestragem) cai uma vez por semana, no botão do Inventário. Recompensas e multas, a mestragem lança na ficha. <a href="#/loja">Loja</a></p>`],
     ['bot', 'No Discord', () => `<pre class="code">!egide-potencial                 a Rolagem de Potencial (2d100, fica o maior)
 !egide-ficha-criar Nome          cria a ficha de jogo no bot
 !egide-teste 7 Difícil vantagem  1d20 + 7 contra CD 20, com Vantagem

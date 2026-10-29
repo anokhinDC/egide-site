@@ -1054,7 +1054,7 @@
           ${editar && R.salarioDe(f) > 0 ? (f.semanaSalario === R.semanaAtual() ? `<span class="tag ok">Salário da semana recebido</span>` : `<button class="btn" data-salario>Receber o salário da semana (+${esc(R.fmtUS(f.salario))})</button>`) : `<span class="muted small">${num(f.salario) ? '' : 'Sem salário: a mestragem define.'}</span>`}
           ${f.novaEgide ? '<span class="tag ok">Nova Égide: Observatório grátis</span>' : ''}
         </div>
-        <a class="btn-primary" href="#/arsenal/${esc(f.id)}">Ir ao Arsenal</a>
+        <a class="btn-primary" href="#/loja/${esc(f.id)}">Ir à Loja</a>
       </div>
       ${inv.length ? cats.map((cat) => {
         const itens = inv.map((x, i) => Object.assign({ i }, x)).filter((x) => x.cat === cat.key);
@@ -1071,7 +1071,7 @@
                 ${editar ? `<button class="btn plain danger" data-rmi="${x.i}">Tirar</button>` : ''}
               </div>
             </div>`).join('')}</div>`;
-      }).join('') : '<div class="empty">Mochila vazia. O Arsenal tem armas, proteção, gadgets, veículos e serviços.</div>'}
+      }).join('') : '<div class="empty">Mochila vazia. A Loja tem armas, proteção, gadgets, veículos e serviços.</div>'}
       ${editar ? `<div class="btn-row"><button class="btn" data-add-livre>＋ Item livre (despojo, presente)</button></div>` : ''}
       ${LD.store.isMaster() ? `<div class="subsect"><span>Dinheiro (mestragem)</span></div>
         <div class="btn-row"><label class="inline">Valor (US$) <input type="number" data-aj-valor placeholder="+500 ou −200" style="width:140px"></label>

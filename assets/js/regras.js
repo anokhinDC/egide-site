@@ -382,7 +382,7 @@
   ];
   const CDS = [{ key: 10, nome: 'Fácil' }, { key: 15, nome: 'Médio' }, { key: 20, nome: 'Difícil' }, { key: 25, nome: 'Heroico' }, { key: 30, nome: 'Lendário' }];
   const FADIGA = ['Descansado', 'Cansado (−2 em Perícias)', 'Exausto (−2 em tudo)', 'Esgotado (−2, metade do Deslocamento, sem Reação)'];
-  const KITS_PADRAO = { cura: 0, energia: 0, reerguer: 0, contencao: 0 }; // os Kits vêm do Arsenal
+  const KITS_PADRAO = { cura: 0, energia: 0, reerguer: 0, contencao: 0 }; // os Kits vêm da Loja
   const KITS = [
     { key: 'cura', nome: 'Kit de Cura', efeito: '2d6 + Medicina de quem usa, e tira Sangramento.' },
     { key: 'energia', nome: 'Kit de Energia', efeito: '+3 Energia.' },

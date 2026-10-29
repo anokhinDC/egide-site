@@ -1,6 +1,6 @@
 /*
- * Égide · Arsenal
- * O catálogo de equipamento, com preço em dólares (US$). Comprar desconta do saldo da ficha.
+ * Égide · Loja (antigo Arsenal)
+ * O catálogo do que se compra, com preço em dólares (US$). Comprar desconta do saldo da ficha.
  * A Nova Égide pega de graça o que está no Arsenal do Observatório. Itens especiais só a mestragem dá.
  */
 (function () {
@@ -71,7 +71,7 @@
     const novo = !item;
     const it = item ? JSON.parse(JSON.stringify(item)) : { cat: 'gadget', nome: '', preco: 100, observatorio: false, especial: false };
     LD.ui.openDrawer({
-      eyebrow: 'Arsenal', title: novo ? 'Novo item' : 'Editar item',
+      eyebrow: 'Loja', title: novo ? 'Novo item' : 'Editar item',
       body: `${field('Nome', `<input name="nome" class="big" value="${esc(it.nome)}">`)}
         <div class="row">
           ${field('Categoria', select('cat', LD.CATEGORIAS.map((x) => ({ key: x.key, nome: x.nome })), it.cat))}
@@ -124,12 +124,35 @@
     const c = f ? R.calc(f) : null;
     const mestre = LD.store.isMaster();
     const busca = st.busca.toLowerCase();
-    const itens = LD.store.list('itens').filter((i) => (!st.cat || i.cat === st.cat) && (!busca || (i.nome + ' ' + (i.propriedades || '')).toLowerCase().includes(busca)) && (mestre || !i.especial || st.cat === 'especial'))
-      .slice().sort((a, b) => num(a.preco) - num(b.preco) || a.nome.localeCompare(b.nome));
+    const casa = (i) => !busca || (i.nome + ' ' + (i.propriedades || '')).toLowerCase().includes(busca);
+    const ordem = (a, b) => num(a.preco) - num(b.preco) || a.nome.localeCompare(b.nome);
+    // A Loja só mostra o que se compra. Os especiais ficam com a mestragem, numa seção à parte.
+    const todos = LD.store.list('itens');
+    const venda = todos.filter((i) => !i.especial && casa(i));
+    const especiais = mestre ? todos.filter((i) => i.especial && casa(i)).sort(ordem) : [];
+    const cats = LD.CATEGORIAS.filter((x) => x.key !== 'especial');
+    const card = (i) => {
+      const s = situacao(i, f, c);
+      const stats = [i.dano ? `Dano ${i.dano}` : '', i.potencia ? `Potência ${i.potencia}` : '', i.protecao ? `Proteção ${i.protecao}` : '', i.defesa ? `Defesa ${sinal(num(i.defesa))}` : '', i.cargas ? `${i.cargas} carga${i.cargas > 1 ? 's' : ''}` : ''].filter(Boolean);
+      return `<article class="card item ${s.k}">
+          <div class="card-title">${esc(i.nome)}</div>
+          <div class="card-meta"><span class="preco">${i.especial ? '—' : esc(R.fmtUS(i.preco))}</span><span class="tag ${s.cls}">${esc(s.txt)}</span></div>
+          ${stats.length || i.propriedades ? `<details class="more"><summary>Detalhes</summary>${stats.length ? `<div class="small"><b>${stats.map(esc).join(' · ')}</b></div>` : ''}<div class="small">${esc(i.propriedades || '')}</div></details>` : ''}
+          <div class="buy-row">
+            ${f && s.k === 'gratis' ? `<button class="btn" data-comprar="${esc(i.id)}">Pegar</button>` : ''}
+            ${f && s.k === 'paga' ? `<button class="btn" data-comprar="${esc(i.id)}">Comprar (${esc(R.fmtUS(i.preco))})</button>` : ''}
+            ${mestre ? `<button class="btn plain" data-dar="${esc(i.id)}">Dar</button><button class="btn plain" data-edit="${esc(i.id)}">Editar</button>` : ''}
+          </div>
+        </article>`;
+    };
+    const secoes = cats.filter((x) => !st.cat || st.cat === x.key).map((x) => {
+      const lista = venda.filter((i) => i.cat === x.key).sort(ordem);
+      return lista.length ? `<div class="subsect"><span>${esc(x.nome)}</span><span class="tag">${lista.length}</span></div><div class="grid cards">${lista.map(card).join('')}</div>` : '';
+    }).join('');
 
     main.innerHTML = `
       <div class="page-head">
-        <div><div class="eyebrow">Equipamento e Itens</div><h1>Arsenal</h1></div>
+        <div><div class="eyebrow">Equipamento e serviços</div><h1>Loja</h1></div>
         ${mestre ? '<button class="btn-primary" data-novo>＋ Novo item</button>' : ''}
       </div>
       ${fichas.length ? `<div class="buyer panel">
@@ -140,26 +163,14 @@
       </div>` : '<div class="empty small-empty">Crie uma ficha para comprar. <a href="#/fichas">Fichas</a></div>'}
       <div class="toolbar">
         <div class="search"><span>⌕</span><input data-busca placeholder="Procurar" value="${esc(st.busca)}"></div>
-        <div class="chips"><button class="chip ${!st.cat ? 'on' : ''}" data-cat="">Tudo</button>${LD.CATEGORIAS.map((x) => `<button class="chip ${st.cat === x.key ? 'on' : ''}" data-cat="${x.key}">${esc(x.nome)}</button>`).join('')}</div>
+        <div class="chips"><button class="chip ${!st.cat ? 'on' : ''}" data-cat="">Tudo</button>${cats.map((x) => `<button class="chip ${st.cat === x.key ? 'on' : ''}" data-cat="${x.key}">${esc(x.nome)}</button>`).join('')}</div>
       </div>
-      ${!LD.store.list('itens').length ? `<div class="empty">O catálogo está vazio.${mestre ? ' <button class="btn" data-semear>Carregar o catálogo inicial</button>' : ' A mestragem precisa carregar o catálogo na Oficina.'}</div>` : ''}
-      <div class="grid cards">${itens.map((i) => {
-        const s = situacao(i, f, c);
-        const stats = [i.dano ? `Dano ${i.dano}` : '', i.potencia ? `Potência ${i.potencia}` : '', i.protecao ? `Proteção ${i.protecao}` : '', i.defesa ? `Defesa ${sinal(num(i.defesa))}` : '', i.cargas ? `${i.cargas} carga${i.cargas > 1 ? 's' : ''}` : ''].filter(Boolean);
-        return `<article class="card item ${s.k}">
-          <div class="card-title">${esc(i.nome)}</div>
-          <div class="card-meta"><span class="preco">${i.especial ? '—' : esc(R.fmtUS(i.preco))}</span><span class="tag ${s.cls}">${esc(s.txt)}</span></div>
-          ${stats.length || i.propriedades ? `<details class="more"><summary>Detalhes</summary>${stats.length ? `<div class="small"><b>${stats.map(esc).join(' · ')}</b></div>` : ''}<div class="small">${esc(i.propriedades || '')}</div></details>` : ''}
-          <div class="buy-row">
-            ${f && s.k === 'gratis' ? `<button class="btn" data-comprar="${esc(i.id)}">Pegar</button>` : ''}
-            ${f && s.k === 'paga' ? `<button class="btn" data-comprar="${esc(i.id)}">Comprar (${esc(R.fmtUS(i.preco))})</button>` : ''}
-            ${mestre ? `<button class="btn plain" data-dar="${esc(i.id)}">Dar</button><button class="btn plain" data-edit="${esc(i.id)}">Editar</button>` : ''}
-          </div>
-        </article>`;
-      }).join('')}</div>`;
+      ${!todos.length ? `<div class="empty">A loja está vazia.${mestre ? ' <button class="btn" data-semear>Carregar o catálogo</button>' : ' A mestragem precisa carregar o catálogo na Oficina.'}</div>` : ''}
+      ${secoes || (todos.length ? '<p class="muted">Nada encontrado.</p>' : '')}
+      ${especiais.length ? `<details class="more" style="margin-top:24px"><summary>Itens especiais (não estão à venda; só a mestragem vê e dá)</summary><div class="grid cards">${especiais.map(card).join('')}</div></details>` : ''}`;
 
     const fs = main.querySelector('[data-ficha]');
-    if (fs) fs.addEventListener('change', () => { st.fichaId = fs.value; location.hash = '#/arsenal/' + fs.value; });
+    if (fs) fs.addEventListener('change', () => { st.fichaId = fs.value; location.hash = '#/loja/' + fs.value; });
     main.querySelector('[data-busca]').addEventListener('input', LD.ui.debounce((e) => { st.busca = e.target.value; render(main); const i = main.querySelector('[data-busca]'); i.focus(); i.setSelectionRange(i.value.length, i.value.length); }, 250));
     main.querySelectorAll('[data-cat]').forEach((b) => b.addEventListener('click', () => { st.cat = b.dataset.cat; render(main); }));
     main.querySelectorAll('[data-comprar]').forEach((b) => b.addEventListener('click', () => comprar(LD.store.get('itens', b.dataset.comprar), st.fichaId)));
@@ -170,5 +181,6 @@
   }
 
   LD.arsenal = { comprar, situacao };
-  LD.views.arsenal = { titulo: 'Arsenal', numeral: 'III', render };
+  LD.views.loja = { titulo: 'Loja', numeral: 'III', render };
+  LD.views.arsenal = LD.views.loja; // links antigos
 })();
