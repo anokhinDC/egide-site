@@ -8,7 +8,7 @@
   const { esc, sinal, field, select, checkbox } = LD.ui;
   const R = LD.rules;
   const num = R.num;
-  const st = { cat: '', busca: '', fichaId: '', mais18: (() => { try { return localStorage.getItem('egide-loja-18') === '1'; } catch (e) { return false; } })() };
+  const st = { cat: '', busca: '', fichaId: '' };
 
   function minhasFichas() {
     const meu = LD.store.uid();
@@ -129,9 +129,9 @@
     const ordem = (a, b) => num(a.preco) - num(b.preco) || a.nome.localeCompare(b.nome);
     // A Loja só mostra o que se compra. Os especiais ficam com a mestragem, numa seção à parte.
     const todos = LD.store.list('itens');
-    const venda = todos.filter((i) => !i.especial && (st.mais18 || i.cat !== 'adulto') && casa(i));
+    const venda = todos.filter((i) => !i.especial && casa(i));
     const especiais = mestre ? todos.filter((i) => i.especial && casa(i)).sort(ordem) : [];
-    const cats = LD.CATEGORIAS.filter((x) => x.key !== 'especial' && (st.mais18 || x.key !== 'adulto'));
+    const cats = LD.CATEGORIAS.filter((x) => x.key !== 'especial');
     const card = (i) => {
       const s = situacao(i, f, c);
       const stats = [i.dano ? `Dano ${i.dano}` : '', i.potencia ? `Potência ${i.potencia}` : '', i.protecao ? `Proteção ${i.protecao}` : '', i.defesa ? `Defesa ${sinal(num(i.defesa))}` : '', i.cargas ? `${i.cargas} carga${i.cargas > 1 ? 's' : ''}` : ''].filter(Boolean);
@@ -165,7 +165,6 @@
       <div class="toolbar">
         <div class="search"><span>⌕</span><input data-busca placeholder="Procurar" value="${esc(st.busca)}"></div>
         <div class="chips"><button class="chip ${!st.cat ? 'on' : ''}" data-cat="">Tudo</button>${cats.map((x) => `<button class="chip ${st.cat === x.key ? 'on' : ''}" data-cat="${x.key}">${esc(x.nome)}</button>`).join('')}</div>
-        ${checkbox('mais18', st.mais18, 'Mostrar itens +18', 'data-mais18')}
       </div>
       ${!todos.length ? `<div class="empty">A loja está vazia.${mestre ? ' <button class="btn" data-semear>Carregar o catálogo</button>' : ' A mestragem precisa carregar o catálogo na Oficina.'}</div>` : ''}
       ${secoes || (todos.length ? '<p class="muted">Nada encontrado.</p>' : '')}
@@ -175,8 +174,6 @@
     if (fs) fs.addEventListener('change', () => { st.fichaId = fs.value; location.hash = '#/loja/' + fs.value; });
     main.querySelector('[data-busca]').addEventListener('input', LD.ui.debounce((e) => { st.busca = e.target.value; render(main); const i = main.querySelector('[data-busca]'); i.focus(); i.setSelectionRange(i.value.length, i.value.length); }, 250));
     main.querySelectorAll('[data-cat]').forEach((b) => b.addEventListener('click', () => { st.cat = b.dataset.cat; render(main); }));
-    const m18 = main.querySelector('[data-mais18]');
-    if (m18) m18.addEventListener('change', () => { st.mais18 = m18.checked; if (!st.mais18 && st.cat === 'adulto') st.cat = ''; try { localStorage.setItem('egide-loja-18', st.mais18 ? '1' : '0'); } catch (e) { /* sem armazenamento */ } render(main); });
     main.querySelectorAll('[data-comprar]').forEach((b) => b.addEventListener('click', () => comprar(LD.store.get('itens', b.dataset.comprar), st.fichaId)));
     main.querySelectorAll('[data-edit]').forEach((b) => b.addEventListener('click', () => editarItem(LD.store.get('itens', b.dataset.edit))));
     main.querySelectorAll('[data-dar]').forEach((b) => b.addEventListener('click', () => darItem(LD.store.get('itens', b.dataset.dar))));

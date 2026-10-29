@@ -1152,13 +1152,11 @@
         ${tracos.length ? `<div class="subsect"><span>De onde vêm os Traços</span></div>
           ${tracos.map((t) => field(t.nome, `<input name="tracoNotas.${t.key}" value="${esc((f.tracoNotas || {})[t.key] || '')}" placeholder="Uma frase.">`)).join('')}` : ''}
         ${field('Notas', textarea('notas', f.notas, 'rows="5"'))}
-        <details class="more adulto" ${keep('adulto-' + f.id)}><summary>Conteúdo adulto (opcional)</summary>
-          <p class="muted small">As fichas são públicas para quem entra no site.</p>
-          <div class="row">
-            ${field('Fetiches', textarea('adulto.fetiches', (f.adulto || {}).fetiches, 'rows="4"'))}
-            ${field('Limites', textarea('adulto.limites', (f.adulto || {}).limites, 'rows="4" placeholder="O que nunca entra em cena."'))}
-          </div>
-        </details>
+        <div class="subsect"><span>Fetiches e limites</span></div>
+        <div class="row">
+          ${field('Fetiches', textarea('adulto.fetiches', (f.adulto || {}).fetiches, 'rows="4"'))}
+          ${field('Limites', textarea('adulto.limites', (f.adulto || {}).limites, 'rows="4" placeholder="O que nunca entra em cena."'))}
+        </div>
       </div>`;
     bindCampos(el, f);
     if (!editar) el.querySelectorAll('input,textarea').forEach((x) => { x.disabled = true; });

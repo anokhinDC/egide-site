@@ -112,7 +112,7 @@
     I('esconderijo', 'servico', 'Esconderijo por uma semana', 2, { preco: 400, propriedades: 'Um quarto que ninguém conhece.' }),
     I('conserto', 'servico', 'Conserto de equipamento', 1, { preco: 300, propriedades: 'Um item quebrado volta novo em um dia.' }),
     I('informante', 'servico', 'Informante no DAME', 4, { preco: 1000, propriedades: 'Uma resposta sobre um registro ou uma operação do DAME.' }),
-    // ===== +18 (só aparece para quem liga "Mostrar itens +18" na Loja) =====
+    // ===== +18 =====
     I('vinho', 'adulto', 'Garrafa de vinho', 1, { preco: 40, cargas: 1, propriedades: 'Uma noite boa. Quem bebe a garrafa sozinho fica Cansado (Fadiga 1) até dormir.' }),
     I('champanhe', 'adulto', 'Champanhe importado', 2, { preco: 250, cargas: 1, propriedades: 'Abre portas na Avenida das Nações: Vantagem em Persuasão numa festa.' }),
     I('whisky', 'adulto', 'Whisky envelhecido', 2, { preco: 180, cargas: 3, propriedades: 'Três doses. Uma dose: +1 em Coragem até o fim da cena, −1 em Percepção.' }),
