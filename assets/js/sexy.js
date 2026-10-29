@@ -82,8 +82,6 @@ const FRACOS = [
   ['publico', 'Exibicionismo', 1, 'Em situações públicas ou com risco de exposição, Ousadia com Vantagem, mas Controle com Desvantagem.'],
   ['aftercare_need', 'Necessidade de Cuidado Posterior', 1, 'Após cenas intensas de BDSM, se não receber cuidado e atenção, fica com −2 em Controle na próxima interação social.']
 ].map(([key, nome, ps, efeito, detalhe]) => ({ key, nome, ps, efeito, detalhe: !!detalhe }));
-  ].map(([key, nome, ps, efeito, detalhe]) => ({ key, nome, ps, efeito, detalhe: !!detalhe }));
-
   const byKey = (l, k) => l.find((x) => x.key === k);
 
   function dados(f) {
