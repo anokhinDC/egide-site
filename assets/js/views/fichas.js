@@ -335,7 +335,7 @@
             <div class="stat-grid">
               ${stat('Defesa', c.defesa, `10 + AGI ${c.A.AGI} + Esquiva ${c.profDef}${c.bonusDef ? ` ${sinal(c.bonusDef)} equip.` : ''}`)}
               ${stat('Resistência', c.resistencia, `VIG ${c.A.VIG} + Proteção ${c.protecao}${c.detalheProt.length ? ` (${c.detalheProt.join(', ')})` : ''}`)}
-              ${stat('Potência', c.potPoder, `poderes · golpes ${c.potGolpe}`)}
+              ${stat('Potência', c.potGolpe, 'soma em todo dano')}
               ${stat('Percepção passiva', c.percepcaoPassiva, '10 + VON + Percepção')}
               ${stat('Deslocamento', c.deslocamento + ' m', 'por rodada')}
               ${stat('Carga', c.carga + ' kg', 'a mochila, sempre')}

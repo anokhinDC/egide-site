@@ -257,7 +257,7 @@
   // tipo: ataque (dano), protecao (Proteção), defesa (Defesa), outro.
   const P = (key, nome, grupo, custo, attrs, efeito, extra) => Object.assign({ key, nome, grupo, custo, attrs, efeito, tipo: 'outro' }, extra);
   const PODERES = [
-    P('forca', 'Força Sobre-humana', 'Corpo', 2, ['FOR'], 'Golpes físicos usam Potência = Classe × 5. Levanta conforme a Classe. +1 dado de dano físico a cada 2 Graus.'),
+    P('forca', 'Força Sobre-humana', 'Corpo', 2, ['FOR'], 'Golpes físicos: +1d6 de dano a cada 2 Graus. Levanta conforme a Classe.'),
     P('atributo', 'Atributo Sobre-humano', 'Corpo', 1, [], '+1 num Atributo por Grau, passando do teto (5 + Classe). Máximo 12.', { alvoAtributo: true }),
     P('invulnerabilidade', 'Invulnerabilidade', 'Corpo', 2, ['VIG'], 'Proteção = Grau × 5 (teto Classe × 5).', { tipo: 'protecao', protecao: (g, c) => Math.min(g * 5, x5(c)) }),
     P('armadura', 'Armadura', 'Corpo', 2, ['INT'], 'Traje tecnológico: Proteção = Grau × 4 (teto Classe × 5). Sempre Removível.', { tipo: 'protecao', protecao: (g, c) => Math.min(g * 4, x5(c)), falhaPadrao: 'removivel' }),
@@ -760,7 +760,9 @@
     // Potência
     const potPoder = x5(cls);
     const temForca = temPoder(f, ['forca']);
-    const potGolpe = temForca ? x5(cls) : (treinado || A.FOR >= 6) ? 5 : 0;
+    // Todo ataque soma a Potência da Classe (Treinados: 5, o limite humano).
+    const potGolpe = treinado ? 5 : x5(cls);
+    const dadosForca = Math.floor(Math.max(0, ...(f.poderes || []).filter((p) => p.base === 'forca').map((p) => num(p.grau, 1)), 0) / 2);
 
     // Pontos
     const porNivel = treinado ? 4 : 2;
@@ -780,7 +782,7 @@
 
     const c = {
       pot, classe: cls, classeDegrau: classeDoDegrau(f), rotuloClasse: rotuloClasse(f), nivel, degrau: nivel, A, protecao, tetoProt, detalheProt, defesa, profDef, bonusDef, pvMax, energiaMax, energiaAttr, detMax, recursoNome,
-      resistencia: A.VIG + protecao, potPoder, potGolpe, iniciativa, deslocamento, percepcaoPassiva,
+      resistencia: A.VIG + protecao, potPoder, potGolpe, dadosForca, iniciativa, deslocamento, percepcaoPassiva,
       reflexos: A.AGI + pericia('acrobacia'), fortitude: A.VIG + pericia('resiliencia'), mente: A.VON + pericia('concentracao'),
       esquivar: A.AGI + pericia('esquiva'), brecha: A.INT + pericia('tatica'), kitCura: `2d6+${pericia('medicina')}`, folego: (A.VIG + 1 + G('folego')) * (hasTraco(f, 'mergulhador') ? 2 : 1), bloquear: A.FOR + pericia('guarda'),
       carga: CARGA_MOCHILA, tetoPericia: tetoPericia(f), G, teto: 5 + Math.floor(cls), ptTotal, ptGastos, ptLivres: ptTotal - ptGastos, ptPericias, ptEstilos, ptQualidades, ptOpcao, defeitosPT, fe,
@@ -819,14 +821,15 @@
       const g = c.G(p.key);
       const attr = p.attr;
       let dados, pot;
-      if (p.key === 'pontaria' || (p.key === 'arremesso' && w.dadosBase)) { dados = (d6(w.dadosBase) || 1) + extra(g); pot = num(w.potencia); }
-      else { dados = 1 + extra(g) + d6(w.dadosExtra); pot = Math.max(num(w.potencia), c.potGolpe); }
+      if (p.key === 'pontaria' || (p.key === 'arremesso' && w.dadosBase)) { dados = (d6(w.dadosBase) || 1) + extra(g); }
+      else { dados = 1 + extra(g) + d6(w.dadosExtra) + c.dadosForca; }
+      pot = Math.max(num(w.potencia), c.potGolpe);
       const danoFixo = c.A[attr] + pot + num(w.bonusFixo);
       out.push({ nome: w.nome, sub: `${p.nome} ${g}`, attr, bonus: c.A[attr] + g, dados: `${dados}d6`, danoFixo, expr: `${dados}d6+${danoFixo}` });
     });
     const gL = c.G('luta');
     if (!armas.some((w) => (w.pericia || 'luta') === 'luta') && (gL || !armas.length)) {
-      const dados = 1 + extra(gL);
+      const dados = 1 + extra(gL) + c.dadosForca;
       const danoFixo = c.A.FOR + c.potGolpe;
       out.unshift({ nome: 'Desarmado', sub: `Luta ${gL}`, attr: 'FOR', bonus: c.A.FOR + gL, dados: `${dados}d6`, danoFixo, expr: `${dados}d6+${danoFixo}` });
     }
