@@ -265,7 +265,7 @@
   function renderJogar(el, f, c, editar) {
     const marcas = R.marcasPericias(f);
     const fraqs = R.fraquezasDe(f);
-    const fraqJogo = fraqs.length ? `<details class="more" ${keep('fraq-' + f.id)}><summary>Fraquezas (${fraqs.length})</summary><ul class="small fraq-jogo">${fraqs.map((w) => `<li><b>${esc(w.nome)}</b>${w.fixa ? ' <span class="tag">Origem</span>' : ''}: ${esc(w.efeito || '')}</li>`).join('')}</ul></details>` : '';
+    const fraqJogo = fraqs.length ? `<details class="more" ${keep('fraq-' + f.id)}><summary>Fraquezas (${fraqs.length})</summary><ul class="small fraq-jogo">${fraqs.map((w) => `<li><b>${esc(w.nome)}</b>${w.fixa ? ' <span class="tag">Origem</span>' : ''}: ${esc(((w.key && LD.byKey(LD.FRAQUEZAS, w.key)) || w).efeito || '')}</li>`).join('')}</ul></details>` : '';
     const m = f.medidores;
     const [estado, cls] = estadoSaude(m.pv, c.pvMax);
     const pct = Math.max(0, Math.min(100, m.pv / c.pvMax * 100));
@@ -915,7 +915,7 @@
             <select data-w="${i}" data-k="gravidade" aria-label="Gravidade">${LD.GRAVIDADES.map((g) => `<option value="${g.key}" ${(w.gravidade || 'leve') === g.key ? 'selected' : ''}>${g.nome}</option>`).join('')}</select>
             <button class="btn plain danger" data-rmw="${i}">Tirar</button>
           </div>
-          ${w.efeito ? `<div class="small">${esc(w.efeito)}</div>` : ''}
+          ${(() => { const cat = w.key && LD.byKey(LD.FRAQUEZAS, w.key); const txt = cat ? cat.efeito : w.efeito; return txt ? `<div class="small">${esc(txt)}</div>` : ''; })()}
           <details class="more"><summary>Gatilho, efeito e frequência</summary><div class="row">
             ${field('Gatilho', `<input data-w="${i}" data-k="gatilho" value="${esc(w.gatilho || '')}" placeholder="Quando acontece">`)}
             ${field('Efeito', `<input data-w="${i}" data-k="efeito" value="${esc(w.efeito || '')}">`)}

@@ -134,23 +134,23 @@
 
   /* ---------- Fraquezas ---------- */
   const FRAQUEZAS = [
-    ['Escuridão total', 'Fica Apagado enquanto durar.', 'leve'],
-    ['Juramento', 'Não pode mentir / recusar um desafio / atacar quem se rendeu. Quebrar: perde toda a Energia.', 'leve'],
-    ['Material', 'Perto do material, perde a Proteção e age duas Classes abaixo.', 'grave'],
-    ['Metal frio', 'Vulnerável a armas de ferro e aço.', 'seria'],
-    ['Sobrecarga', 'Depois de uma Suprema, ou de Intensificar três vezes, fica Atordoado.', 'leve'],
-    ['Rastro', 'O poder deixa marca: inimigos sempre sabem onde ele está.', 'leve'],
-    ['Dependência', 'Precisa de algo. Sem ela, −2 em tudo.', 'leve'],
-    ['Fonte', 'O poder precisa de algo do ambiente. Sem ela, age uma Classe abaixo.', 'seria'],
-    ['Coração mole', 'Com um civil em perigo ao alcance, a Ação do turno tem que ser o Resgate.', 'leve'],
-    ['Passado', 'Alguém sabe quem ele é e cobra. Uma vez por edição, o mestre traz esse alguém.', 'leve'],
-    ['Descontrole', 'Num 1 natural com poder, o poder age sozinho e o Estrago sobe 2.', 'leve'],
+    ['Escuridão total', 'Num lugar sem nenhuma luz (apagão, caverna, a escuridão do Eclipse), seus poderes desligam até a luz voltar.', 'leve'],
+    ['Juramento', 'Você jurou algo (nunca mentir, nunca recusar um desafio, nunca atacar quem se rendeu). Se quebrar, perde toda a Energia na hora.', 'leve'],
+    ['Material', 'Um material te enfraquece (um metal, um cristal, uma pedra da sua terra). Perto dele, perde toda a Proteção e luta como se fosse duas Classes abaixo.', 'grave'],
+    ['Metal frio', 'Armas de ferro e aço te ferem mais: o dano delas aumenta pela metade.', 'seria'],
+    ['Sobrecarga', 'Forçar demais cobra: depois de usar a Suprema, ou de Intensificar três vezes na mesma luta, você fica Atordoado (perde o próximo turno).', 'leve'],
+    ['Rastro', 'Seu poder deixa marca (luz, cheiro, interferência no rádio). Os inimigos sempre sabem onde você está, e é impossível se esconder usando o poder.', 'leve'],
+    ['Dependência', 'Você precisa de algo todo dia (um remédio, uma bateria, uma relíquia). Sem isso, −2 em todas as rolagens até conseguir.', 'leve'],
+    ['Fonte', 'Seu poder depende de algo do ambiente (sol, água, eletricidade, uma emoção). Sem isso por perto, luta como se fosse uma Classe abaixo.', 'seria'],
+    ['Coração mole', 'Se um civil estiver em perigo ao seu alcance, você não consegue ignorar: a ação do turno tem que ser salvá-lo.', 'leve'],
+    ['Passado', 'Alguém sabe quem você é e cobra por isso. Uma vez por edição, a mestragem traz essa pessoa para complicar sua vida.', 'leve'],
+    ['Descontrole', 'Quando tira 1 no d20 usando um poder, o poder escapa: faz algo que você não queria, e o estrago na cidade aumenta.', 'leve'],
     // As da Origem: entram sozinhas na ficha e não saem.
-    ['Carne e osso', 'Controle Mental, Medo e Sussurro contra ele têm Vantagem.', 'leve', 'treinado'],
-    ['Meia-noite', 'Quando o fragmento falha, fica Apagado.', 'leve', 'desperto'],
-    ['Palavra dada', 'Quebrar a palavra tira toda a Energia.', 'leve', 'mitico'],
-    ['Equipamento', 'O equipamento pode ser roubado, quebrado e Desligado.', 'leve', 'engenhoso'],
-    ['Estranheza', '−2 em Persuasão e Enganação com humanos.', 'leve', 'visitante']
+    ['Carne e osso', 'Você é só humano: ataques à mente (Controle Mental, Medo, Sussurro) contra você rolam com Vantagem.', 'leve', 'treinado'],
+    ['Meia-noite', 'Às vezes o fragmento da estrela falha (a mestragem avisa quando): seus poderes desligam até o fim da cena.', 'leve', 'desperto'],
+    ['Palavra dada', 'Sua força vem de um juramento aos deuses. Quebrar a palavra dada tira toda a sua Energia.', 'leve', 'mitico'],
+    ['Equipamento', 'Seus poderes estão no equipamento: se ele for roubado, quebrado ou desligado, você fica sem eles.', 'leve', 'engenhoso'],
+    ['Estranheza', 'Você não é deste mundo e as pessoas sentem: −2 em Persuasão e Enganação com humanos.', 'leve', 'visitante']
   ].map(([nome, efeito, gravidade, origem]) => ({ key: slug(nome), nome, efeito, gravidade, origem: origem || null }));
   // Fraquezas que a ficha tem: a da Origem (fixa) + as escolhidas.
   function fraquezasDe(f) {
@@ -177,9 +177,9 @@
     return out;
   }
   const GRAVIDADES = [
-    { key: 'leve', nome: 'Leve', efeito: '−2 em tudo, ou perde uma Reação, ou um poder age um Grau abaixo.' },
-    { key: 'seria', nome: 'Séria', efeito: 'Desvantagem em tudo, ou um poder some, ou age uma Classe abaixo.' },
-    { key: 'grave', nome: 'Grave', efeito: 'Perde a Proteção e age duas Classes abaixo, ou fica Apagado, ou Controlado.' }
+    { key: 'leve', nome: 'Leve', efeito: 'Atrapalha: −2 nas rolagens, ou perde uma Reação, ou um poder fica um Grau mais fraco.' },
+    { key: 'seria', nome: 'Séria', efeito: 'Pesa de verdade: Desvantagem nas rolagens, ou um poder some, ou luta uma Classe abaixo.' },
+    { key: 'grave', nome: 'Grave', efeito: 'Derruba: perde a Proteção e luta duas Classes abaixo, ou os poderes desligam, ou outra pessoa te controla.' }
   ];
 
   /* ---------- Traços ---------- */
