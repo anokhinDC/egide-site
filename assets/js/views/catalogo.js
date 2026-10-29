@@ -27,7 +27,7 @@
         <table class="tbl"><thead><tr><th>Resultado</th><th>Potencial</th><th>Chance</th><th>PP</th><th>PT extra</th><th>Determinação</th><th>Preço</th></tr></thead><tbody>
         ${LD.FAIXAS.map((x) => `<tr><td>${String(x.min).padStart(2, '0')}–${x.max}</td><td>${x.emoji} <b>${esc(x.nome)}</b></td><td>${x.chance}</td><td>${x.pp}</td><td>${x.pt ? '+' + x.pt : '—'}</td><td>${x.det ? '+1' : '—'}</td><td class="small">${esc(x.preco || '—')}</td></tr>`).join('')}
         </tbody></table>
-        <p class="muted small">Míticos: abaixo de 40 vira 40, acima de 94 vira 94. Visitantes: +15. Arcanos: +2 PT. Treinados (Ápice): 0 PP, +14 PT. Engenhosos (Oficina): 10 + INT × 2 PP de equipamento, +4 PT. Todo herói começa na Classe 1.</p>`;
+        <p class="muted small">Míticos: abaixo de 40 vira 40, acima de 94 vira 94. Visitantes: +15. Arcanos: +2 PT. Treinados (Ápice): 0 PP, +14 PT. Engenhosos (Oficina): 10 + INT × 3 PP de equipamento, +4 PT. Todo herói começa na Classe 1.</p>`;
     } else if (a === 'arquetipos') {
       el.innerHTML = `<div class="grid cards">${LD.ARQUETIPOS.filter((x) => x.key !== 'proprio').map((x) => `<article class="card static"><div class="card-title">${esc(x.nome)}</div><div class="italic paper-2">${esc(x.papel)}</div><div class="small">${esc(x.habilidade)}</div></article>`).join('')}</div>
         <p class="muted">Arquétipos próprios (O Fantasma, O Escudo do Povo, O Estrategista, O Rebelde, O Curandeiro…) com uma habilidade do mesmo tamanho, combinada com a mestragem.</p>`;

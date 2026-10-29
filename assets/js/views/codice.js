@@ -34,8 +34,8 @@ REAÇÕES  Esquivar 1d20 + AGI + Esquiva ≥ ataque → errou
       ${tabela(['Classe', 'Nome', 'Potência', 'Feito típico'], [['0', 'Civil', '0', 'Ferir uma pessoa.'], ['1', 'Ápice', '5', 'Derrubar dez capangas.'], ['2', 'Quarteirão', '10', 'Virar um caminhão.'], ['3', 'Cidade', '15', 'Derrubar um arranha-céu.'], ['4', 'Nação', '20', 'Erguer uma montanha.'], ['5', 'Planeta', '25', 'Mover um continente.']])}
       <p>Proteção: a maior, mais metade da segunda. Teto: Classe × 5 + 5. O teto dos jogadores é a Classe 4.</p>`],
     ['status', 'Valores derivados', () => tabela(['Valor', 'Fórmula'], [
-      ['PV máximo', '20 + VIG × 5 + 3 por degrau de Classe'], ['Defesa', '10 + Esquiva + bônus'], ['Resistência', 'VIG + Proteção (mínimo Classe × 5)'], ['Potência', 'Classe × 5 em todo dano (Treinados 5; com arma, a maior)'],
-      ['Iniciativa', '1d20 + AGI + Percepção'], ['Energia máxima', '3 + VIG (Arcanos: 3 + VON), +1 na Classe 1,7, 2,7 e 3,7'], ['Percepção passiva', '10 + VON + Percepção'], ['CD dos poderes', '10 + Grau'],
+      ['PV máximo', '30 + VIG × 5 + 3 por degrau de Classe'], ['Defesa', '10 + Esquiva + bônus'], ['Resistência', 'VIG + Proteção (mínimo Classe × 5)'], ['Potência', 'Classe × 5 em todo dano (Treinados 5; com arma, a maior)'],
+      ['Iniciativa', '1d20 + AGI + Percepção'], ['Energia máxima', '4 + VIG (Arcanos: 4 + VON), +1 na Classe 1,7, 2,7 e 3,7'], ['Percepção passiva', '10 + VON + Percepção'], ['CD dos poderes', '10 + Grau'],
       ['Reflexos / Fortitude / Mente', 'AGI + Acrobacia / VIG + Resiliência / VON + Concentração'], ['Carga', '25 kg (a mochila, sempre)']])],
     ['energia', 'Energia', () => `${tabela(['Gasto', 'Custo'], [['Intensificar (+2d6 no dano)', '1 por uso, até 3'], ['Técnica', '2'], ['Façanha de Poder', '2'], ['Suprema', '5'], ['Sustentar', '1 por rodada'], ['Feitiço', 'o Grau']])}
       <p>Ganha-se: 2 no início de cada combate; +1 num crítico, numa Quebra, num Resgate; +2 ao trazer a Fraqueza; tudo num descanso de verdade.</p>`],
@@ -46,7 +46,7 @@ REAÇÕES  Esquivar 1d20 + AGI + Esquiva ≥ ataque → errou
     ['criacao', 'Criação em 11 passos', () => `<ol class="steps-ol">
       <li><b>Conceito:</b> uma frase, um nome de herói e um símbolo.</li><li><b>Origem:</b> Desperto, Mítico, Arcano, Engenhoso, Treinado ou Visitante.</li>
       <li><b>Potencial:</b> <code>!egide-potencial</code> (2d100, fica o maior). Treinados: Ápice; Engenhosos: Oficina.</li>
-      <li><b>Atributos:</b> todos em 1, mais 12 pontos (máximo 5; Treinados 6), mais a Origem.</li><li><b>Arquétipo.</b></li>
+      <li><b>Atributos:</b> todos em 0, mais 8 pontos (no máximo 3 em cada), mais a Origem. Teto: 5.</li><li><b>Arquétipo.</b></li>
       <li><b>Estilo de Poder e poderes</b> com os PP. Grau máximo 4 (5 com Incêndio e Supernova).</li>
       <li><b>Perícias e Traços</b> com os PT: 10 + Potencial (+2 de Fé no Destino). Cada grau de Perícia custa 1 PT.</li>
       <li><b>Fraqueza</b> (Regra do Preço).</li><li><b>Identidade secreta e vida civil.</b></li><li><b>A Perda</b>, em privado.</li><li><b>Valores derivados</b>: o site calcula.</li></ol>

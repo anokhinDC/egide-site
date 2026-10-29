@@ -19,10 +19,14 @@
   ];
   // A escala de um Atributo depende da Classe: o teto é 5 + Classe, e cada valor usa uma parte da Classe.
   // No teto, o Atributo trabalha na escala da Classe inteira; abaixo dele, numa fração.
-  const ESCALA_HUMANA = ['', 'Fraco', 'Comum', 'Treinado', 'Atleta', 'Elite', 'Ápice humano'];
+  const ESCALA_HUMANA = ['Fraco', 'Comum', 'Bom', 'Treinado', 'Atleta', 'Ápice humano'];
   const ESCALA_CLASSE = ['Humano', 'Ápice', 'Quarteirão', 'Cidade', 'Nação', 'Planeta', 'Estrela', 'Cósmico'];
   const ESCALA_ATRIBUTO = ESCALA_HUMANA;
-  const PONTOS_DE_ATRIBUTO = 12;
+  // Atributos vão de 0 a 5. Na criação: 8 pontos, no máximo 3 em cada (a Origem pode levar a 4). Teto: 5, sempre.
+  // A Classe não aumenta o Atributo: ela aumenta a Potência e a Proteção. Assim o d20 continua decidindo.
+  const PONTOS_DE_ATRIBUTO = 8;
+  const TETO_CRIACAO = 3;
+  const TETO_ATRIBUTO = 5;
 
   /* ---------- Perícias ----------
    * 42 Perícias, 7 por Atributo. Grau 0 a 5: cada grau custa 1 PT e dá +1 no teste. Teste = d20 + Atributo + Perícia.
@@ -108,7 +112,7 @@
       vantagem: 'Versatilidade: qualquer efeito das escolas que conhece. +2 PT.', limite: 'Conjuração: todo feitiço pede teste, e a falha cobra um Preço.' },
     { key: 'engenhoso', nome: 'Engenhoso', fonte: 'Tecnologia', rola: false,
       bonus: { fixo: ['INT'], escolha: 0 }, protecaoFonte: 0,
-      vantagem: 'Preparação: troca e melhora poderes entre edições. PP de Equipamento = 10 + INT × 2, +4 PT.', limite: 'Equipamento: pode ser roubado, quebrado e Desligado.' },
+      vantagem: 'Preparação: troca e melhora poderes entre edições. PP de Equipamento = 10 + INT × 3, +4 PT.', limite: 'Equipamento: pode ser roubado, quebrado e Desligado.' },
     { key: 'treinado', nome: 'Treinado', fonte: 'O corpo e a mente', rola: false,
       bonus: { fixo: ['AGI'], escolha: 1, opcoes: ['FOR', 'VIG', 'INT', 'VON', 'PRE'] }, protecaoFonte: 0,
       vantagem: 'Ápice: Ler a Brecha como Ação Rápida, +14 PT, 4 de Determinação.', limite: 'Carne e osso: sem Proteção de Fonte e sem PP.' },
@@ -258,7 +262,7 @@
   const P = (key, nome, grupo, custo, attrs, efeito, extra) => Object.assign({ key, nome, grupo, custo, attrs, efeito, tipo: 'outro' }, extra);
   const PODERES = [
     P('forca', 'Força Sobre-humana', 'Corpo', 2, ['FOR'], 'Golpes físicos: +1d6 de dano a cada 2 Graus. Levanta conforme a Classe.'),
-    P('atributo', 'Atributo Sobre-humano', 'Corpo', 1, [], '+1 num Atributo por Grau, passando do teto (5 + Classe). Máximo 12.', { alvoAtributo: true }),
+    P('atributo', 'Atributo Sobre-humano', 'Corpo', 1, [], '+1 num Atributo a cada 2 Graus (até 5). O Atributo trabalha na escala da Classe.', { alvoAtributo: true }),
     P('invulnerabilidade', 'Invulnerabilidade', 'Corpo', 2, ['VIG'], 'Proteção = Grau × 5 (teto Classe × 5).', { tipo: 'protecao', protecao: (g, c) => Math.min(g * 5, x5(c)) }),
     P('armadura', 'Armadura', 'Corpo', 2, ['INT'], 'Traje tecnológico: Proteção = Grau × 4 (teto Classe × 5). Sempre Removível.', { tipo: 'protecao', protecao: (g, c) => Math.min(g * 4, x5(c)), falhaPadrao: 'removivel' }),
     P('regeneracao', 'Regeneração', 'Corpo', 2, ['VIG'], 'No início do turno, recupera Grau × 2 PV. Grau 4+: volta de Cicatrizes em uma semana.'),
@@ -415,7 +419,7 @@
     if (o === 'treinado') return { nome: 'Ápice', classe: 1, pp: 0, pt: 14, det: 1, grauBonus: 0, rolou: false };
     if (o === 'engenhoso') {
       const lend = !!(f.recursosOpcao === 'lendarios');
-      return { nome: lend ? 'Oficina (lendária)' : 'Oficina', classe: 1, pp: 10 + atributos(f, true).INT * 2, pt: 4, det: 0, grauBonus: 0, rolou: false, equipamento: true };
+      return { nome: lend ? 'Oficina (lendária)' : 'Oficina', classe: 1, pp: 10 + atributos(f, true).INT * 3, pt: 4, det: 0, grauBonus: 0, rolou: false, equipamento: true };
     }
     const n = resultadoAjustado(f);
     const fx = n ? faixaDe(n) : null;
@@ -450,28 +454,28 @@
     const fixos = origem ? origem.bonus.fixo : [];
     const aum = f.aumentos || [];
     ATRIBUTOS.forEach(({ key }) => {
-      let v = 1 + clamp(Math.floor(num(pts[key])), 0, 9);
+      let v = clamp(Math.floor(num(pts[key])), 0, TETO_ATRIBUTO);
       v += fixos.filter((x) => x === key).length;
       v += ob.filter((x) => x === key).length;
       v += aum.filter((x) => x === key).length;
-      out[key] = v;
+      out[key] = Math.min(TETO_ATRIBUTO, v);
     });
     if (!semPoderes) {
       (f.poderes || []).forEach((p) => {
-        if (p.base === 'atributo' && p.alvo && out[p.alvo] != null) out[p.alvo] = Math.min(12, out[p.alvo] + num(p.grau, 1));
+        if (p.base === 'atributo' && p.alvo && out[p.alvo] != null) out[p.alvo] = Math.min(TETO_ATRIBUTO, out[p.alvo] + Math.ceil(num(p.grau, 1) / 2));
       });
     }
     return out;
   }
 
-  function tetoAtributo(f) { return 5 + Math.floor(classe(f)); }
+  function tetoAtributo() { return TETO_ATRIBUTO; }
 
   // Em que escala um valor de Atributo trabalha, para uma Classe: {classe, nome, pct, teto}.
   function escalaAtributo(v, cls) {
     cls = Math.max(0, num(cls, 1));
-    const teto = 5 + Math.floor(cls);
+    const teto = TETO_ATRIBUTO;
     const ef = Math.max(0, Math.min(7, Math.floor((cls * v) / teto)));
-    const nome = ef > 0 ? ESCALA_CLASSE[ef] : ESCALA_HUMANA[Math.max(1, Math.min(5, v))];
+    const nome = ef > 0 ? ESCALA_CLASSE[ef] : ESCALA_HUMANA[Math.max(0, Math.min(5, v))];
     return { classe: ef, nome, pct: Math.round((v / teto) * 100), teto };
   }
 
@@ -743,14 +747,14 @@
     const defesa = 10 + profDef + bonusDef;
 
     // PV
-    let pvMax = 20 + A.VIG * 5 + nivel * 3 + 3 * G('resiliencia');
+    let pvMax = 30 + A.VIG * 5 + nivel * 3 + 3 * G('resiliencia');
     if (hasTraco(f, 'duro_de_matar')) pvMax += 5;
     if (hasTraco(f, 'fragil')) pvMax -= 5;
     pvMax += num(f.bonusPV, 0);
 
     // Energia: o fôlego dos poderes. Vem do Vigor (corpo) ou, para Arcanos, da Vontade.
     const energiaAttr = f.origem === 'arcano' ? 'VON' : 'VIG';
-    const energiaMax = 3 + A[energiaAttr] + [MARCOS.grau5, MARCOS.grau6, MARCOS.grau7].filter((n) => nivel >= n).length + Math.floor(G(energiaAttr === 'VON' ? 'concentracao' : 'folego') / 2);
+    const energiaMax = 4 + A[energiaAttr] + [MARCOS.grau5, MARCOS.grau6, MARCOS.grau7].filter((n) => nivel >= n).length + Math.floor(G(energiaAttr === 'VON' ? 'concentracao' : 'folego') / 2);
     const alinh = f.alinhamento || 'heroi';
     const recursoNome = alinh === 'vilao' ? 'Ambição' : alinh === 'anti_heroi' ? 'Rancor' : 'Determinação';
     const detMax = recursoNome === 'Determinação' ? 3 + (pot.det || 0) + num((f.bonus || {}).det) : 2 + num((f.bonus || {}).det);
@@ -790,7 +794,7 @@
       resistencia: A.VIG + protecao, potPoder, potGolpe, dadosForca, iniciativa, deslocamento, percepcaoPassiva,
       reflexos: A.AGI + pericia('acrobacia'), fortitude: A.VIG + pericia('resiliencia'), mente: A.VON + pericia('concentracao'),
       esquivar: A.AGI + pericia('esquiva'), brecha: A.INT + pericia('tatica'), kitCura: `2d6+${pericia('medicina')}`, folego: (A.VIG + 1 + G('folego')) * (hasTraco(f, 'mergulhador') ? 2 : 1), bloquear: A.FOR + pericia('guarda'),
-      carga: CARGA_MOCHILA, tetoPericia: tetoPericia(f), G, teto: 5 + Math.floor(cls), ptTotal, ptGastos, ptLivres: ptTotal - ptGastos, ptPericias, ptEstilos, ptQualidades, ptOpcao, defeitosPT, fe,
+      carga: CARGA_MOCHILA, tetoPericia: tetoPericia(f), G, teto: TETO_ATRIBUTO, ptTotal, ptGastos, ptLivres: ptTotal - ptGastos, ptPericias, ptEstilos, ptQualidades, ptOpcao, defeitosPT, fe,
       ppTotal, ppGastos, ppLivres: ppTotal - ppGastos, grauMax: grauMaximo(f), profAtaque, profEnergetico,
       recursos: recursos(f), dinheiro: dinheiro(f), dinheiroInicial: dinheiroInicial(f), equip, pericia
     };
@@ -853,9 +857,8 @@
     // Atributos
     const pts = f.atributos || {};
     const soma = ATRIBUTOS.reduce((s, a) => s + num(pts[a.key]), 0);
-    const cap = tetoAtributo(f);
     if (soma !== PONTOS_DE_ATRIBUTO) out.push({ passo: 'atributos', msg: `Distribua exatamente ${PONTOS_DE_ATRIBUTO} pontos de Atributo (agora: ${soma}).` });
-    ATRIBUTOS.forEach((a) => { if (1 + num(pts[a.key]) > cap) out.push({ passo: 'atributos', msg: `${a.nome} passa de ${cap} antes do bônus da Origem.` }); });
+    ATRIBUTOS.forEach((a) => { if (num(pts[a.key]) > TETO_CRIACAO) out.push({ passo: 'atributos', msg: `${a.nome} passa de ${TETO_CRIACAO} antes do bônus da Origem.` }); });
     if (origem && origem.bonus.escolha && (f.origemBonus || []).length < origem.bonus.escolha) out.push({ passo: 'atributos', msg: 'Escolha o bônus de Atributo da Origem.' });
     const aumPermitidos = [4, 8].filter((n) => c.nivel >= n).length;
     if ((f.aumentos || []).length > aumPermitidos) out.push({ passo: 'atributos', msg: `Aumentos de Atributo demais para o nível (${aumPermitidos} permitidos).` });
@@ -939,7 +942,7 @@
     return { total, dados, mod, critico: !!critico };
   }
 
-  LD.ATRIBUTOS = ATRIBUTOS; LD.ESCALA_ATRIBUTO = ESCALA_ATRIBUTO; LD.ESCALA_CLASSE = ESCALA_CLASSE; LD.ESCALA_HUMANA = ESCALA_HUMANA; LD.PONTOS_DE_ATRIBUTO = PONTOS_DE_ATRIBUTO;
+  LD.ATRIBUTOS = ATRIBUTOS; LD.ESCALA_ATRIBUTO = ESCALA_ATRIBUTO; LD.ESCALA_CLASSE = ESCALA_CLASSE; LD.ESCALA_HUMANA = ESCALA_HUMANA; LD.PONTOS_DE_ATRIBUTO = PONTOS_DE_ATRIBUTO; LD.TETO_CRIACAO = TETO_CRIACAO; LD.TETO_ATRIBUTO = TETO_ATRIBUTO;
   LD.PERICIAS = PERICIAS; LD.GRAUS_PERICIA = GRAUS_PERICIA; LD.CUSTO_PERICIA = CUSTO_PERICIA;
   LD.FAIXAS = FAIXAS; LD.FE_NO_DESTINO = FE_NO_DESTINO; LD.ORIGENS = ORIGENS; LD.ARQUETIPOS = ARQUETIPOS;
   LD.FRAQUEZAS = FRAQUEZAS; LD.PERICIAS_ANTIGAS = PERICIAS_ANTIGAS; LD.CARGA_MOCHILA = CARGA_MOCHILA; LD.GRAVIDADES = GRAVIDADES; LD.QUALIDADES = QUALIDADES; LD.DEFEITOS = DEFEITOS;

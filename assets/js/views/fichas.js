@@ -673,7 +673,7 @@
         <p>0 PP, +14 PT, Determinação 4 por sessão, Perícias até grau 4 na criação, e Lê a Brecha como Ação Rápida.</p></div>
       ` : `
         <div class="pot-box panel"><div class="pot-name">◆ Oficina</div>
-        <p>PP de Equipamento = 10 + INT × 2 (<b>${c.pot.pp}</b> agora), +4 PT. Todo poder é Removível.</p>
+        <p>PP de Equipamento = 10 + INT × 3 (<b>${c.pot.pp}</b> agora), +4 PT. Todo poder é Removível.</p>
         ${checkbox('lendarios', f.recursosOpcao === 'lendarios', 'Oficina lendária: troca 6 PT por US$ 50.000 iniciais', trava ? 'disabled data-skip' : 'data-skip')}</div>
       `}`;
     el.querySelectorAll('[data-origem]').forEach((b) => b.addEventListener('click', () => mudar(f.id, (x) => {
@@ -710,16 +710,16 @@
     const aumPermitidos = [LD.MARCOS.atributo1, LD.MARCOS.atributo2].filter((n) => c.degrau >= n).length;
     el.innerHTML = `
       <h2>Atributos</h2>
-      <p class="lead"><b>${LD.PONTOS_DE_ATRIBUTO} pontos</b> · teto <b>${cap}</b></p>
+      <p class="lead"><b>${LD.PONTOS_DE_ATRIBUTO} pontos</b> · até <b>${LD.TETO_CRIACAO}</b> em cada (a Origem soma +1) · teto <b>${cap}</b></p>
       <div class="points"><b>${livres}</b><span class="caps">pontos livres</span></div>
       <div class="attr-list">${LD.ATRIBUTOS.map((a) => {
         const p = num(f.atributos[a.key]);
         const fin = c.A[a.key];
-        const bonus = base[a.key] - 1 - p;
+        const bonus = base[a.key] - p;
         return `<div class="attr">
           <i class="dia"></i>
           <div title="${esc(a.desc)}"><div class="name">${esc(a.nome)}<small>${a.key}</small></div></div>
-          ${stepper(a.key, 1 + p, 1, Math.min(cap, 1 + p + Math.max(0, livres)))}
+          ${stepper(a.key, p, 0, Math.min(LD.TETO_CRIACAO, p + Math.max(0, livres)))}
           <div class="val">${fin}${bonus ? `<small class="ok"> +${bonus}</small>` : ''}${fin !== base[a.key] ? '<small class="gold"> poder</small>' : ''}<div class="tiny muted">${(() => { const e = R.escalaAtributo(fin, c.classe); return esc(e.nome) + (e.classe ? ` · ${e.pct}% da Classe` : ''); })()}</div></div>
         </div>`;
       }).join('')}</div>
@@ -731,9 +731,9 @@
         ${Array.from({ length: aumPermitidos }, (_, i) => `<label class="inline">Aumento ${i + 1} ${select('aum' + i, [{ key: '', nome: '—' }].concat(LD.ATRIBUTOS.map((a) => ({ key: a.key, nome: a.nome }))), f.aumentos[i] || '', 'data-aum="' + i + '"')}</label>`).join(' ')}` : ''}
       <details class="ref"><summary>O que cada número significa na Classe ${R.fmtClasse(c.classe)}</summary>
         <table class="tbl"><thead><tr><th>Valor</th><th>Escala</th><th>Quanto da Classe</th></tr></thead><tbody>
-        ${Array.from({ length: cap }, (_, i) => i + 1).map((v) => { const e = R.escalaAtributo(v, c.classe); return `<tr class="${LD.ATRIBUTOS.some((a) => c.A[a.key] === v) ? 'hi' : ''}"><td>${v}</td><td>${esc(e.classe ? `${e.nome} (Classe ${e.classe})` : `Humano · ${e.nome}`)}</td><td>${e.pct}%</td></tr>`; }).join('')}
+        ${Array.from({ length: cap + 1 }, (_, i) => i).map((v) => { const e = R.escalaAtributo(v, c.classe); return `<tr class="${LD.ATRIBUTOS.some((a) => c.A[a.key] === v) ? 'hi' : ''}"><td>${v}</td><td>${esc(e.classe ? `${e.nome} (Classe ${e.classe})` : `Humano · ${e.nome}`)}</td><td>${e.pct}%</td></tr>`; }).join('')}
         </tbody></table></details>`;
-    bindSteppers(el, (k, v) => mudar(f.id, (x) => { x.atributos[k] = v - 1; }));
+    bindSteppers(el, (k, v) => mudar(f.id, (x) => { x.atributos[k] = v; }));
     el.querySelectorAll('[data-ob]').forEach((b) => b.addEventListener('click', () => mudar(f.id, (x) => {
       const k = b.dataset.ob; const n = o.bonus.escolha;
       if (x.origemBonus.includes(k)) x.origemBonus = x.origemBonus.filter((y) => y !== k);
