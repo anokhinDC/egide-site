@@ -256,6 +256,16 @@ service cloud.firestore {
           && treinoOk(request.resource.data, resource.data)));
       allow delete: if dono() || mestre();
     }
+    // Log de alterações das fichas: todos leem; cada um grava as próprias entradas; ninguém edita (só a mestragem apaga).
+    match /egide_alteracoes/{id} {
+      allow read: if logado();
+      allow create: if logado() && request.resource.data.quemUid == request.auth.uid
+        && request.resource.data.keys().hasOnly(['id', 'fichaId', 'ficha', 'quem', 'quemUid', 'quando', 'mudancas'])
+        && request.resource.data.mudancas is list && request.resource.data.mudancas.size() <= 25
+        && texto(request.resource.data, 'ficha', 120) && texto(request.resource.data, 'quem', 120) && id.size() <= 80;
+      allow update: if false;
+      allow delete: if mestre();
+    }
     // Biblioteca de poderes: todos leem; cada jogador mexe nos seus.
     match /egide_poderes/{id} {
       allow read: if logado();

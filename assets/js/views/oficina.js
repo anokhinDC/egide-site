@@ -65,6 +65,8 @@
           </tbody></table></div>
           <div class="btn-row"><button class="btn" data-sessao>Nova sessão para todos (Determinação cheia)</button></div>` : '<div class="empty small-empty">Nenhuma ficha ainda.</div>'}
 
+        <div class="subsect"><span>Últimas alterações nas fichas</span></div>
+        ${(() => { const alt = (LD.store.list('alteracoes') || []).slice().sort((a, b) => b.quando - a.quando).slice(0, 40); return alt.length ? `<details class="more"><summary>${alt.length} mais recentes</summary><div class="alt-list">${alt.map((a) => LD.fichas.linhaAlteracao(a, true)).join('')}</div></details>` : '<p class="muted">Nada ainda.</p>'; })()}
         <div class="subsect"><span>Catálogo e cópia de segurança</span></div>
         <div class="btn-row">
           <button class="btn" data-semear>Carregar o catálogo inicial do Arsenal</button>

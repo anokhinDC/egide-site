@@ -638,3 +638,9 @@ html { background: var(--paper); forced-color-adjust: none; }
 .retrato-ctl { display: flex; flex-direction: column; gap: 8px; min-width: 0; flex: 1; }
 .retrato-ctl input[data-retrato-url] { max-width: 420px; }
 .warn { color: var(--red-dark); }
+
+/* Log de alterações */
+.alt-list { display: flex; flex-direction: column; gap: 8px; }
+.alt { background: var(--white); border: var(--bd-thin); padding: 8px 12px; }
+.alt-h { display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+.alt ul { margin: 4px 0 0; padding-left: 18px; font-size: 14px; }

@@ -186,7 +186,7 @@
         </div>
       </header>
       <nav class="tabs">
-        ${[['jogar', 'Jogar'], ['construcao', 'Construção'], ['treino', 'Treino'], ['inventario', 'Inventário'], ['historia', 'História']].map(([k, n]) =>
+        ${[['jogar', 'Jogar'], ['construcao', 'Construção'], ['treino', 'Treino'], ['inventario', 'Inventário'], ['historia', 'História'], ['alteracoes', 'Alterações']].map(([k, n]) =>
           `<button class="${aba === k ? 'on' : ''}" data-aba="${k}">${n}${k === 'construcao' && c.avisos.filter((a) => !a.leve).length ? ` <sup class="badge">${c.avisos.filter((a) => !a.leve).length}</sup>` : ''}</button>`).join('')}
       </nav>
       <section data-corpo></section>`;
@@ -196,6 +196,7 @@
     else if (aba === 'construcao') renderConstrucao(corpo, f, c, editar);
     else if (aba === 'treino') renderTreino(corpo, f, c);
     else if (aba === 'inventario') renderInventario(corpo, f, c, editar);
+    else if (aba === 'alteracoes') renderAlteracoes(corpo, f);
     else renderHistoria(corpo, f, c, editar);
 
     main.querySelectorAll('[data-aba]').forEach((b) => b.addEventListener('click', () => { st.aba[id] = b.dataset.aba; renderFicha(main, id); }));
@@ -1131,19 +1132,30 @@
           ${tracos.map((t) => field(t.nome, `<input name="tracoNotas.${t.key}" value="${esc((f.tracoNotas || {})[t.key] || '')}" placeholder="Uma frase.">`)).join('')}` : ''}
         ${field('Notas', textarea('notas', f.notas, 'rows="5"'))}
         <details class="more adulto" ${keep('adulto-' + f.id)}><summary>Conteúdo adulto (opcional)</summary>
-          <p class="muted small">Só para personagens adultos. As fichas são públicas para quem entra no site.</p>
-          ${checkbox('adulto.maior', (f.adulto || {}).maior, 'O personagem tem 18 anos ou mais')}
-          ${(f.adulto || {}).maior ? `<div class="row">
+          <p class="muted small">As fichas são públicas para quem entra no site.</p>
+          <div class="row">
             ${field('Fetiches', textarea('adulto.fetiches', (f.adulto || {}).fetiches, 'rows="4"'))}
             ${field('Limites', textarea('adulto.limites', (f.adulto || {}).limites, 'rows="4" placeholder="O que nunca entra em cena."'))}
-          </div>` : ''}
+          </div>
         </details>
       </div>`;
     bindCampos(el, f);
     if (!editar) el.querySelectorAll('input,textarea').forEach((x) => { x.disabled = true; });
   }
 
-  LD.fichas = { normalizar, ficha, mudar, titulo, aprovar };
+  /* ---------- Alterações ---------- */
+  function linhaAlteracao(a, comFicha) {
+    return `<div class="alt">
+      <div class="alt-h"><span class="muted small">${esc(new Date(a.quando).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' }))}</span>
+        <b>${esc(a.quem || '?')}</b>${comFicha ? ` · <a href="#/ficha/${esc(a.fichaId)}">${esc(a.ficha || 'ficha')}</a>` : ''}</div>
+      <ul>${(a.mudancas || []).map((m) => `<li>${esc(m)}</li>`).join('')}</ul></div>`;
+  }
+  function renderAlteracoes(el, f) {
+    const lista = (LD.store.list('alteracoes') || []).filter((a) => a.fichaId === f.id).sort((a, b) => b.quando - a.quando);
+    el.innerHTML = lista.length ? `<div class="alt-list">${lista.map((a) => linhaAlteracao(a)).join('')}</div>` : '<p class="muted">Nenhuma alteração registrada ainda.</p>';
+  }
+
+  LD.fichas = { normalizar, ficha, mudar, titulo, aprovar, linhaAlteracao };
   LD.views.fichas = { titulo: 'Fichas', numeral: 'I', render: renderLista };
   LD.views.ficha = { titulo: 'Ficha', numeral: 'I', render: renderFicha };
 })();

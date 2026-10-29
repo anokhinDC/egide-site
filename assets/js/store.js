@@ -18,11 +18,12 @@
   const COLECOES = {
     personagens: 'egide_personagens',
     poderes: 'egide_poderes',
-    itens: 'egide_itens'
+    itens: 'egide_itens',
+    alteracoes: 'egide_alteracoes'
   };
 
   // Além do mestre, quem pode criar em cada coleção.
-  const JOGADOR_PODE_CRIAR = { personagens: true, poderes: true, itens: false };
+  const JOGADOR_PODE_CRIAR = { personagens: true, poderes: true, itens: false, alteracoes: true };
 
   // Só estas contas são mestre.
   const MESTRES = ['mestre@beyonddepths.com', 'admin@beyonddepths.com'];
@@ -31,7 +32,7 @@
 
   const state = {
     db: null, auth: null, user: null, local: true, ready: false, negadas: [],
-    data: { personagens: [], poderes: [], itens: [] }
+    data: { personagens: [], poderes: [], itens: [], alteracoes: [] }
   };
 
   const listeners = new Set();
@@ -84,7 +85,9 @@
       liberar();
     }, 8000);
     Object.entries(COLECOES).forEach(([col, name]) => {
-      unsub.push(state.db.collection(name).onSnapshot(
+      // O log de alterações: só as 400 mais recentes.
+      const fonte = col === 'alteracoes' ? state.db.collection(name).orderBy('quando', 'desc').limit(400) : state.db.collection(name);
+      unsub.push(fonte.onSnapshot(
         (snap) => { state.data[col] = snap.docs.map((d) => d.data()); respondeu(col); emit(); },
         (err) => {
           console.error('Firestore', name, err);
@@ -109,10 +112,42 @@
     state.auth.onAuthStateChanged((user) => { state.user = user; startListeners(); });
   }
 
+  // Log de alterações das fichas: guarda como a ficha estava e, depois de 4 s sem mudança, grava uma entrada com o que mudou.
+  const pendentes = {};
+  function registrarAlteracao(antes, depois) {
+    const k = depois.id;
+    if (!antes) { gravarAlteracao(depois, ['Ficha criada.']); return; }
+    if (!pendentes[k]) pendentes[k] = { antes: JSON.parse(JSON.stringify(antes)) };
+    clearTimeout(pendentes[k].timer);
+    pendentes[k].timer = setTimeout(() => {
+      const p = pendentes[k]; delete pendentes[k];
+      const agora = state.data.personagens.find((x) => x.id === k);
+      if (!agora || !LD.alteracoes) return;
+      const mudancas = LD.alteracoes.descrever(p.antes, agora);
+      if (mudancas.length) gravarAlteracao(agora, mudancas);
+    }, 4000);
+  }
+  // Saindo da página: grava o que ainda estava esperando.
+  window.addEventListener('pagehide', () => {
+    Object.keys(pendentes).forEach((k) => {
+      const p = pendentes[k]; clearTimeout(p.timer); delete pendentes[k];
+      const agora = state.data.personagens.find((x) => x.id === k);
+      if (agora && LD.alteracoes) { const m = LD.alteracoes.descrever(p.antes, agora); if (m.length) gravarAlteracao(agora, m); }
+    });
+  });
+  function gravarAlteracao(f, mudancas) {
+    const reg = { id: id('al'), fichaId: f.id, ficha: f.codinome || f.nome || 'Herói sem nome', quem: userName(), quemUid: uid(), quando: Date.now(), mudancas: mudancas.slice(0, 25) };
+    state.data.alteracoes.unshift(reg);
+    if (state.local) { state.data.alteracoes = state.data.alteracoes.slice(0, 400); saveLocal('alteracoes'); emit(); return; }
+    emit();
+    state.db.collection(COLECOES.alteracoes).doc(reg.id).set(reg).catch((e) => console.warn('Log de alterações', e));
+  }
+
   function save(col, item) {
     if (!item.id) item.id = id(col.slice(0, 2));
     item.updatedAt = Date.now();
     const atual = state.data[col].find((x) => x.id === item.id);
+    if (col === 'personagens' && canEdit(col, atual || null)) registrarAlteracao(atual, item);
     if (!canEdit(col, atual || null)) {
       LD.ui && LD.ui.toast('Sem permissão para editar isso.', 'erro');
       return Promise.reject(new Error('permissão'));
