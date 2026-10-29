@@ -194,6 +194,18 @@
     return Promise.allSettled(jobs).then((r) => r.filter((x) => x.status === 'fulfilled').length);
   }
 
+  // Só os itens do catálogo que ainda não estão na Loja (não mexe nos que a mestragem editou).
+  let semeandoFaltantes = false;
+  function semearFaltantes() {
+    if (!LD.seed || semeandoFaltantes || !isMaster()) return Promise.resolve(0);
+    const tem = new Set(state.data.itens.map((x) => x.id));
+    const faltam = LD.seed.itens.filter((x) => !tem.has(x.id));
+    if (!faltam.length) return Promise.resolve(0);
+    semeandoFaltantes = true;
+    return Promise.allSettled(faltam.map((item) => save('itens', JSON.parse(JSON.stringify(item)))))
+      .then((r) => { semeandoFaltantes = false; return r.filter((x) => x.status === 'fulfilled').length; });
+  }
+
   function exportar() {
     return JSON.stringify({ sistema: 'egide-v1', exportadoEm: new Date().toISOString(), dados: state.data }, null, 2);
   }
@@ -212,7 +224,7 @@
   }
 
   LD.store = {
-    state, init, save, remove, login, logout, isMaster, canEdit, semear, exportar, importar, newId: id, uid, userName,
+    state, init, save, remove, login, logout, isMaster, canEdit, semear, semearFaltantes, exportar, importar, newId: id, uid, userName,
     on: (fn) => { listeners.add(fn); return () => listeners.delete(fn); },
     get: (col, itemId) => state.data[col].find((x) => x.id === itemId),
     list: (col) => state.data[col],

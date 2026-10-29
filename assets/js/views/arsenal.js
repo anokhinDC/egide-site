@@ -118,6 +118,12 @@
   }
 
   function render(main, param) {
+    // A mestragem, ao abrir a Loja, traz sozinha os itens novos do catálogo.
+    if (LD.store.isMaster() && LD.store.state.ready && LD.seed && LD.store.list('itens').length) {
+      const tem = new Set(LD.store.list('itens').map((x) => x.id));
+      const novos = LD.seed.itens.filter((x) => !tem.has(x.id)).length;
+      if (novos) LD.store.semearFaltantes().then((n) => { if (n) LD.ui.toast(`${n} itens novos chegaram à Loja.`); });
+    }
     if (param) st.fichaId = param;
     const fichas = minhasFichas();
     if (!fichas.find((x) => x.id === st.fichaId)) st.fichaId = fichas[0] ? fichas[0].id : '';
@@ -167,7 +173,7 @@
         <div class="chips"><button class="chip ${!st.cat ? 'on' : ''}" data-cat="">Tudo</button>${cats.map((x) => `<button class="chip ${st.cat === x.key ? 'on' : ''}" data-cat="${x.key}">${esc(x.nome)}</button>`).join('')}</div>
       </div>
       ${!todos.length ? `<div class="empty">A loja está vazia.${mestre ? ' <button class="btn" data-semear>Carregar o catálogo</button>' : ' A mestragem precisa carregar o catálogo na Oficina.'}</div>` : ''}
-      ${secoes || (todos.length ? '<p class="muted">Nada encontrado.</p>' : '')}
+      ${secoes || (todos.length ? `<p class="muted">${st.busca ? 'Nada encontrado.' : 'Nenhum item nesta categoria ainda.'}${mestre ? '' : ' Se a categoria é nova, a mestragem precisa abrir a Loja uma vez para os itens chegarem.'}</p>` : '')}
       ${especiais.length ? `<details class="more" style="margin-top:24px"><summary>Itens especiais (não estão à venda; só a mestragem vê e dá)</summary><div class="grid cards">${especiais.map(card).join('')}</div></details>` : ''}`;
 
     const fs = main.querySelector('[data-ficha]');
