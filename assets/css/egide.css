@@ -644,3 +644,13 @@ html { background: var(--paper); forced-color-adjust: none; }
 .alt { background: var(--white); border: var(--bd-thin); padding: 8px 12px; }
 .alt-h { display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
 .alt ul { margin: 4px 0 0; padding-left: 18px; font-size: 14px; }
+
+/* O que falta para terminar a ficha */
+.falta { background: var(--yellow-2); border: var(--bd); box-shadow: var(--shadow-sm); padding: 12px 16px; margin-bottom: 18px; }
+.falta.ok { background: #c9f2d9; }
+.falta ol { margin: 8px 0; padding-left: 22px; }
+.falta li { margin: 3px 0; }
+.falta-p { display: inline-block; font-weight: 700; background: var(--white); border: 1px solid var(--ink); padding: 0 6px; margin-right: 6px; font-size: 12px; }
+button.link { background: none; border: 0; padding: 0; color: var(--ink); text-align: left; cursor: pointer; font: inherit; text-decoration: underline; text-decoration-color: var(--blue); text-underline-offset: 3px; }
+button.link:hover { color: var(--blue); }
+select { font-family: var(--ui); }

@@ -200,6 +200,7 @@
     else renderHistoria(corpo, f, c, editar);
 
     main.querySelectorAll('[data-aba]').forEach((b) => b.addEventListener('click', () => { st.aba[id] = b.dataset.aba; renderFicha(main, id); }));
+    const irC = main.querySelector('[data-ir-construcao]'); if (irC) irC.addEventListener('click', () => { st.aba[id] = 'construcao'; renderFicha(main, id); });
     main.querySelector('[data-bot]').addEventListener('click', () => abrirComandos(f));
     const ap = main.querySelector('[data-aprovar]');
     if (ap) ap.addEventListener('click', () => mudar(id, (x) => {
@@ -275,6 +276,7 @@
     const kits = LD.KITS.filter((k) => (f.kits[k.key] || {}).max);
 
     el.innerHTML = `
+      ${!f.aprovada && c.avisos.some((a) => !a.leve) ? `<div class="falta"><b>Ficha incompleta:</b> falta${c.avisos.filter((a) => !a.leve).length > 1 ? 'm' : ''} ${c.avisos.filter((a) => !a.leve).length}. <button class="link" data-ir-construcao>Ver o que falta →</button></div>` : ''}
       <div class="play-top">
         <div class="meter">
           <div class="meter-h"><span class="caps">Vida (PV)</span><span class="tag ${cls}">${estado}</span></div>
@@ -523,6 +525,15 @@
     c.avisos.forEach((a) => { if (!a.leve) avisosPorPasso[a.passo] = (avisosPorPasso[a.passo] || 0) + 1; });
     const somaAttr = LD.ATRIBUTOS.reduce((s, a) => s + num(f.atributos[a.key]), 0);
     el.innerHTML = `
+      ${(() => {
+        const pend = c.avisos.filter((a) => !a.leve).slice().sort((a, b) => PASSOS.findIndex((p) => p.key === a.passo) - PASSOS.findIndex((p) => p.key === b.passo));
+        const nomeP = (k) => { const i = PASSOS.findIndex((p) => p.key === k); return i > -1 ? `${i + 1}. ${PASSOS[i].nome}` : ''; };
+        if (f.aprovada) return '';
+        if (!pend.length) return `<div class="falta ok"><b>Ficha completa.</b> Agora é só pedir a aprovação à mestragem.${c.avisos.some((a) => a.leve) ? ` <span class="muted small">(Opcional: ${esc(c.avisos.filter((a) => a.leve).map((a) => a.msg).join(' · '))})</span>` : ''}</div>`;
+        return `<div class="falta"><div class="falta-h"><b>Para terminar a ficha, falta${pend.length > 1 ? 'm' : ''} ${pend.length} ${pend.length > 1 ? 'coisas' : 'coisa'}:</b></div>
+          <ol>${pend.map((a) => `<li><button class="link" data-passo="${a.passo}"><span class="falta-p">${esc(nomeP(a.passo))}</span> ${esc(a.msg)}</button></li>`).join('')}</ol>
+          <div class="muted small">Clique num item para ir ao passo. Depois, peça a aprovação à mestragem.</div></div>`;
+      })()}
       <div class="build">
         <div class="build-main">
           <ol class="steps-nav">${PASSOS.map((p, i) => `
@@ -538,10 +549,6 @@
           ${orc('Atributos', somaAttr, LD.PONTOS_DE_ATRIBUTO)}
           ${orc('Poder (PP)', c.ppGastos, c.ppTotal)}
           ${orc('Treino (PT)', c.ptGastos, c.ptTotal)}
-          ${c.avisos.filter((a) => !a.leve).length ? `<ul class="avisos">${c.avisos.filter((a) => !a.leve).slice(0, 3).map((a) => `<li><button data-passo="${a.passo}">${esc(a.msg)}</button></li>`).join('')}</ul>
-            ${c.avisos.filter((a) => !a.leve).length > 3 ? `<details class="more"><summary>Mais ${c.avisos.filter((a) => !a.leve).length - 3}</summary><ul class="avisos">${c.avisos.filter((a) => !a.leve).slice(3).map((a) => `<li><button data-passo="${a.passo}">${esc(a.msg)}</button></li>`).join('')}</ul></details>` : ''}`
-            : '<div class="all-ok">Tudo certo! Peça a aprovação à mestragem.</div>'}
-          ${c.avisos.some((a) => a.leve) ? `<ul class="avisos">${c.avisos.filter((a) => a.leve).map((a) => `<li class="leve">${esc(a.msg)}</li>`).join('')}</ul>` : ''}
           <details class="more" ${keep('numfi')}><summary>Números da ficha</summary><ul class="mini">
             <li><span>PV</span><b>${c.pvMax}</b></li><li><span>Defesa</span><b>${c.defesa}</b></li>
             <li><span>Resistência</span><b>${c.resistencia}</b></li><li><span>Energia</span><b>${c.energiaMax}</b></li>
@@ -923,7 +930,7 @@
           </div></details>
         </div>`).join('')}</div>
       <div class="btn-row">
-        <select data-addw><option value="">＋ Fraqueza da lista…</option>${LD.FRAQUEZAS.filter((w) => !w.origem).map((w) => `<option value="${w.key}">${esc(w.nome)} (${(LD.byKey(LD.GRAVIDADES, w.gravidade) || {}).nome})</option>`).join('')}</select>
+        <select data-addw><option value="">＋ Escolher uma Fraqueza…</option>${LD.FRAQUEZAS.filter((w) => !w.origem).map((w) => `<option value="${w.key}">${esc(w.nome)} (${(LD.byKey(LD.GRAVIDADES, w.gravidade) || {}).nome})</option>`).join('')}</select>
         <button class="btn" data-addw-propria>＋ Criar Fraqueza própria</button>
       </div>
       <details class="ref"><summary>Medidas de gravidade</summary><table class="tbl"><tbody>${LD.GRAVIDADES.map((g) => `<tr><td><b>${g.nome}</b></td><td>${esc(g.efeito)}</td></tr>`).join('')}</tbody></table></details>`;

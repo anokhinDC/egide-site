@@ -858,18 +858,18 @@
     const out = [];
     const origem = LD.byKey(ORIGENS, f.origem);
     if (!origem) out.push({ passo: 'origem', msg: 'Escolha uma Origem.' });
-    if (origem && origem.rola && c.pot.pendente) out.push({ passo: 'potencial', msg: 'Anote o resultado do !egide-potencial.' });
+    if (origem && origem.rola && c.pot.pendente) out.push({ passo: 'potencial', msg: 'Role !egide-potencial no Discord e anote o número que saiu.' });
     // Atributos
     const pts = f.atributos || {};
     const soma = ATRIBUTOS.reduce((s, a) => s + num(pts[a.key]), 0);
-    if (soma !== PONTOS_DE_ATRIBUTO) out.push({ passo: 'atributos', msg: `Distribua exatamente ${PONTOS_DE_ATRIBUTO} pontos de Atributo (agora: ${soma}).` });
+    if (soma !== PONTOS_DE_ATRIBUTO) out.push({ passo: 'atributos', msg: soma < PONTOS_DE_ATRIBUTO ? `Distribua os pontos de Atributo: faltam ${PONTOS_DE_ATRIBUTO - soma} de ${PONTOS_DE_ATRIBUTO}.` : `Pontos de Atributo demais: tire ${soma - PONTOS_DE_ATRIBUTO}.` });
     ATRIBUTOS.forEach((a) => { if (num(pts[a.key]) > TETO_CRIACAO) out.push({ passo: 'atributos', msg: `${a.nome} passa de ${TETO_CRIACAO} antes do bônus da Origem.` }); });
-    if (origem && origem.bonus.escolha && (f.origemBonus || []).length < origem.bonus.escolha) out.push({ passo: 'atributos', msg: 'Escolha o bônus de Atributo da Origem.' });
+    if (origem && origem.bonus.escolha && (f.origemBonus || []).length < origem.bonus.escolha) out.push({ passo: 'atributos', msg: 'Escolha onde vai o +1 de Atributo da Origem.' });
     const aumPermitidos = [4, 8].filter((n) => c.nivel >= n).length;
-    if ((f.aumentos || []).length > aumPermitidos) out.push({ passo: 'atributos', msg: `Aumentos de Atributo demais para o nível (${aumPermitidos} permitidos).` });
+    if ((f.aumentos || []).length > aumPermitidos) out.push({ passo: 'atributos', msg: `Aumentos de Atributo demais para a Classe (${aumPermitidos} permitidos).` });
     // Pontos
-    if (c.ptLivres < 0) out.push({ passo: 'treino', msg: `PT gastos a mais: ${-c.ptLivres}.` });
-    if (c.ppLivres < 0) out.push({ passo: 'poderes', msg: `PP gastos a mais: ${-c.ppLivres}.` });
+    if (c.ptLivres < 0) out.push({ passo: 'treino', msg: `Você gastou ${-c.ptLivres} PT a mais do que tem: baixe uma Perícia ou tire uma Qualidade.` });
+    if (c.ppLivres < 0) out.push({ passo: 'poderes', msg: `Você gastou ${-c.ppLivres} PP a mais do que tem: baixe um Grau ou tire um poder.` });
     // Poderes
     (f.poderes || []).forEach((p) => {
       const b = LD.byKey(PODERES, p.base);
@@ -893,7 +893,7 @@
     (f.qualidades || []).forEach((k) => { const q = LD.byKey(QUALIDADES, k); if (q && q.origem && q.origem !== f.origem) out.push({ passo: 'tracos', msg: `${q.nome} é só para ${(LD.byKey(ORIGENS, q.origem) || {}).nome}.` }); });
     // Fraquezas (Regra do Preço)
     const fr = fraquezasDe(f);
-    if (!fr.length) out.push({ passo: 'tracos', msg: 'Falta a Fraqueza.' });
+    if (!fr.length) out.push({ passo: 'tracos', msg: 'Escolha pelo menos uma Fraqueza.' });
     const grav = (x) => x.gravidade || ((LD.byKey(FRAQUEZAS, x.key) || {}).gravidade) || 'leve';
     const temGrave = fr.some((x) => grav(x) === 'grave');
     const temSeria = fr.some((x) => ['seria', 'grave'].includes(grav(x)));
