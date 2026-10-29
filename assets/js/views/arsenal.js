@@ -45,7 +45,10 @@
         const k = x.kits[item.kit] || (x.kits[item.kit] = { atual: 0, max: 0 });
         k.atual += 1; k.max = Math.max(k.max, k.atual);
       } else if (item.cat !== 'servico') {
-        x.inventario.push(entradaDe(item, origem));
+        // Utilizáveis (com carga) se juntam: comprar de novo soma as cargas.
+        const ja = num(item.cargas) ? x.inventario.find((i) => i.itemId === item.id) : null;
+        if (ja) { ja.cargas = num(ja.cargas) + num(item.cargas); ja.cargasMax = Math.max(num(ja.cargasMax), ja.cargas); }
+        else x.inventario.push(entradaDe(item, origem));
       }
       if (preco) { x.gastoTotal = num(x.gastoTotal) + preco; lancar(x, -preco, item.nome); }
       x.compras.push({ quando: Date.now(), item: item.nome, resultado });

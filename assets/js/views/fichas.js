@@ -940,7 +940,7 @@
         ${f.origem === 'treinado' && !semLugar ? field('Família rica (Treinado)', checkbox('familiaRica', f.recursosOpcao === 'familia_rica', 'Troca 2 PT por US$ 10.000 iniciais', 'data-skip' + (travado ? ' disabled' : ''))) : ''}
         <div class="field"><label>Saldo agora</label><div class="ro-val">${esc(R.fmtUS(c.dinheiro))}</div><span class="hint">Inicial ${esc(R.fmtUS(c.dinheiroInicial))}${num(f.creditos) ? ` · créditos ${esc(R.fmtUS(f.creditos))}` : ''}${num(f.gastoTotal) ? ` · gastos ${esc(R.fmtUS(f.gastoTotal))}` : ''}</span></div>
       </div>
-      ${checkbox('novaEgide', f.novaEgide, 'Faz parte da Nova Égide (o Arsenal do Observatório e os Kits são de graça)')}
+      ${checkbox('novaEgide', f.novaEgide, 'Faz parte da Nova Égide (o equipamento do Observatório é de graça; os utilizáveis, não)')}
       <div class="row" style="margin-top:16px">
         ${semLugar ? field('Emprego', '<div class="ro-val">—</div>', 'Sem Lugar.') : field('Emprego', input('vidaCivil.emprego', f.vidaCivil.emprego, 'placeholder="Entregadora, enfermeira, estudante…"'), `Salário: ${f.salario ? R.fmtUS(f.salario) + ' por semana' : 'a mestragem define na aprovação'}.`)}
         ${semLugar ? '' : field('Moradia', select('vidaCivil.moradia', [{ key: '', nome: '— escolha —' }].concat(LD.MORADIAS_TIPOS.filter((m) => m.key !== 'rua' && (m.key !== 'observatorio' || f.novaEgide)).map((m) => ({ key: m.key, nome: `${m.nome} · ${m.aluguel ? R.fmtUS(m.aluguel) + '/semana' : 'grátis'}` }))), (f.vidaCivil || {}).moradia || ''), 'O aluguel sai do saldo todo domingo.')}
