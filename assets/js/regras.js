@@ -90,12 +90,12 @@
 
   /* ---------- Potencial ---------- */
   const FAIXAS = [
-    { min: 1, max: 17, nome: 'Faísca', emoji: '✨', classe: 1, pp: 10, pt: 6, det: 1, chance: '3%', preco: '' },
-    { min: 18, max: 39, nome: 'Brasa', emoji: '🔸', classe: 2, pp: 13, pt: 4, det: 1, chance: '12%', preco: '' },
-    { min: 40, max: 77, nome: 'Chama', emoji: '🔥', classe: 2, pp: 16, pt: 2, det: 0, chance: '44%', preco: '' },
-    { min: 78, max: 94, nome: 'Fogueira', emoji: '🏕️', classe: 3, pp: 19, pt: 0, det: 0, chance: '29%', preco: '' },
-    { min: 95, max: 99, nome: 'Incêndio', emoji: '🌋', classe: 3, pp: 22, pt: 0, det: 0, chance: '10%', preco: 'Uma segunda Fraqueza.' },
-    { min: 100, max: 100, nome: 'Supernova', emoji: '🌟', classe: 4, pp: 25, pt: 0, det: 0, chance: '2%', preco: 'Uma Fraqueza grave, e o Eclipse sente o herói desde o primeiro dia.' }
+    { min: 1, max: 17, nome: 'Faísca', emoji: '✨', classe: 1, pp: 10, pt: 6, det: 1, chance: '17%', preco: '' },
+    { min: 18, max: 39, nome: 'Brasa', emoji: '🔸', classe: 2, pp: 13, pt: 4, det: 1, chance: '22%', preco: '' },
+    { min: 40, max: 77, nome: 'Chama', emoji: '🔥', classe: 2, pp: 16, pt: 2, det: 0, chance: '38%', preco: '' },
+    { min: 78, max: 94, nome: 'Fogueira', emoji: '🏕️', classe: 3, pp: 19, pt: 0, det: 0, chance: '17%', preco: '' },
+    { min: 95, max: 99, nome: 'Incêndio', emoji: '🌋', classe: 3, pp: 22, pt: 0, det: 0, chance: '5%', preco: 'Uma segunda Fraqueza.' },
+    { min: 100, max: 100, nome: 'Supernova', emoji: '🌟', classe: 4, pp: 25, pt: 0, det: 0, chance: '1%', preco: 'Uma Fraqueza grave, e o Eclipse sente o herói desde o primeiro dia.' }
   ];
   const FE_NO_DESTINO = 2;
 

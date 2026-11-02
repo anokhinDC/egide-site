@@ -23,7 +23,7 @@
         <details class="ref"><summary>Quem é forte contra quem</summary><table class="tbl"><thead><tr><th>Ataque de</th><th>Contra</th><th>Efeito</th></tr></thead><tbody>
         ${[['Magia (Arcano)', 'Proteção de Visitantes e Invulnerabilidade física', 'Ignora metade dessa Proteção.'], ['Místico', 'Criaturas sobrenaturais', 'Em Brecha.'], ['Elétrico e hack', 'Tecnologia', 'VIG (CD do poder) ou Desligado 1 rodada.'], ['Força bruta', 'Escudos mágicos e Campos de Força', 'O escudo absorve só metade.'], ['Luz', 'Sombra', 'Dano × 1,5.'], ['Sombra e escuridão total', 'Despertos', 'VON (CD do poder) ou Apagados 1 rodada.'], ['Qualquer coisa', 'Treinados', 'Normal.']].map((r) => `<tr>${r.map((x) => `<td>${esc(x)}</td>`).join('')}</tr>`).join('')}</tbody></table></details>`;
     } else if (a === 'potencial') {
-      el.innerHTML = `<p class="paper-2">O bot rola <b>2d100 e fica com o maior</b>: três em cada quatro resultados passam de 50. Quem fica com a primeira rolagem ganha <b>Fé no Destino (+${LD.FE_NO_DESTINO} PT)</b>.</p>
+      el.innerHTML = `<p class="paper-2">O bot rola <b>1d100</b>, sem vantagem. Quem fica com a primeira rolagem ganha <b>Fé no Destino (+${LD.FE_NO_DESTINO} PT)</b>.</p>
         <table class="tbl"><thead><tr><th>Resultado</th><th>Potencial</th><th>Chance</th><th>PP</th><th>PT extra</th><th>Determinação</th><th>Preço</th></tr></thead><tbody>
         ${LD.FAIXAS.map((x) => `<tr><td>${String(x.min).padStart(2, '0')}–${x.max}</td><td>${x.emoji} <b>${esc(x.nome)}</b></td><td>${x.chance}</td><td>${x.pp}</td><td>${x.pt ? '+' + x.pt : '—'}</td><td>${x.det ? '+1' : '—'}</td><td class="small">${esc(x.preco || '—')}</td></tr>`).join('')}
         </tbody></table>

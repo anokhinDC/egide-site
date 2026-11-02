@@ -45,7 +45,7 @@ REAÇÕES  Esquivar 1d20 + AGI + Esquiva ≥ ataque → errou
       ${tabela(['Como', 'Recupera'], [['Segundo Fôlego (uma vez por combate)', 'VIG + degrau de Classe em PV'], ['Descanso curto (uma hora)', '¼ do PV, Energia até a metade, −1 Fadiga'], ['Descanso longo (uma noite)', 'PV e Energia cheios, −1 Fadiga'], ['Em lugar seguro', 'E ainda Fadiga 0, −1 Sussurro, Kits reabastecidos'], ['Nova sessão', 'Determinação cheia']])}`],
     ['criacao', 'Criação em 11 passos', () => `<ol class="steps-ol">
       <li><b>Conceito:</b> uma frase, um nome de herói e um símbolo.</li><li><b>Origem:</b> Desperto, Mítico, Arcano, Engenhoso, Treinado ou Visitante.</li>
-      <li><b>Potencial:</b> <code>!egide-potencial</code> (2d100, fica o maior). Treinados: Ápice; Engenhosos: Oficina.</li>
+      <li><b>Potencial:</b> <code>!egide-potencial</code> (1d100). Treinados: Ápice; Engenhosos: Oficina.</li>
       <li><b>Atributos:</b> todos em 0, mais 8 pontos (no máximo 3 em cada), mais a Origem. Teto: 5.</li><li><b>Arquétipo.</b></li>
       <li><b>Estilo de Poder e poderes</b> com os PP. Grau máximo 4 (5 com Incêndio e Supernova).</li>
       <li><b>Perícias e Traços</b> com os PT: 10 + Potencial (+2 de Fé no Destino). Cada grau de Perícia custa 1 PT.</li>
@@ -54,7 +54,7 @@ REAÇÕES  Esquivar 1d20 + AGI + Esquiva ≥ ataque → errou
     ['dinheiro', 'Dinheiro', () => `<p>O dinheiro da Égide é em <b>dólares (US$)</b> e fica no site. O saldo de cada herói = dinheiro inicial + salário e recompensas − compras.</p>
       ${tabela(['Começa com', 'Valor'], [['Sem nada', 'US$ 50'], ['Apertado (padrão)', 'US$ 500'], ['Com emprego', 'US$ 1.500'], ['Família rica (Treinado, 2 PT)', 'US$ 10.000'], ['Oficina lendária (Engenhoso, 6 PT)', 'US$ 50.000'], ['Traço Rico', '+US$ 15.000']])}
       <p>O salário (definido pela mestragem) cai uma vez por semana, no botão do Inventário. Recompensas e multas, a mestragem lança na ficha. <a href="#/loja">Loja</a></p>`],
-    ['bot', 'No Discord', () => `<pre class="code">!egide-potencial                 a Rolagem de Potencial (2d100, fica o maior)
+    ['bot', 'No Discord', () => `<pre class="code">!egide-potencial                 a Rolagem de Potencial (1d100)
 !egide-ficha-criar Nome          cria a ficha de jogo no bot
 !egide-teste 7 Difícil vantagem  1d20 + 7 contra CD 20, com Vantagem
 !egide-ataque 9 16 4d6+19 18     ataque +9 contra Defesa 16, dano menos Resistência 18

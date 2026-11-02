@@ -48,7 +48,7 @@
             ${field('Dificuldade', select('tcd', LD.CDS.map((x) => ({ key: x.key, nome: `${x.nome} (${x.key})` })), 15))}
             ${field('Modo', select('tm', [{ key: 'normal', nome: 'Normal' }, { key: 'vantagem', nome: 'Vantagem' }, { key: 'desvantagem', nome: 'Desvantagem' }], 'normal'))}
           </div>
-          <div class="btn-row"><button class="btn-primary" data-teste>⚄ Rolar</button><button class="btn" data-d6>1d6 (o Preço)</button><button class="btn plain" data-pot>2d100 (Potencial)</button></div>
+          <div class="btn-row"><button class="btn-primary" data-teste>⚄ Rolar</button><button class="btn" data-d6>1d6 (o Preço)</button><button class="btn plain" data-pot>1d100 (Potencial)</button></div>
           <p class="muted small">20 natural: sucesso e algo a mais (crítico em ataque). 1 natural: falha e uma complicação. Empate com a CD é sucesso.</p>
         </section>
       </div>
@@ -101,7 +101,7 @@
       LD.ui.rolarTeste('Teste', num(v.tb), { cd: num(v.tcd), modo: v.tm });
     });
     main.querySelector('[data-d6]').addEventListener('click', () => { const n = 1 + Math.floor(Math.random() * 6); LD.ui.registrarRolagem({ titulo: 'O Preço (1d6)', total: n, detalhe: LD.PRECOS_MAGIA[n - 1] }); });
-    main.querySelector('[data-pot]').addEventListener('click', () => { const a = 1 + Math.floor(Math.random() * 100), b = 1 + Math.floor(Math.random() * 100); const fx = R.faixaDe(Math.max(a, b)); LD.ui.registrarRolagem({ titulo: 'Potencial (teste)', total: Math.max(a, b), detalhe: `2d100 [${a}, ${b}] · ${fx.emoji} ${fx.nome}` }); });
+    main.querySelector('[data-pot]').addEventListener('click', () => { const a = 1 + Math.floor(Math.random() * 100); const fx = R.faixaDe(a); LD.ui.registrarRolagem({ titulo: 'Potencial (teste)', total: a, detalhe: `1d100 [${a}] · ${fx.emoji} ${fx.nome}` }); });
 
     if (!mestre) return;
     main.querySelectorAll('[data-aprovar]').forEach((b) => b.addEventListener('click', () => LD.fichas.mudar(b.dataset.aprovar, (x) => { LD.fichas.aprovar(x); })));

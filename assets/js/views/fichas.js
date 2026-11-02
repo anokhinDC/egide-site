@@ -715,9 +715,9 @@
     if (lend) lend.addEventListener('change', () => mudar(f.id, (x) => { x.recursosOpcao = lend.checked ? 'lendarios' : ''; }));
     const sim = el.querySelector('[data-simular]');
     if (sim) sim.addEventListener('click', () => {
-      const a = 1 + Math.floor(Math.random() * 100), b = 1 + Math.floor(Math.random() * 100);
-      LD.ui.registrarRolagem({ titulo: 'Potencial (simulado)', total: Math.max(a, b), detalhe: `2d100 [${a}, ${b}], fica o maior` });
-      mudar(f.id, (x) => { x.potencial.resultado = Math.max(a, b); });
+      const a = 1 + Math.floor(Math.random() * 100);
+      LD.ui.registrarRolagem({ titulo: 'Potencial (simulado)', total: a, detalhe: `1d100 [${a}]` });
+      mudar(f.id, (x) => { x.potencial.resultado = a; });
     });
   }
 
