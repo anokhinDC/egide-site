@@ -734,16 +734,17 @@
     const aumPermitidos = [LD.MARCOS.atributo1, LD.MARCOS.atributo2].filter((n) => c.degrau >= n).length;
     el.innerHTML = `
       <h2>Atributos</h2>
-      <p class="lead"><b>${LD.PONTOS_DE_ATRIBUTO} pontos</b> · até <b>${LD.TETO_CRIACAO}</b> em cada (a Origem soma +1) · teto <b>${cap}</b></p>
+      <p class="lead"><b>${LD.PONTOS_DE_ATRIBUTO} pontos</b> · até <b>${LD.TETO_CRIACAO}</b> em cada, já contando o +1 da Origem · teto <b>${cap}</b></p>
       <div class="points"><b>${livres}</b><span class="caps">pontos livres</span></div>
       <div class="attr-list">${LD.ATRIBUTOS.map((a) => {
         const p = num(f.atributos[a.key]);
         const fin = c.A[a.key];
         const bonus = base[a.key] - p;
+        const daOrigem = R.atributoDeCriacao(f, a.key) - p;
         return `<div class="attr">
           <i class="dia"></i>
           <div title="${esc(a.desc)}"><div class="name">${esc(a.nome)}<small>${a.key}</small></div></div>
-          ${stepper(a.key, p, 0, Math.min(LD.TETO_CRIACAO, p + Math.max(0, livres)))}
+          ${stepper(a.key, p, 0, Math.max(p, Math.min(LD.TETO_CRIACAO - daOrigem, p + Math.max(0, livres))))}
           <div class="val">${fin}${bonus ? `<small class="ok"> +${bonus}</small>` : ''}${fin !== base[a.key] ? '<small class="gold"> poder</small>' : ''}<div class="tiny muted">${(() => { const e = R.escalaAtributo(fin, c.classe); return esc(e.nome) + (e.classe ? ` · ${e.pct}% da Classe` : ''); })()}</div></div>
         </div>`;
       }).join('')}</div>
