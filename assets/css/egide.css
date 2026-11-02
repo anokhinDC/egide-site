@@ -676,3 +676,15 @@ select { font-family: var(--ui); }
 .sx-det { margin-top: 6px; width: 100%; border: var(--bd-thin); padding: 4px 8px; font: 500 13px var(--ui); background: var(--white); }
 .trait input.sx-det { appearance: auto; grid-column: 2 / -1; width: 100%; height: auto; cursor: text; }
 .trait input.sx-det::after { content: none; }
+
+/* Campanha */
+.tt-box .btn-row { margin-top: 6px; display: flex; gap: 6px; }
+.tt-box.rep-pos b { color: var(--blue, #1f5fd6); }
+.tt-box.rep-neg b { color: #b3202f; }
+.camp-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 8px; }
+.camp-item { background: var(--white); border: var(--bd-thin); padding: 8px 12px; }
+.camp-item p { margin: 4px 0 0; }
+.camp-head { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.camp-acoes { margin-left: auto; display: flex; gap: 4px; }
+.camp-add { align-items: end; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+.btn.sm { padding: 2px 8px; font-size: 13px; }

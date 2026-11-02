@@ -515,6 +515,29 @@
     if (key === 'pontaria' && hasTraco(f, 'treino_militar')) g += 1;
     return clamp(g, 0, 6);
   }
+  // Campanha: Reputação Pública (−3 a +3), Patrulhas (a cada 3, +1 PT), Vínculos, Contatos, Pistas, Consequências, Missões.
+  const REPUTACAO = [
+    { v: -3, nome: 'Ameaça', efeito: 'O DAME caça. Civis fogem. A polícia atira primeiro.' },
+    { v: -2, nome: 'Perigoso', efeito: 'Manchetes contra. Civis não colaboram.' },
+    { v: -1, nome: 'Suspeito', efeito: 'A polícia pede documentos. Os Registrados vigiam.' },
+    { v: 0, nome: 'Desconhecido', efeito: 'Ninguém sabe quem é.' },
+    { v: 1, nome: 'Promissor', efeito: 'Civis ajudam. A imprensa quer entrevista.' },
+    { v: 2, nome: 'Herói', efeito: 'Portas se abrem. Os Registrados respeitam.' },
+    { v: 3, nome: 'Ícone', efeito: 'A multidão segue. Uma vez por Edição, a cidade faz algo a pedido do herói.' }
+  ];
+  const VINCULOS = ['Estranho', 'Conhecido', 'Próximo', 'Íntimo'];
+  function campanhaDe(f) {
+    const c = f.campanha || {};
+    return { reputacao: clamp(Math.floor(num(c.reputacao)), -3, 3), patrulhas: Math.max(0, Math.floor(num(c.patrulhas))),
+      vinculos: c.vinculos || [], contatos: c.contatos || [], pistas: c.pistas || [], consequencias: c.consequencias || [], missoes: c.missoes || [] };
+  }
+  // Reputação que vale: a anotada pela mestragem + os Traços (Herói do Povo +1, Fama Ruim −1).
+  function reputacaoDe(f) {
+    const v = clamp(campanhaDe(f).reputacao + (hasTraco(f, 'heroi_do_povo') ? 1 : 0) - (hasTraco(f, 'fama_ruim') ? 1 : 0), -3, 3);
+    return Object.assign({ valor: v }, REPUTACAO.find((r) => r.v === v));
+  }
+  const ptDePatrulhas = (f) => Math.floor(campanhaDe(f).patrulhas / 3);
+
   // Cada grau de Perícia custa o número dele: o 1º custa 1 PT, o 2º 2, o 3º 3… (grau 4 = 10 PT no total).
   function custoPericia(g) { g = clamp(Math.floor(num(g)), 0, 6); return g * (g + 1) / 2; }
   // Atributo antes dos Aumentos: pontos + bônus da Origem.
@@ -812,7 +835,7 @@
     const porNivel = treinado ? 4 : 2;
     const fe = f.feNoDestino && pot.rolou ? FE_NO_DESTINO : 0;
     const defeitosPT = Math.min(MAX_PT_DEFEITOS, (f.defeitos || []).slice(0, MAX_DEFEITOS).reduce((s, k) => s + ((LD.byKey(DEFEITOS, k) || {}).custo || 0), 0));
-    const ptTotal = 10 + pot.pt + fe + porNivel * (nivel - 1) + num((f.bonus || {}).pt) + num(f.ptTreino) + treinoDe(f).ptGanho - 2 * treinoDe(f).trocas + defeitosPT;
+    const ptTotal = 10 + pot.pt + fe + porNivel * (nivel - 1) + num((f.bonus || {}).pt) + num(f.ptTreino) + treinoDe(f).ptGanho - 2 * treinoDe(f).trocas + defeitosPT + ptDePatrulhas(f);
     const ptPericias = Object.values(f.pericias || {}).reduce((s, g) => s + custoPericia(g), 0);
     const ptEstilos = 0;
     const ptQualidades = (f.qualidades || []).reduce((s, k) => s + ((LD.byKey(QUALIDADES, k) || {}).custo || 0), 0);
@@ -991,5 +1014,6 @@
   LD.DINHEIRO_PARTIDA = DINHEIRO_PARTIDA; LD.SALARIOS = SALARIOS;
   LD.DEGRAUS_CLASSE = DEGRAUS_CLASSE; LD.MARCOS = MARCOS;
   LD.MORADIAS_TIPOS = MORADIAS_TIPOS;
-  LD.rules = { custoPericia, atributoDeCriacao, ajustarRegrasV3, limitePoderes, moradiaDe, aluguelDe, ultimoDomingo, domingosPendentes, salarioDe, fraquezasDe, marcasPericias, degrau, classeDoDegrau, rotuloClasse, areasTreino, treinoDe, podeTreinar, bonusTreino, aplicarTreino, tetoPTTreino, valeTreino: vale, dinheiro, dinheiroInicial, fmtUS, semanaAtual, fmtClasse, slug, clamp, num, faixaDe, resultadoAjustado, potencial, classe, atributos, grauMaximo, custoPoder, calc, tetoAtributo, escalaAtributo, ataquePoder, ataques, grau, tetoPericia, comandosBot, feitico, rolarD20, rolarExpr, recursos, hasTraco, combinarProtecoes };
+  LD.REPUTACAO = REPUTACAO; LD.VINCULOS = VINCULOS;
+  LD.rules = { campanhaDe, reputacaoDe, ptDePatrulhas, custoPericia, atributoDeCriacao, ajustarRegrasV3, limitePoderes, moradiaDe, aluguelDe, ultimoDomingo, domingosPendentes, salarioDe, fraquezasDe, marcasPericias, degrau, classeDoDegrau, rotuloClasse, areasTreino, treinoDe, podeTreinar, bonusTreino, aplicarTreino, tetoPTTreino, valeTreino: vale, dinheiro, dinheiroInicial, fmtUS, semanaAtual, fmtClasse, slug, clamp, num, faixaDe, resultadoAjustado, potencial, classe, atributos, grauMaximo, custoPoder, calc, tetoAtributo, escalaAtributo, ataquePoder, ataques, grau, tetoPericia, comandosBot, feitico, rolarD20, rolarExpr, recursos, hasTraco, combinarProtecoes };
 })();

@@ -12,7 +12,7 @@
   const NOMES = {
     nome: 'Nome civil', codinome: 'Nome de herói', simbolo: 'Símbolo', alinhamento: 'Alinhamento', origem: 'Origem', arquetipo: 'Arquétipo',
     estiloPoder: 'Estilo de Poder', tradicao: 'Tradição', 'potencial.resultado': 'Potencial', feNoDestino: 'Fé no Destino',
-    ascensao: 'Classe', aprovada: 'Aprovação', novaEgide: 'Nova Égide', salario: 'Salário', creditos: 'Créditos', gastoTotal: 'Gastos',
+    ascensao: 'Classe', 'campanha.reputacao': 'Reputação', 'campanha.patrulhas': 'Patrulhas', aprovada: 'Aprovação', novaEgide: 'Nova Égide', salario: 'Salário', creditos: 'Créditos', gastoTotal: 'Gastos',
     recursos: 'Dinheiro inicial', recursosOpcao: 'Opção de dinheiro', inicialFixo: 'Dinheiro inicial (aprovado)', ptTreino: 'PT de treino (mestragem)', bonusPV: 'Bônus de PV',
     'bonus.pt': 'Bônus de PT', 'bonus.pp': 'Bônus de PP', 'bonus.det': 'Bônus de Determinação',
     'medidores.pv': 'PV', 'medidores.energia': 'Energia', 'medidores.det': 'Determinação', 'medidores.fadiga': 'Fadiga', 'medidores.sussurro': 'Sussurro',
@@ -44,7 +44,7 @@
   // Listas: diz o que entrou e o que saiu, pelo nome.
   function rotuloItem(campo, x) {
     if (typeof x === 'string') return (byKey(LD.QUALIDADES, x) || byKey(LD.DEFEITOS, x) || {}).nome || x;
-    return x.nome || x.key || x.itemId || 'item';
+    return x.nome || x.titulo || x.key || x.itemId || 'item';
   }
   function difLista(campo, nome, a, b) {
     a = a || []; b = b || [];
@@ -60,7 +60,7 @@
     if (editados.length) out.push(`${nome}: ${editados.join(', ')} alterado`);
     return out;
   }
-  const LISTAS = { poderes: 'Poderes', grimorio: 'Grimório', inventario: 'Inventário', qualidades: 'Qualidades', defeitos: 'Defeitos', fraquezas: 'Fraquezas', aumentos: 'Aumentos de Atributo', origemBonus: 'Bônus da Origem', 'medidores.condicoes': 'Condições' };
+  const LISTAS = { poderes: 'Poderes', grimorio: 'Grimório', inventario: 'Inventário', qualidades: 'Qualidades', defeitos: 'Defeitos', fraquezas: 'Fraquezas', aumentos: 'Aumentos de Atributo', origemBonus: 'Bônus da Origem', 'medidores.condicoes': 'Condições', 'campanha.vinculos': 'Vínculos', 'campanha.contatos': 'Contatos', 'campanha.pistas': 'Pistas', 'campanha.consequencias': 'Consequências', 'campanha.missoes': 'Missões' };
 
   function achatar(o, pre, out) {
     Object.keys(o || {}).forEach((k) => {

@@ -31,12 +31,13 @@
       poderes: [], grimorio: [], pericias: {}, estilos: {}, qualidades: [], defeitos: [], fraquezas: [],
       recursos: 1, recursosOpcao: '', creditos: 0, gastoTotal: 0, salario: 0, semanaSalario: '', extrato: [], inicialFixo: null, vidaCivil: { emprego: '', mora: '', identidadeSecreta: true, quemSabe: '' },
       perda: '', historia: '', aparencia: '', notas: '', inventario: [], kits: null, novaEgide: true,
-      medidores: null, compras: [], bonus: { pt: 0, pp: 0, det: 0 }, ptTreino: 0, ascensao: 0, bonusPV: 0, aprovada: false
+      medidores: null, compras: [], campanha: { reputacao: 0, patrulhas: 0, vinculos: [], contatos: [], pistas: [], consequencias: [], missoes: [] }, bonus: { pt: 0, pp: 0, det: 0 }, ptTreino: 0, ascensao: 0, bonusPV: 0, aprovada: false
     };
     Object.keys(d).forEach((k) => { if (f[k] === undefined || f[k] === null) f[k] = JSON.parse(JSON.stringify(d[k])); });
     f.vidaCivil = Object.assign({}, d.vidaCivil, f.vidaCivil);
     f.bonus = Object.assign({ pt: 0, pp: 0, det: 0 }, f.bonus);
     f.potencial = Object.assign({ resultado: '', rolagens: 1 }, f.potencial);
+    f.campanha = Object.assign({ reputacao: 0, patrulhas: 0, vinculos: [], contatos: [], pistas: [], consequencias: [], missoes: [] }, f.campanha);
     f.nsfw = Object.assign({ galeria: [], respostas: {}, marcas: {}, atributos: {}, qualidades: [], fracos: [], detalhes: {}, bonusPS: 0 }, f.nsfw);
     if (f.adulto && (f.adulto.fetiches || f.adulto.limites)) { f.nsfw.respostas.fetiches = f.nsfw.respostas.fetiches || f.adulto.fetiches || ''; f.nsfw.respostas.limites = f.nsfw.respostas.limites || f.adulto.limites || ''; delete f.adulto; }
     if (R.hasTraco(f, 'sem_lugar') && f.recursosOpcao === 'familia_rica') f.recursosOpcao = '';
@@ -191,7 +192,7 @@
         </div>
       </header>
       <nav class="tabs">
-        ${[['jogar', 'Jogar'], ['construcao', 'Construção'], ['treino', 'Treino'], ['inventario', 'Inventário'], ['historia', 'História'], ['nsfw', 'NSFW'], ['alteracoes', 'Alterações']].map(([k, n]) =>
+        ${[['jogar', 'Jogar'], ['construcao', 'Construção'], ['treino', 'Treino'], ['inventario', 'Inventário'], ['historia', 'História'], ['campanha', 'Campanha'], ['nsfw', 'NSFW'], ['alteracoes', 'Alterações']].map(([k, n]) =>
           `<button class="${aba === k ? 'on' : ''}" data-aba="${k}">${n}${k === 'construcao' && c.avisos.filter((a) => !a.leve).length ? ` <sup class="badge">${c.avisos.filter((a) => !a.leve).length}</sup>` : ''}</button>`).join('')}
       </nav>
       <section data-corpo></section>`;
@@ -203,6 +204,7 @@
     else if (aba === 'inventario') renderInventario(corpo, f, c, editar);
     else if (aba === 'alteracoes') renderAlteracoes(corpo, f);
     else if (aba === 'nsfw') renderNsfw(corpo, f, editar);
+    else if (aba === 'campanha') renderCampanha(corpo, f, c);
     else renderHistoria(corpo, f, c, editar);
 
     main.querySelectorAll('[data-aba]').forEach((b) => b.addEventListener('click', () => { st.aba[id] = b.dataset.aba; renderFicha(main, id); }));
@@ -1262,6 +1264,64 @@
         <b>${esc(a.quem || '?')}</b>${comFicha ? ` · <a href="#/ficha/${esc(a.fichaId)}">${esc(a.ficha || 'ficha')}</a>` : ''}</div>
       <ul>${(a.mudancas || []).map((m) => `<li>${esc(m)}</li>`).join('')}</ul></div>`;
   }
+  /* =====================================================================
+   * Campanha: o que a história deu e cobrou. Só a mestragem edita; todos veem.
+   * ===================================================================== */
+  const LISTAS_CAMPANHA = [
+    { key: 'missoes', nome: 'Missões', vazio: 'Nenhuma missão ainda.', campos: [['titulo', 'Missão', 'A Égide #1: O Chamado'], ['data', 'Quando', '01/11/2026'], ['texto', 'O que aconteceu', 'Resumo curto.']] },
+    { key: 'vinculos', nome: 'Vínculos', vazio: 'Nenhum Vínculo ainda.', nivel: true, campos: [['nome', 'Com quem', 'Lia Sampaio'], ['texto', 'Como', 'Tirou ela da ponte.']] },
+    { key: 'contatos', nome: 'Contatos', vazio: 'Nenhum Contato ainda.', campos: [['nome', 'Quem', 'Carlos Andrade'], ['area', 'Área', 'Enfermeiro do Hospital Central'], ['texto', 'Nota', 'Uma pergunta ou um favor pequeno por sessão.']] },
+    { key: 'pistas', nome: 'Pistas', vazio: 'Nenhuma pista ainda.', campos: [['titulo', 'Pista', 'Fábrica 7'], ['texto', 'O que se sabe', 'A caixa saiu de barco pelo píer da Kael.']] },
+    { key: 'consequencias', nome: 'Consequências', vazio: 'Nada pendente.', campos: [['titulo', 'O quê', 'Processo por roubo'], ['texto', 'Detalhe', 'Fiança de US$ 25.000 paga por "Amigo". Julgamento pendente.']] }
+  ];
+  function renderCampanha(el, f, c) {
+    const mestre = LD.store.isMaster();
+    const k = R.campanhaDe(f); const rep = R.reputacaoDe(f);
+    const formC = (st.campanha = st.campanha || {})[f.id] = (st.campanha || {})[f.id] || {};
+    const prox = 3 - (k.patrulhas % 3);
+    el.innerHTML = `
+      <div class="treino-topo">
+        <div class="tt-box rep rep-${rep.valor < 0 ? 'neg' : rep.valor > 0 ? 'pos' : 'zero'}"><span class="caps">Reputação Pública</span>
+          <b>${sinal(rep.valor)} <small>${esc(rep.nome)}</small></b><small class="muted">${esc(rep.efeito)}</small>
+          ${rep.valor !== k.reputacao ? `<small class="muted">Anotada ${sinal(k.reputacao)}, com os Traços ${sinal(rep.valor)}.</small>` : ''}
+          ${mestre ? `<div class="btn-row"><button class="btn sm" data-rep="-1">−1</button><button class="btn sm" data-rep="1">+1</button></div>` : ''}</div>
+        <div class="tt-box"><span class="caps">Patrulhas e Edições Especiais</span><b>${k.patrulhas}</b>
+          <small class="muted">${R.ptDePatrulhas(f) ? `+${R.ptDePatrulhas(f)} PT já ganhos · ` : ''}próximo PT em ${prox}</small>
+          ${mestre ? `<div class="btn-row"><button class="btn sm" data-pat="-1">−1</button><button class="btn sm" data-pat="1">+1</button></div>` : ''}</div>
+        <div class="tt-box"><span class="caps">Dinheiro</span><b>${esc(R.fmtUS(R.dinheiro(f)))}</b><small class="muted">Recompensas e multas: Construção › Mestragem.</small></div>
+      </div>
+      ${LISTAS_CAMPANHA.map((L) => {
+        const itens = k[L.key];
+        const fm = formC[L.key] = formC[L.key] || {};
+        return `<div class="subsect"><span>${L.nome}</span></div>
+        ${itens.length ? `<div class="camp-list">${itens.map((x, i) => `<div class="camp-item">
+          <div class="camp-head"><b>${esc(x.titulo || x.nome || '—')}</b>
+            ${x.area ? `<span class="muted"> · ${esc(x.area)}</span>` : ''}${x.data ? `<span class="muted small"> · ${esc(x.data)}</span>` : ''}
+            ${L.nivel ? `<span class="tag">Vínculo ${num(x.nivel)} · ${esc(LD.VINCULOS[R.clamp(num(x.nivel), 0, 3)])}</span>` : ''}
+            ${mestre ? `<span class="camp-acoes">${L.nivel ? `<button class="btn sm" data-niv="${L.key}:${i}:-1">−</button><button class="btn sm" data-niv="${L.key}:${i}:1">+</button>` : ''}<button class="btn sm plain" data-del="${L.key}:${i}" title="Tirar">✕</button></span>` : ''}</div>
+          ${x.texto ? `<p>${esc(x.texto)}</p>` : ''}</div>`).join('')}</div>` : `<p class="muted">${L.vazio}</p>`}
+        ${mestre ? `<div class="camp-add row" data-lista="${L.key}">${L.campos.map(([ck, cn, ph]) => field(cn, `<input data-c="${ck}" value="${esc(fm[ck] || '')}" placeholder="${esc(ph)}">`)).join('')}
+          <button class="btn" data-add="${L.key}">Adicionar</button></div>` : ''}`;
+      }).join('')}`;
+    if (!mestre) return;
+    const salvar = (fn) => mudar(f.id, (x) => { x.campanha = R.campanhaDe(x); fn(x.campanha); });
+    el.querySelectorAll('[data-rep]').forEach((b) => b.addEventListener('click', () => salvar((cp) => { cp.reputacao = R.clamp(cp.reputacao + num(b.dataset.rep), -3, 3); })));
+    el.querySelectorAll('[data-pat]').forEach((b) => b.addEventListener('click', () => salvar((cp) => { cp.patrulhas = Math.max(0, cp.patrulhas + num(b.dataset.pat)); })));
+    el.querySelectorAll('[data-del]').forEach((b) => b.addEventListener('click', () => { const [l, i] = b.dataset.del.split(':'); salvar((cp) => { cp[l].splice(num(i), 1); }); }));
+    el.querySelectorAll('[data-niv]').forEach((b) => b.addEventListener('click', () => { const [l, i, d] = b.dataset.niv.split(':'); salvar((cp) => { const it = cp[l][num(i)]; if (it) it.nivel = R.clamp(num(it.nivel) + num(d), 0, 3); }); }));
+    el.querySelectorAll('[data-lista]').forEach((box) => {
+      const l = box.dataset.lista;
+      box.querySelectorAll('[data-c]').forEach((inp) => inp.addEventListener('input', () => { formC[l][inp.dataset.c] = inp.value; }));
+      box.querySelector('[data-add]').addEventListener('click', () => {
+        const novo = {}; box.querySelectorAll('[data-c]').forEach((inp) => { if (inp.value.trim()) novo[inp.dataset.c] = inp.value.trim().slice(0, 1000); });
+        if (!Object.keys(novo).length) { LD.ui.toast('Preencha pelo menos um campo.', 'erro'); return; }
+        if (LISTAS_CAMPANHA.find((L) => L.key === l).nivel) novo.nivel = 1;
+        formC[l] = {};
+        salvar((cp) => { cp[l].push(novo); });
+      });
+    });
+  }
+
   function renderAlteracoes(el, f) {
     const lista = (LD.store.list('alteracoes') || []).filter((a) => a.fichaId === f.id).sort((a, b) => b.quando - a.quando);
     el.innerHTML = lista.length ? `<div class="alt-list">${lista.map((a) => linhaAlteracao(a)).join('')}</div>` : '<p class="muted">Nenhuma alteração registrada ainda.</p>';

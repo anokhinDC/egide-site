@@ -197,7 +197,8 @@ service cloud.firestore {
         && d.get('aprovada', false) == r.get('aprovada', false)
         && d.get('salario', 0) == r.get('salario', 0)
         && d.get('inicialFixo', null) == r.get('inicialFixo', null)
-        && d.get('nsfw', {}).get('bonusPS', 0) == r.get('nsfw', {}).get('bonusPS', 0);
+        && d.get('nsfw', {}).get('bonusPS', 0) == r.get('nsfw', {}).get('bonusPS', 0)
+        && d.get('campanha', {}) == r.get('campanha', {});
     }
     // Treino: cada treino conta +1 em treino.n, com 12 horas (menos uma folga) desde o anterior, e rende no máximo 3 PT.
     // Fora de um treino, Marcas e PT de treino não mudam. Cada 1 PP trocado custa 2 PT de treino.
@@ -223,7 +224,8 @@ service cloud.firestore {
         && d.get('bonusPV', 0) == 0
         && d.get('treino', {}).get('ptGanho', 0) == 0 && d.get('treino', {}).get('trocas', 0) == 0
         && d.get('creditos', 0) == 0 && d.get('salario', 0) == 0 && d.get('inicialFixo', null) == null
-        && (d.get('bonus', null) == null || d.bonus == {'pt': 0, 'pp': 0, 'det': 0});
+        && (d.get('bonus', null) == null || d.bonus == {'pt': 0, 'pp': 0, 'det': 0})
+        && d.get('campanha', {}).get('patrulhas', 0) == 0 && d.get('campanha', {}).get('reputacao', 0) == 0;
     }
     // Depois da aprovação, Origem e Potencial ficam travados para o jogador.
     function potencialTravado(d, r) {
@@ -238,7 +240,7 @@ service cloud.firestore {
         && lista(d, 'poderes', 60) && lista(d, 'grimorio', 80) && lista(d, 'inventario', 300) && lista(d, 'compras', 80) && lista(d, 'extrato', 80)
         && lista(d, 'fraquezas', 10) && lista(d, 'qualidades', 30) && lista(d, 'defeitos', 5)
         && mapa(d, 'adulto', 5) && mapa(d, 'nsfw', 12) && (!('nsfw' in d) || d.nsfw.get('galeria', []).size() <= 8) && texto(d.get('adulto', {}), 'fetiches', 3000) && texto(d.get('adulto', {}), 'limites', 3000)
-        && mapa(d, 'atributos', 6) && mapa(d, 'pericias', 60) && mapa(d, 'estilos', 20) && mapa(d, 'kits', 6);
+        && mapa(d, 'campanha', 7) && mapa(d, 'atributos', 6) && mapa(d, 'pericias', 60) && mapa(d, 'estilos', 20) && mapa(d, 'kits', 6);
     }
     function poderEgideOk(d) {
       return d.keys().size() <= 40
