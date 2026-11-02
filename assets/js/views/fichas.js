@@ -67,6 +67,13 @@
     fn(f);
     return LD.store.save('personagens', f);
   }
+  // Apagar: a dona da ficha ou a mestragem, aprovada ou não.
+  function podeApagar(f) { return LD.store.isMaster() || LD.store.state.local || (f.ownerId && f.ownerId === LD.store.uid()); }
+  function apagarFicha(f, depois) {
+    if (!LD.ui.confirmar(`Apagar a ficha de ${titulo(f)}? Tudo some: poderes, inventário, dinheiro, treino e campanha. Não tem volta.`)) return;
+    LD.store.remove('personagens', f.id).then(() => { LD.ui.toast(`${titulo(f)} foi apagada.`); if (depois) depois(); })
+      .catch(() => LD.ui.toast('Não consegui apagar. Confira se você é a dona da ficha.', 'erro'));
+  }
   function podeEditar(f) { return LD.store.canEdit('personagens', LD.store.get('personagens', f.id)); }
   function travado(f) { return f.aprovada && !LD.store.isMaster(); }
   const titulo = (f) => f.codinome || f.nome || 'Herói sem nome';
@@ -106,6 +113,10 @@
     main.querySelectorAll('[data-novo]').forEach((b) => b.addEventListener('click', novaFicha));
     main.querySelectorAll('[data-f]').forEach((b) => b.addEventListener('click', () => { st.filtro = b.dataset.f; renderLista(main); }));
     main.querySelectorAll('[data-abrir]').forEach((b) => b.addEventListener('click', () => { location.hash = '#/ficha/' + b.dataset.abrir; }));
+    main.querySelectorAll('[data-apagar-lista]').forEach((b) => b.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const fx = ficha(b.dataset.apagarLista); if (fx) apagarFicha(fx, () => renderLista(main));
+    }));
   }
 
   function cardFicha(f) {
@@ -124,6 +135,7 @@
       <div class="card-foot">
         ${classeTag(c.classe)}
         ${f.aprovada ? '<span class="tag ok">✓ Aprovada</span>' : pend ? `<span class="tag warn">Falta ${pend}</span>` : '<span class="tag gold">Pronta</span>'}
+        ${podeApagar(f) ? `<button class="btn sm plain danger hc-del" data-apagar-lista="${esc(f.id)}" title="Apagar ficha">🗑</button>` : ''}
       </div>
     </article>`;
   }
@@ -187,7 +199,8 @@
           <div class="ch-actions">
             <button class="btn" data-bot>Comandos do bot</button>
             ${LD.store.isMaster() ? `<button class="btn" data-aprovar>${f.aprovada ? 'Tirar aprovação' : 'Aprovar ficha'}</button>` : ''}
-            ${editar ? '<details class="more" style="margin:0"><summary>Mais</summary><button class="btn plain" data-dup>Duplicar</button> <button class="btn plain danger" data-apagar>Apagar</button></details>' : ''}
+            ${editar ? '<button class="btn plain" data-dup>Duplicar</button>' : ''}
+            ${podeApagar(f) ? '<button class="btn plain danger" data-apagar>🗑 Apagar ficha</button>' : ''}
           </div>
         </div>
       </header>
@@ -222,7 +235,7 @@
     });
     const apg = main.querySelector('[data-apagar]');
     if (apg) apg.addEventListener('click', () => {
-      if (LD.ui.confirmar(`Apagar ${titulo(f)}? Não tem volta.`)) LD.store.remove('personagens', id).then(() => { location.hash = '#/fichas'; });
+      apagarFicha(f, () => { location.hash = '#/fichas'; });
     });
   }
 

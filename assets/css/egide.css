@@ -688,3 +688,5 @@ select { font-family: var(--ui); }
 .camp-acoes { margin-left: auto; display: flex; gap: 4px; }
 .camp-add { align-items: end; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
 .btn.sm { padding: 2px 8px; font-size: 13px; }
+
+.hc-del { margin-left: auto; }
