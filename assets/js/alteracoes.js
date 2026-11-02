@@ -5,7 +5,7 @@
   const LD = window.LD;
 
   // Campos que não entram no log (técnicos ou repetidos em outro lugar).
-  const IGNORAR = new Set(['updatedAt', 'ownerId', 'ownerName', 'id', 'extrato', 'compras', 'aluguelAte', 'semanaSalario', 'kits', 'estilos', 'potencial.rolagens']);
+  const IGNORAR = new Set(['updatedAt', 'regras_v3', 'ownerId', 'ownerName', 'id', 'extrato', 'compras', 'aluguelAte', 'semanaSalario', 'kits', 'estilos', 'potencial.rolagens']);
   // Textos longos: só avisa que mudou.
   const TEXTOS = { 'nsfw.galeria': 'Galeria NSFW', historia: 'História', aparencia: 'Aparência', notas: 'Notas', perda: 'A Perda', 'adulto.fetiches': 'Fetiches', 'adulto.limites': 'Limites', retrato: 'Imagem do personagem', conceito: 'Conceito' };
 

@@ -41,6 +41,7 @@
     if (f.adulto && (f.adulto.fetiches || f.adulto.limites)) { f.nsfw.respostas.fetiches = f.nsfw.respostas.fetiches || f.adulto.fetiches || ''; f.nsfw.respostas.limites = f.nsfw.respostas.limites || f.adulto.limites || ''; delete f.adulto; }
     if (R.hasTraco(f, 'sem_lugar') && f.recursosOpcao === 'familia_rica') f.recursosOpcao = '';
     Object.entries(LD.PERICIAS_ANTIGAS).forEach(([velha, nova]) => { if (f.pericias[velha] != null) { f.pericias[nova] = Math.max(num(f.pericias[nova]), num(f.pericias[velha])); delete f.pericias[velha]; } });
+    if (!f.regras_v3) { R.ajustarRegrasV3(f); f.regras_v3 = true; }
     f.fraquezas = f.fraquezas.filter((w) => !LD.FRAQUEZAS.some((x) => x.origem && x.key === w.key));
     if (!f.kits) f.kits = Object.fromEntries(LD.KITS.map((k) => [k.key, { atual: LD.KITS_PADRAO[k.key], max: LD.KITS_PADRAO[k.key] }]));
     const c = R.calc(f);
@@ -83,6 +84,8 @@
    * ===================================================================== */
   function renderLista(main) {
     const todos = LD.store.list('personagens').map((x) => normalizar(clone(x)));
+    // Fichas da regra antiga: a mestragem grava o ajuste (Atributos até 3 com a Origem, Perícias com custo novo).
+    if (LD.store.isMaster()) LD.store.list('personagens').filter((x) => !x.regras_v3).forEach((x) => LD.store.save('personagens', normalizar(clone(x))));
     const meu = LD.store.uid();
     const lista = (st.filtro === 'minhas' && !LD.store.state.local ? todos.filter((x) => x.ownerId === meu) : todos)
       .sort((a, b) => titulo(a).localeCompare(titulo(b)));
@@ -873,7 +876,7 @@
       .sort((a, b) => (b.efeito ? 1 : 0) - (a.efeito ? 1 : 0) || c.A[b.attr] - c.A[a.attr] || num(f.pericias[b.key]) - num(f.pericias[a.key])).slice(0, 6) : [];
     el.innerHTML = `
       <h2>Perícias</h2>
-      <p class="lead"><b>${c.ptTotal} PT</b> · 1 PT por grau · grau máximo <b>${teto}</b></p>
+      <p class="lead"><b>${c.ptTotal} PT</b> · cada grau custa o número dele (grau 3 = 6 PT) · grau máximo <b>${teto}</b></p>
       ${sugestoes.length ? `<div class="caption"><b>Sobram ${c.ptLivres} PT.</b> Sugestões: ${sugestoes.map((p) => `<button class="btn" data-mais="${p.key}" title="${esc(p.efeito || p.desc)}">+1 ${esc(p.nome)}</button>`).join(' ')}</div>` : ''}
       ${LD.ATRIBUTOS.map((a) => `
         <div class="subsect"><span>${esc(a.nome)}</span><span class="tag">${a.key} ${c.A[a.key]}</span></div>

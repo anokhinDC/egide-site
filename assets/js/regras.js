@@ -457,6 +457,7 @@
       let v = clamp(Math.floor(num(pts[key])), 0, TETO_ATRIBUTO);
       v += fixos.filter((x) => x === key).length;
       v += ob.filter((x) => x === key).length;
+      v = Math.min(TETO_CRIACAO, v);   // na criação, nada passa de 3, nem com o bônus da Origem
       v += aum.filter((x) => x === key).length;
       out[key] = Math.min(TETO_ATRIBUTO, v);
     });
@@ -513,6 +514,35 @@
     let g = num((f.pericias || {})[key]);
     if (key === 'pontaria' && hasTraco(f, 'treino_militar')) g += 1;
     return clamp(g, 0, 6);
+  }
+  // Cada grau de Perícia custa o número dele: o 1º custa 1 PT, o 2º 2, o 3º 3… (grau 4 = 10 PT no total).
+  function custoPericia(g) { g = clamp(Math.floor(num(g)), 0, 6); return g * (g + 1) / 2; }
+  // Atributo antes dos Aumentos: pontos + bônus da Origem.
+  function atributoDeCriacao(f, key) {
+    const origem = LD.byKey(ORIGENS, f.origem);
+    return num((f.atributos || {})[key]) + (origem ? origem.bonus.fixo : []).filter((x) => x === key).length
+      + (f.origemBonus || []).filter((x) => x === key).length;
+  }
+  // Fichas feitas com a regra antiga: move pontos de Atributo que passavam de 3 com a Origem e baixa
+  // as Perícias mais altas até os PT caberem. Devolve true se mudou algo.
+  function ajustarRegrasV3(f) {
+    let mudou = false;
+    const pts = f.atributos = f.atributos || {};
+    for (let i = 0; i < 20; i++) {
+      const alto = ATRIBUTOS.find((a) => atributoDeCriacao(f, a.key) > TETO_CRIACAO && num(pts[a.key]) > 0);
+      if (!alto) break;
+      const livres = ATRIBUTOS.filter((a) => atributoDeCriacao(f, a.key) < TETO_CRIACAO);
+      if (!livres.length) break;
+      const baixo = livres.reduce((m, a) => (atributoDeCriacao(f, a.key) < atributoDeCriacao(f, m.key) ? a : m));
+      pts[alto.key] = num(pts[alto.key]) - 1; pts[baixo.key] = num(pts[baixo.key]) + 1; mudou = true;
+    }
+    const per = f.pericias = f.pericias || {};
+    for (let i = 0; i < 60 && calc(f).ptLivres < 0; i++) {
+      const [k] = Object.entries(per).sort((a, b) => num(b[1]) - num(a[1]))[0] || [];
+      if (!k || num(per[k]) <= 0) break;
+      per[k] = num(per[k]) - 1; if (!per[k]) delete per[k]; mudou = true;
+    }
+    return mudou;
   }
   // Teto do grau: 3 na criação (Treinados 4), +1 na Classe 1,7 e na 2,7.
   function tetoPericia(f) {
@@ -783,7 +813,7 @@
     const fe = f.feNoDestino && pot.rolou ? FE_NO_DESTINO : 0;
     const defeitosPT = Math.min(MAX_PT_DEFEITOS, (f.defeitos || []).slice(0, MAX_DEFEITOS).reduce((s, k) => s + ((LD.byKey(DEFEITOS, k) || {}).custo || 0), 0));
     const ptTotal = 10 + pot.pt + fe + porNivel * (nivel - 1) + num((f.bonus || {}).pt) + num(f.ptTreino) + treinoDe(f).ptGanho - 2 * treinoDe(f).trocas + defeitosPT;
-    const ptPericias = Object.values(f.pericias || {}).reduce((s, g) => s + clamp(num(g), 0, 6), 0);
+    const ptPericias = Object.values(f.pericias || {}).reduce((s, g) => s + custoPericia(g), 0);
     const ptEstilos = 0;
     const ptQualidades = (f.qualidades || []).reduce((s, k) => s + ((LD.byKey(QUALIDADES, k) || {}).custo || 0), 0);
     const ptOpcao = f.recursosOpcao === 'familia_rica' ? 2 : f.recursosOpcao === 'lendarios' ? 6 : 0;
@@ -863,7 +893,7 @@
     const pts = f.atributos || {};
     const soma = ATRIBUTOS.reduce((s, a) => s + num(pts[a.key]), 0);
     if (soma !== PONTOS_DE_ATRIBUTO) out.push({ passo: 'atributos', msg: soma < PONTOS_DE_ATRIBUTO ? `Distribua os pontos de Atributo: faltam ${PONTOS_DE_ATRIBUTO - soma} de ${PONTOS_DE_ATRIBUTO}.` : `Pontos de Atributo demais: tire ${soma - PONTOS_DE_ATRIBUTO}.` });
-    ATRIBUTOS.forEach((a) => { if (num(pts[a.key]) > TETO_CRIACAO) out.push({ passo: 'atributos', msg: `${a.nome} passa de ${TETO_CRIACAO} antes do bônus da Origem.` }); });
+    ATRIBUTOS.forEach((a) => { if (atributoDeCriacao(f, a.key) > TETO_CRIACAO) out.push({ passo: 'atributos', msg: `${a.nome} passa de ${TETO_CRIACAO} com o bônus da Origem: o ponto extra se perde. Mova um ponto para outro Atributo.` }); });
     if (origem && origem.bonus.escolha && (f.origemBonus || []).length < origem.bonus.escolha) out.push({ passo: 'atributos', msg: 'Escolha onde vai o +1 de Atributo da Origem.' });
     const aumPermitidos = [4, 8].filter((n) => c.nivel >= n).length;
     if ((f.aumentos || []).length > aumPermitidos) out.push({ passo: 'atributos', msg: `Aumentos de Atributo demais para a Classe (${aumPermitidos} permitidos).` });
@@ -961,5 +991,5 @@
   LD.DINHEIRO_PARTIDA = DINHEIRO_PARTIDA; LD.SALARIOS = SALARIOS;
   LD.DEGRAUS_CLASSE = DEGRAUS_CLASSE; LD.MARCOS = MARCOS;
   LD.MORADIAS_TIPOS = MORADIAS_TIPOS;
-  LD.rules = { limitePoderes, moradiaDe, aluguelDe, ultimoDomingo, domingosPendentes, salarioDe, fraquezasDe, marcasPericias, degrau, classeDoDegrau, rotuloClasse, areasTreino, treinoDe, podeTreinar, bonusTreino, aplicarTreino, tetoPTTreino, valeTreino: vale, dinheiro, dinheiroInicial, fmtUS, semanaAtual, fmtClasse, slug, clamp, num, faixaDe, resultadoAjustado, potencial, classe, atributos, grauMaximo, custoPoder, calc, tetoAtributo, escalaAtributo, ataquePoder, ataques, grau, tetoPericia, comandosBot, feitico, rolarD20, rolarExpr, recursos, hasTraco, combinarProtecoes };
+  LD.rules = { custoPericia, atributoDeCriacao, ajustarRegrasV3, limitePoderes, moradiaDe, aluguelDe, ultimoDomingo, domingosPendentes, salarioDe, fraquezasDe, marcasPericias, degrau, classeDoDegrau, rotuloClasse, areasTreino, treinoDe, podeTreinar, bonusTreino, aplicarTreino, tetoPTTreino, valeTreino: vale, dinheiro, dinheiroInicial, fmtUS, semanaAtual, fmtClasse, slug, clamp, num, faixaDe, resultadoAjustado, potencial, classe, atributos, grauMaximo, custoPoder, calc, tetoAtributo, escalaAtributo, ataquePoder, ataques, grau, tetoPericia, comandosBot, feitico, rolarD20, rolarExpr, recursos, hasTraco, combinarProtecoes };
 })();
