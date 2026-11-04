@@ -198,7 +198,8 @@ service cloud.firestore {
         && d.get('salario', 0) == r.get('salario', 0)
         && d.get('inicialFixo', null) == r.get('inicialFixo', null)
         && d.get('nsfw', {}).get('bonusPS', 0) == r.get('nsfw', {}).get('bonusPS', 0)
-        && d.get('campanha', {}) == r.get('campanha', {});
+        && d.get('campanha', {}) == r.get('campanha', {})
+        && d.get('novaEgide', false) == r.get('novaEgide', false);
     }
     // Treino: cada treino conta +1 em treino.n, com 12 horas (menos uma folga) desde o anterior, e rende no máximo 3 PT.
     // Fora de um treino, Marcas e PT de treino não mudam. Cada 1 PP trocado custa 2 PT de treino.
@@ -225,6 +226,7 @@ service cloud.firestore {
         && d.get('treino', {}).get('ptGanho', 0) == 0 && d.get('treino', {}).get('trocas', 0) == 0
         && d.get('creditos', 0) == 0 && d.get('salario', 0) == 0 && d.get('inicialFixo', null) == null
         && (d.get('bonus', null) == null || d.bonus == {'pt': 0, 'pp': 0, 'det': 0})
+        && d.get('novaEgide', false) == false
         && d.get('campanha', {}).get('patrulhas', 0) == 0 && d.get('campanha', {}).get('reputacao', 0) == 0;
     }
     // Depois da aprovação, Origem e Potencial ficam travados para o jogador.

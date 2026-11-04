@@ -538,6 +538,16 @@
   }
   const ptDePatrulhas = (f) => Math.floor(campanhaDe(f).patrulhas / 3);
 
+  // Nova Égide: só quem a mestragem marcou fica com o equipamento do Observatório (e mora lá).
+  // Quem não é perde o que pegou de graça no Arsenal. Devolve os nomes tirados.
+  function tirarDoObservatorio(f) {
+    if (f.novaEgide) return [];
+    const fora = (f.inventario || []).filter((i) => i.origem === 'observatorio');
+    if (fora.length) f.inventario = f.inventario.filter((i) => i.origem !== 'observatorio');
+    if (f.vidaCivil && f.vidaCivil.moradia === 'observatorio') f.vidaCivil.moradia = '';
+    return fora.map((i) => i.nome);
+  }
+
   // Cada grau de Perícia custa o número dele: o 1º custa 1 PT, o 2º 2, o 3º 3… (grau 4 = 10 PT no total).
   function custoPericia(g) { g = clamp(Math.floor(num(g)), 0, 6); return g * (g + 1) / 2; }
   // Atributo antes dos Aumentos: pontos + bônus da Origem.
@@ -1015,5 +1025,5 @@
   LD.DEGRAUS_CLASSE = DEGRAUS_CLASSE; LD.MARCOS = MARCOS;
   LD.MORADIAS_TIPOS = MORADIAS_TIPOS;
   LD.REPUTACAO = REPUTACAO; LD.VINCULOS = VINCULOS;
-  LD.rules = { campanhaDe, reputacaoDe, ptDePatrulhas, custoPericia, atributoDeCriacao, ajustarRegrasV3, limitePoderes, moradiaDe, aluguelDe, ultimoDomingo, domingosPendentes, salarioDe, fraquezasDe, marcasPericias, degrau, classeDoDegrau, rotuloClasse, areasTreino, treinoDe, podeTreinar, bonusTreino, aplicarTreino, tetoPTTreino, valeTreino: vale, dinheiro, dinheiroInicial, fmtUS, semanaAtual, fmtClasse, slug, clamp, num, faixaDe, resultadoAjustado, potencial, classe, atributos, grauMaximo, custoPoder, calc, tetoAtributo, escalaAtributo, ataquePoder, ataques, grau, tetoPericia, comandosBot, feitico, rolarD20, rolarExpr, recursos, hasTraco, combinarProtecoes };
+  LD.rules = { tirarDoObservatorio, campanhaDe, reputacaoDe, ptDePatrulhas, custoPericia, atributoDeCriacao, ajustarRegrasV3, limitePoderes, moradiaDe, aluguelDe, ultimoDomingo, domingosPendentes, salarioDe, fraquezasDe, marcasPericias, degrau, classeDoDegrau, rotuloClasse, areasTreino, treinoDe, podeTreinar, bonusTreino, aplicarTreino, tetoPTTreino, valeTreino: vale, dinheiro, dinheiroInicial, fmtUS, semanaAtual, fmtClasse, slug, clamp, num, faixaDe, resultadoAjustado, potencial, classe, atributos, grauMaximo, custoPoder, calc, tetoAtributo, escalaAtributo, ataquePoder, ataques, grau, tetoPericia, comandosBot, feitico, rolarD20, rolarExpr, recursos, hasTraco, combinarProtecoes };
 })();

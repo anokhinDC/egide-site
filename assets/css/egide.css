@@ -690,3 +690,4 @@ select { font-family: var(--ui); }
 .btn.sm { padding: 2px 8px; font-size: 13px; }
 
 .hc-del { margin-left: auto; }
+.camp-egide { display: flex; align-items: center; gap: 10px; margin: 0 0 12px; }

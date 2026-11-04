@@ -30,7 +30,7 @@
       arquetipo: '', arquetipoProprio: { nome: '', habilidade: '' }, estiloPoder: '', assinatura2: '', tradicao: '',
       poderes: [], grimorio: [], pericias: {}, estilos: {}, qualidades: [], defeitos: [], fraquezas: [],
       recursos: 1, recursosOpcao: '', creditos: 0, gastoTotal: 0, salario: 0, semanaSalario: '', extrato: [], inicialFixo: null, vidaCivil: { emprego: '', mora: '', identidadeSecreta: true, quemSabe: '' },
-      perda: '', historia: '', aparencia: '', notas: '', inventario: [], kits: null, novaEgide: true,
+      perda: '', historia: '', aparencia: '', notas: '', inventario: [], kits: null, novaEgide: false,
       medidores: null, compras: [], campanha: { reputacao: 0, patrulhas: 0, vinculos: [], contatos: [], pistas: [], consequencias: [], missoes: [] }, bonus: { pt: 0, pp: 0, det: 0 }, ptTreino: 0, ascensao: 0, bonusPV: 0, aprovada: false
     };
     Object.keys(d).forEach((k) => { if (f[k] === undefined || f[k] === null) f[k] = JSON.parse(JSON.stringify(d[k])); });
@@ -43,6 +43,9 @@
     if (R.hasTraco(f, 'sem_lugar') && f.recursosOpcao === 'familia_rica') f.recursosOpcao = '';
     Object.entries(LD.PERICIAS_ANTIGAS).forEach(([velha, nova]) => { if (f.pericias[velha] != null) { f.pericias[nova] = Math.max(num(f.pericias[nova]), num(f.pericias[velha])); delete f.pericias[velha]; } });
     if (!f.regras_v3) { R.ajustarRegrasV3(f); f.regras_v3 = true; }
+    // A Nova Égide passou a ser marcada só pela mestragem: as fichas antigas começam fora.
+    if (!f.novaEgide_v2) { f.novaEgide = false; f.novaEgide_v2 = true; }
+    R.tirarDoObservatorio(f);
     f.fraquezas = f.fraquezas.filter((w) => !LD.FRAQUEZAS.some((x) => x.origem && x.key === w.key));
     if (!f.kits) f.kits = Object.fromEntries(LD.KITS.map((k) => [k.key, { atual: LD.KITS_PADRAO[k.key], max: LD.KITS_PADRAO[k.key] }]));
     const c = R.calc(f);
@@ -65,6 +68,7 @@
     const f = ficha(id);
     if (!f) return Promise.resolve();
     fn(f);
+    R.tirarDoObservatorio(f);
     return LD.store.save('personagens', f);
   }
   // Apagar: a dona da ficha ou a mestragem, aprovada ou não.
@@ -93,7 +97,7 @@
   function renderLista(main) {
     const todos = LD.store.list('personagens').map((x) => normalizar(clone(x)));
     // Fichas da regra antiga: a mestragem grava o ajuste (Atributos até 3 com a Origem, Perícias com custo novo).
-    if (LD.store.isMaster()) LD.store.list('personagens').filter((x) => !x.regras_v3).forEach((x) => LD.store.save('personagens', normalizar(clone(x))));
+    if (LD.store.isMaster()) LD.store.list('personagens').filter((x) => !x.regras_v3 || !x.novaEgide_v2).forEach((x) => LD.store.save('personagens', normalizar(clone(x))));
     const meu = LD.store.uid();
     const lista = (st.filtro === 'minhas' && !LD.store.state.local ? todos.filter((x) => x.ownerId === meu) : todos)
       .sort((a, b) => titulo(a).localeCompare(titulo(b)));
@@ -983,7 +987,8 @@
         ${f.origem === 'treinado' && !semLugar ? field('Família rica (Treinado)', checkbox('familiaRica', f.recursosOpcao === 'familia_rica', 'Troca 2 PT por US$ 10.000 iniciais', 'data-skip' + (travado ? ' disabled' : ''))) : ''}
         <div class="field"><label>Saldo agora</label><div class="ro-val">${esc(R.fmtUS(c.dinheiro))}</div><span class="hint">Inicial ${esc(R.fmtUS(c.dinheiroInicial))}${num(f.creditos) ? ` · créditos ${esc(R.fmtUS(f.creditos))}` : ''}${num(f.gastoTotal) ? ` · gastos ${esc(R.fmtUS(f.gastoTotal))}` : ''}</span></div>
       </div>
-      ${checkbox('novaEgide', f.novaEgide, 'Faz parte da Nova Égide (o equipamento do Observatório é de graça; os utilizáveis, não)')}
+      ${LD.store.isMaster() ? checkbox('novaEgide', f.novaEgide, 'Faz parte da Nova Égide (o equipamento do Observatório é de graça e pode morar lá). Tirar a marca tira o que veio do Observatório.')
+        : `<p class="small">${f.novaEgide ? '<span class="tag ok">🛡️ Nova Égide</span> O equipamento do Observatório é de graça.' : '<span class="tag">Fora da Nova Égide</span> Só a mestragem marca quem entra.'}</p>`}
       <div class="row" style="margin-top:16px">
         ${semLugar ? field('Emprego', '<div class="ro-val">—</div>', 'Sem Lugar.') : field('Emprego', input('vidaCivil.emprego', f.vidaCivil.emprego, 'placeholder="Entregadora, enfermeira, estudante…"'), `Salário: ${f.salario ? R.fmtUS(f.salario) + ' por semana' : 'a mestragem define na aprovação'}.`)}
         ${semLugar ? '' : field('Moradia', select('vidaCivil.moradia', [{ key: '', nome: '— escolha —' }].concat(LD.MORADIAS_TIPOS.filter((m) => m.key !== 'rua' && (m.key !== 'observatorio' || f.novaEgide)).map((m) => ({ key: m.key, nome: `${m.nome} · ${m.aluguel ? R.fmtUS(m.aluguel) + '/semana' : 'grátis'}` }))), (f.vidaCivil || {}).moradia || ''), 'O aluguel sai do saldo todo domingo.')}
@@ -1293,6 +1298,8 @@
     const formC = (st.campanha = st.campanha || {})[f.id] = (st.campanha || {})[f.id] || {};
     const prox = 3 - (k.patrulhas % 3);
     el.innerHTML = `
+      <p class="camp-egide">${f.novaEgide ? '<span class="tag ok">🛡️ Membro da Nova Égide</span>' : '<span class="tag">Fora da Nova Égide</span>'}
+        ${mestre ? `<button class="btn sm" data-egide>${f.novaEgide ? 'Tirar da Nova Égide' : 'Marcar como Nova Égide'}</button>` : ''}</p>
       <div class="treino-topo">
         <div class="tt-box rep rep-${rep.valor < 0 ? 'neg' : rep.valor > 0 ? 'pos' : 'zero'}"><span class="caps">Reputação Pública</span>
           <b>${sinal(rep.valor)} <small>${esc(rep.nome)}</small></b><small class="muted">${esc(rep.efeito)}</small>
@@ -1318,6 +1325,12 @@
       }).join('')}`;
     if (!mestre) return;
     const salvar = (fn) => mudar(f.id, (x) => { x.campanha = R.campanhaDe(x); fn(x.campanha); });
+    el.querySelector('[data-egide]').addEventListener('click', () => {
+      const tira = f.novaEgide;
+      const perde = (f.inventario || []).filter((i) => i.origem === 'observatorio').map((i) => i.nome);
+      if (tira && perde.length && !LD.ui.confirmar(`Tirar ${titulo(f)} da Nova Égide? Perde: ${perde.join(', ')}.`)) return;
+      mudar(f.id, (x) => { x.novaEgide = !tira; }).then(() => LD.ui.toast(tira ? `${titulo(f)} saiu da Nova Égide.${perde.length ? ' Itens do Observatório devolvidos.' : ''}` : `${titulo(f)} agora é da Nova Égide.`));
+    });
     el.querySelectorAll('[data-rep]').forEach((b) => b.addEventListener('click', () => salvar((cp) => { cp.reputacao = R.clamp(cp.reputacao + num(b.dataset.rep), -3, 3); })));
     el.querySelectorAll('[data-pat]').forEach((b) => b.addEventListener('click', () => salvar((cp) => { cp.patrulhas = Math.max(0, cp.patrulhas + num(b.dataset.pat)); })));
     el.querySelectorAll('[data-del]').forEach((b) => b.addEventListener('click', () => { const [l, i] = b.dataset.del.split(':'); salvar((cp) => { cp[l].splice(num(i), 1); }); }));
