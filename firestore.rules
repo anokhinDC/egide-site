@@ -198,8 +198,13 @@ service cloud.firestore {
         && d.get('salario', 0) == r.get('salario', 0)
         && d.get('inicialFixo', null) == r.get('inicialFixo', null)
         && d.get('nsfw', {}).get('bonusPS', 0) == r.get('nsfw', {}).get('bonusPS', 0)
-        && d.get('campanha', {}) == r.get('campanha', {})
-        && d.get('novaEgide', false) == r.get('novaEgide', false);
+        && campanhaOk(d, r)
+        && (d.get('novaEgide', false) == r.get('novaEgide', false) || d.get('novaEgide', false) == false);
+    }
+    // Campanha: só a mestragem mexe. Fichas antigas (sem campanha) podem ganhar a campanha vazia que o site cria sozinho.
+    function campanhaOk(d, r) {
+      return d.get('campanha', {}) == r.get('campanha', {})
+        || (!('campanha' in r) && d.get('campanha', {}) == {'reputacao': 0, 'patrulhas': 0, 'vinculos': [], 'contatos': [], 'pistas': [], 'consequencias': [], 'missoes': []});
     }
     // Treino: cada treino conta +1 em treino.n, com 12 horas (menos uma folga) desde o anterior, e rende no máximo 3 PT.
     // Fora de um treino, Marcas e PT de treino não mudam. Cada 1 PP trocado custa 2 PT de treino.
