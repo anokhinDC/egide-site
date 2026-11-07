@@ -320,13 +320,18 @@
           <div class="v">${m.det}<small> / ${c.detMax}</small></div>
           ${editar ? `<div class="meter-c">${stepper('det', m.det, 0, 5)}</div>` : pips(Math.max(c.detMax, m.det), m.det, 'gold')}
         </div>
+        <div class="meter fadiga-m ${m.fadiga ? 'on' : ''}">
+          <div class="meter-h"><span class="caps">Fadiga</span><span class="tag ${m.fadiga >= 2 ? 'bad' : m.fadiga ? 'warn' : ''}">${esc(LD.FADIGA[m.fadiga].split(' (')[0])}</span></div>
+          <div class="v">${m.fadiga}<small> / 3</small></div>
+          <small class="muted">${m.fadiga ? esc((LD.FADIGA[m.fadiga].match(/\((.*)\)/) || [])[1] || '') + '.' : 'Sem penalidade.'} No 3, mais uma derruba.</small>
+          ${editar ? `<div class="meter-c">${stepper('fadiga', m.fadiga, 0, 3)}</div>` : pips(3, m.fadiga, 'bad')}
+        </div>
       </div>
 
       <div class="strip">
         <div class="grp"><span class="caps">Rolar com</span><div class="chips">${[['normal', 'Normal'], ['vantagem', 'Vantagem'], ['desvantagem', 'Desvantagem']].map(([k, n]) => `<button class="chip ${st.modo === k ? 'on' : ''}" data-modo="${k}">${n}</button>`).join('')}</div></div>
         <label class="inline">Contra CD <input type="number" min="0" max="60" data-cd value="${esc(st.cd)}" placeholder="—" style="width:64px"></label>
-        ${m.fadiga || m.sussurro || m.condicoes.length ? `<div class="grp cond-row">
-          ${m.fadiga ? `<span class="cond on" title="${esc(LD.FADIGA[m.fadiga])}">Fadiga ${m.fadiga}</span>` : ''}
+        ${m.sussurro || m.condicoes.length ? `<div class="grp cond-row">
           ${m.sussurro ? `<span class="cond on">Sussurro ${m.sussurro}</span>` : ''}
           ${m.condicoes.map((k) => `<button class="cond on ${k === 'Brilhando' ? 'good' : ''}" data-cond="${esc(k)}" title="Tirar" ${editar ? '' : 'disabled'}>${esc(k)} ×</button>`).join('')}
         </div>` : ''}
@@ -403,9 +408,8 @@
           ${editar && kk.atual ? `<button class="btn" data-kit="${k.key}" data-d="-1">Usar</button>` : ''}
         </div>`; }).join('')}</div>` : ''}
 
-      ${editar ? `<details class="more" ${keep('cond-' + f.id)}><summary>Condições, Fadiga e Sussurro</summary>
+      ${editar ? `<details class="more" ${keep('cond-' + f.id)}><summary>Condições e Sussurro</summary>
         <div class="row" style="margin-bottom:12px">
-          <div class="field"><label>Fadiga · ${esc(LD.FADIGA[m.fadiga])}</label>${stepper('fadiga', m.fadiga, 0, 3)}</div>
           <div class="field"><label>Sussurro · ${m.sussurro ? `−${m.sussurro} em tudo` : 'em silêncio'}</label>${stepper('sussurro', m.sussurro, 0, 3)}</div>
         </div>
         <div class="cond-row">${LD.CONDICOES.map((k) => `<button class="cond ${m.condicoes.includes(k) ? 'on' : ''} ${k === 'Brilhando' ? 'good' : ''}" data-cond="${esc(k)}">${esc(k)}</button>`).join('')}</div>
