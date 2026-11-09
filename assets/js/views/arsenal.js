@@ -32,7 +32,9 @@
       uid: LD.store.newId('iv'), itemId: item.id, nome: item.nome, cat: item.cat, dano: item.dano || '', potencia: num(item.potencia),
       protecao: num(item.protecao), defesa: num(item.defesa), cargas: num(item.cargas), cargasMax: num(item.cargas),
       pericia: item.pericia || '', dadosBase: item.dadosBase || '', dadosExtra: item.dadosExtra || '', bonusFixo: num(item.bonusFixo),
-      propriedades: item.propriedades || '', origem, preco: num(item.preco), equipado: false
+      propriedades: item.propriedades || '', origem, preco: num(item.preco), equipado: false,
+      ...(LD.MUNICAO[item.id] ? { municao: LD.MUNICAO[item.id], municaoMax: LD.MUNICAO[item.id], municaoTipo: 'letal' } : {}),
+      ...(item.municao ? { municao: item.municao } : {})
     };
   }
 

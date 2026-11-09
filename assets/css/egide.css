@@ -695,3 +695,6 @@ select { font-family: var(--ui); }
 .fadiga-m.on { border-color: #b3202f; }
 .fadiga-m .v { color: var(--ink); }
 .fadiga-m.on .v { color: #b3202f; }
+
+.inv-mun{order:9;display:flex;flex-wrap:wrap;align-items:center;gap:6px;grid-column:1/-1;margin-top:4px}
+.inv-mun .btn[disabled]{opacity:.45;cursor:not-allowed}

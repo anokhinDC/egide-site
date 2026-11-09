@@ -72,6 +72,8 @@
     I('rifle_precisao', 'arma', 'Rifle de precisão', 4, { preco: 6000, pericia: 'pontaria', dadosBase: '3d6', dano: '3d6', potencia: 9, propriedades: 'Alcance 800 m. Mirar tem 2 de penalidade a menos. Precisa de apoio.' }),
     I('besta_pesada', 'arma', 'Besta pesada', 2, { preco: 900, pericia: 'pontaria', dadosBase: '3d6', dano: '3d6', potencia: 6, propriedades: 'Silenciosa. Recarregar gasta a Ação.' }),
     I('taser', 'arma', 'Taser de mão', 1, { preco: 150, pericia: 'pontaria', dadosBase: '1d6', dano: '1d6 Elétrico', potencia: 1, cargas: 3, propriedades: 'Alcance 5 m. Fortitude CD 12 ou Atordoado.' }),
+    I('municao', 'municao', 'Caixa de munição (letal)', 1, { preco: 60, cargas: 3, municao: 'letal', propriedades: 'Três recargas completas para qualquer arma de fogo. Cartuchos vermelhos.' }),
+    I('municao_nl', 'municao', 'Caixa de munição não letal', 1, { preco: 90, cargas: 3, municao: 'nao_letal', propriedades: 'Três recargas de borracha. Mesmo dano, mas quem cai a 0 PV fica Nocauteado e não morre. Cartuchos azuis.' }),
     I('arpao', 'arma', 'Arma de arpão', 2, { preco: 700, pericia: 'pontaria', dadosBase: '2d6', dano: '2d6', potencia: 4, propriedades: 'Alcance 15 m. Acertou: puxa o alvo 5 m, ou o deixa Agarrado ao cabo.' }),
     // Proteção
     I('capacete', 'protecao', 'Capacete', 1, { preco: 90, protecao: 1, propriedades: 'Uma vez por combate, um crítico contra você vira acerto normal.', observatorio: true }),
@@ -146,8 +148,11 @@
 
   LD.CATEGORIAS = [
     { key: 'arma', nome: 'Armas' }, { key: 'protecao', nome: 'Proteção' }, { key: 'kit', nome: 'Kits' },
-    { key: 'gadget', nome: 'Gadgets' }, { key: 'veiculo', nome: 'Veículos' }, { key: 'servico', nome: 'Serviços' },
+    { key: 'municao', nome: 'Munição' }, { key: 'gadget', nome: 'Gadgets' }, { key: 'veiculo', nome: 'Veículos' }, { key: 'servico', nome: 'Serviços' },
     { key: 'especial', nome: 'Especiais' }, { key: 'adulto', nome: '+18' }
   ];
+  // Tiros por pente de cada arma de fogo. A arma guarda quantos tiros restam e o tipo da munição carregada.
+  LD.MUNICAO = { it_pistola: 15, it_revolver: 6, it_smg: 30, it_escopeta: 8, it_fuzil: 20, it_rifle_precisao: 5 };
+  LD.TIPOS_MUNICAO = { letal: 'letal', nao_letal: 'não letal' };
   LD.seed = { itens };
 })();

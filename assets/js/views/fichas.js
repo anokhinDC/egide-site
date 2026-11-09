@@ -47,6 +47,8 @@
     if (!f.novaEgide_v2) { f.novaEgide = false; f.novaEgide_v2 = true; }
     R.tirarDoObservatorio(f);
     f.fraquezas = f.fraquezas.filter((w) => !LD.FRAQUEZAS.some((x) => x.origem && x.key === w.key));
+    // Armas de fogo antigas ganham o pente cheio de munição letal.
+    f.inventario.forEach((it) => { const cap = LD.MUNICAO && LD.MUNICAO[it.itemId]; if (cap && it.municaoMax == null) { it.municao = cap; it.municaoMax = cap; it.municaoTipo = 'letal'; } });
     if (!f.kits) f.kits = Object.fromEntries(LD.KITS.map((k) => [k.key, { atual: LD.KITS_PADRAO[k.key], max: LD.KITS_PADRAO[k.key] }]));
     const c = R.calc(f);
     if (f.kits.pulso && !f.kits.energia) { f.kits.energia = f.kits.pulso; delete f.kits.pulso; }
@@ -1117,6 +1119,9 @@
               <div><div class="i-n">${esc(x.nome)}</div>
                 <details class="more" style="margin-top:4px"><summary>Detalhes</summary><div class="small">${[x.dano ? 'Dano ' + x.dano : '', x.potencia ? 'Potência ' + x.potencia : '', x.protecao ? 'Proteção ' + x.protecao : '', x.defesa ? 'Defesa ' + sinal(x.defesa) : '', x.propriedades || ''].filter(Boolean).map(esc).join(' · ')}</div>
                 <div class="tiny caps">${esc({ compra: 'Comprado', observatorio: 'Observatório', mestre: 'Dado pela mestragem', despojo: 'Despojo' }[x.origem] || '')}</div></details></div>
+              ${x.municaoMax ? `<div class="inv-mun"><span class="tiny caps">Munição ${esc(LD.TIPOS_MUNICAO[x.municaoTipo] || 'letal')}</span>
+                ${editar ? stepper('mun' + x.i, num(x.municao), 0, num(x.municaoMax)) : `<b>${num(x.municao)}/${num(x.municaoMax)}</b>`}
+                ${editar ? Object.keys(LD.TIPOS_MUNICAO).map((t) => { const cx = inv.find((b) => b.municao === t && num(b.cargas) > 0); return `<button class="btn plain" data-recarga="${x.i}" data-tipo="${t}" ${cx ? '' : 'disabled'} title="${cx ? 'Gasta 1 carga da caixa' : 'Sem caixa desse tipo'}">Recarregar ${esc(LD.TIPOS_MUNICAO[t])}</button>`; }).join('') : ''}</div>` : ''}
               <div class="inv-c">${x.cargasMax ? `${editar ? stepper('carga' + x.i, num(x.cargas), 0, Math.max(num(x.cargasMax), num(x.cargas)) + 5) : `<b>${num(x.cargas)}</b>`}<span class="tiny muted">cargas</span>` : ''}</div>
               <div class="inv-a">
                 ${['protecao', 'arma', 'especial'].includes(x.cat) && editar ? checkbox('eq' + x.i, x.equipado, 'Usando', `data-eq="${x.i}"`) : ''}
@@ -1133,7 +1138,16 @@
         <div class="tbl-wrap"><table class="tbl extrato"><tbody>${f.extrato.slice().reverse().slice(0, 25).map((x) => `<tr><td class="muted small">${esc(new Date(x.quando).toLocaleDateString('pt-BR'))}</td><td>${esc(x.motivo)}</td><td class="r ${x.valor < 0 ? 'neg' : 'pos'}">${x.valor < 0 ? '−' : '+'}${esc(R.fmtUS(Math.abs(x.valor)).replace('US$ ', 'US$ '))}</td></tr>`).join('')}</tbody></table></div>` : ''}
       ${(f.compras || []).length ? `<div class="subsect"><span>Compras</span></div>
         <table class="tbl"><tbody>${f.compras.slice().reverse().slice(0, 20).map((x) => `<tr><td class="muted small">${esc(new Date(x.quando).toLocaleDateString('pt-BR'))}</td><td>${esc(x.item)}</td><td class="small">${esc(x.resultado)}</td></tr>`).join('')}</tbody></table>` : ''}`;
-    bindSteppers(el, (k, v) => mudar(f.id, (x) => { x.inventario[+k.replace('carga', '')].cargas = v; }));
+    bindSteppers(el, (k, v) => mudar(f.id, (x) => {
+      if (k.startsWith('mun')) x.inventario[+k.replace('mun', '')].municao = v;
+      else x.inventario[+k.replace('carga', '')].cargas = v;
+    }));
+    el.querySelectorAll('[data-recarga]').forEach((b) => b.addEventListener('click', () => mudar(f.id, (x) => {
+      const arma = x.inventario[+b.dataset.recarga]; const tipo = b.dataset.tipo;
+      const caixa = x.inventario.find((i) => i.municao === tipo && num(i.cargas) > 0);
+      if (!arma || !caixa) return;
+      caixa.cargas = num(caixa.cargas) - 1; arma.municao = num(arma.municaoMax); arma.municaoTipo = tipo;
+    })));
     const sal = el.querySelector('[data-salario]');
     if (sal) sal.addEventListener('click', () => mudar(f.id, (x) => {
       if (x.semanaSalario === R.semanaAtual()) return;
