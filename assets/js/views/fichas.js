@@ -492,7 +492,7 @@
     const extras = (p.extras || []).map((k) => (LD.byKey(LD.EXTRAS, k) || {}).nome).filter(Boolean);
     const falhas = (p.falhas || []).map((k) => (LD.byKey(LD.FALHAS, k) || {}).nome).filter(Boolean);
     const ef = p.pronto ? LD.efeitoPronto(p.pronto, p.grau) : null;
-    const destaque = b.tipo === 'ataque' ? `Dano ${a.expr}` : b.tipo === 'cura' ? `Cura ${p.grau}d6+${c.A[a.attr]}` : b.protecao && (!b.modos || (p.modo || 'protecao') === 'protecao') ? `Proteção ${b.protecao(num(p.grau, 1), c.classe)}` : p.alvo ? `+${p.grau} ${p.alvo}` : `Grau ${p.grau}`;
+    const destaque = b.tipo === 'ataque' ? `Dano ${a.expr}` : b.tipo === 'cura' ? `Cura ${p.grau}d6+${c.A[a.attr]}` : b.protecao && (!b.modos || (p.modo || 'protecao') === 'protecao') ? `Proteção ${b.protecao(num(p.grau, 1), c.classe)}` : p.alvo ? `+${Math.ceil(num(p.grau, 1) / 2)} ${p.alvo}` : `Grau ${p.grau}`;
     const html = `<details class="pow" ${keep('pow-' + p.id)}>
       <summary><span class="pow-name">${esc(p.nome || b.nome || 'Poder')} <span class="grau-n">${p.grau}</span></span>${ef && /^Grau/.test(destaque) ? '' : `<span class="tag ice">${esc(destaque)}</span>`}${acoes ? `<span class="tag gold">${R.custoPoder(p).total} PP</span>` : ''}</summary>
       <div class="pow-body">

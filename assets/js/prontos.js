@@ -61,7 +61,7 @@
       'Ignora um ambiente (frio, calor, fome…).', 'Ignora dois.', 'Ignora três, incluindo respirar debaixo da água.', 'Ignora quatro, incluindo veneno.',
       'Ignora cinco, incluindo radiação.', 'Ignora seis, incluindo pressão do fundo do mar.', 'Ignora sete, incluindo o vácuo.', 'Ignora todos.']),
     P('atributo', 'Atributo Sobre-humano', 'atributo', 'FOR', 'Corpo', 'Um Atributo além do limite humano.', [
-      '+1 num Atributo.', '+2.', '+3.', '+4.', '+5.', '+6.', '+7.', '+8 (máximo 12).']),
+      '+1 num Atributo, na escala da Classe.', '+1.', '+2.', '+2.', '+3.', '+3.', '+4.', '+4 (o Atributo não passa de 5).']),
     P('metamorfose', 'Metamorfose', 'metamorfose', 'VIG', 'Corpo', 'Muda de forma e de rosto.', [
       'Muda detalhes do rosto e da voz.', 'Vira qualquer pessoa.', 'Vira animais.', 'Formas monstruosas, com garras ou asas.',
       'Formas com poderes (Grau 2) da forma copiada.', 'Copia objetos simples.', 'Formas gigantes.', 'Qualquer forma imaginável.']),
