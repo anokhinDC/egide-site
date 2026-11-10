@@ -16,13 +16,16 @@
       .slice().sort((a, b) => (a.codinome || a.nome || '').localeCompare(b.codinome || b.nome || ''));
   }
 
+  // Cada herói da Nova Égide pega no máximo 4 itens do Arsenal do Observatório.
+  const LIMITE_OBS = 4;
   // Como esta ficha consegue este item.
   function situacao(item, f, c) {
     const preco = num(item.preco);
     if (item.especial) return { k: 'especial', txt: 'Só a mestragem dá', cls: 'warn' };
     if (!f) return { k: 'sem', txt: R.fmtUS(preco), cls: '' };
     if (!f.aprovada) return { k: 'pendente', txt: 'Ficha não aprovada', cls: 'warn' };
-    if (item.observatorio && f.novaEgide) return { k: 'gratis', txt: 'Grátis no Observatório', cls: 'ok' };
+    const doObs = (f.inventario || []).filter((i) => i.origem === 'observatorio').length;
+    if (item.observatorio && f.novaEgide && doObs < LIMITE_OBS) return { k: 'gratis', txt: `Grátis no Observatório (${doObs}/${LIMITE_OBS})`, cls: 'ok' };
     if (preco <= c.dinheiro) return { k: 'paga', txt: 'Dá para comprar', cls: 'ok' };
     return { k: 'longe', txt: `Faltam ${R.fmtUS(preco - c.dinheiro)}`, cls: 'bad' };
   }
