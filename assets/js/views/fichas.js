@@ -769,7 +769,7 @@
         return `<div class="attr">
           <i class="dia"></i>
           <div title="${esc(a.desc)}"><div class="name">${esc(a.nome)}<small>${a.key}</small></div></div>
-          ${stepper(a.key, p, 0, Math.max(p, Math.min(LD.TETO_CRIACAO - daOrigem, p + Math.max(0, livres))))}
+          ${stepper(a.key, p, travado(f) ? p : 0, Math.max(p, Math.min(LD.TETO_CRIACAO - daOrigem, p + Math.max(0, livres))))}
           <div class="val">${fin}${bonus ? `<small class="ok"> +${bonus}</small>` : ''}${fin !== base[a.key] ? '<small class="gold"> poder</small>' : ''}<div class="tiny muted">${(() => { const e = R.escalaAtributo(fin, c.classe); return esc(e.nome) + (e.classe ? ` · ${e.pct}% da Classe` : ''); })()}</div></div>
         </div>`;
       }).join('')}</div>
@@ -778,7 +778,7 @@
         ${o.bonus.escolha ? `<div class="chips">${o.bonus.opcoes.map((k) => `<button class="chip ${f.origemBonus.includes(k) ? 'on' : ''}" data-ob="${k}">+1 ${k}</button>`).join('')}</div>` : ''}` : ''}
       ${aumPermitidos ? `<div class="subsect"><span>Aumentos pela Classe</span></div>
         <p class="muted">+1 num Atributo na Classe 2 e na 3,3 (até o teto, ${cap}). Você tem ${aumPermitidos}.</p>
-        ${Array.from({ length: aumPermitidos }, (_, i) => `<label class="inline">Aumento ${i + 1} ${select('aum' + i, [{ key: '', nome: '—' }].concat(LD.ATRIBUTOS.map((a) => ({ key: a.key, nome: a.nome }))), f.aumentos[i] || '', 'data-aum="' + i + '"')}</label>`).join(' ')}` : ''}
+        ${Array.from({ length: aumPermitidos }, (_, i) => `<label class="inline">Aumento ${i + 1} ${select('aum' + i, [{ key: '', nome: '—' }].concat(LD.ATRIBUTOS.map((a) => ({ key: a.key, nome: a.nome }))), f.aumentos[i] || '', 'data-aum="' + i + '"' + (travado(f) && f.aumentos[i] ? ' disabled' : ''))}</label>`).join(' ')}` : ''}
       <details class="ref"><summary>O que cada número significa na Classe ${R.fmtClasse(c.classe)}</summary>
         <table class="tbl"><thead><tr><th>Valor</th><th>Escala</th><th>Quanto da Classe</th></tr></thead><tbody>
         ${Array.from({ length: cap + 1 }, (_, i) => i).map((v) => { const e = R.escalaAtributo(v, c.classe); return `<tr class="${LD.ATRIBUTOS.some((a) => c.A[a.key] === v) ? 'hi' : ''}"><td>${v}</td><td>${esc(e.classe ? `${e.nome} (Classe ${e.classe})` : `Humano · ${e.nome}`)}</td><td>${e.pct}%</td></tr>`; }).join('')}
@@ -812,7 +812,7 @@
       ${f.tradicao ? (() => { const t = LD.byKey(LD.TRADICOES, f.tradicao); return `<div class="sig panel"><div><span class="caps">Conjura com</span> ${t.attr} + ${(LD.byKey(LD.PERICIAS, t.pericia) || {}).nome || 'Ocultismo'}</div><div><span class="caps">Vantagem</span> ${esc(t.vantagem)}</div><div><span class="caps">Limite</span> ${esc(t.limite)}</div></div>`; })() : ''}
 
       <div class="subsect"><span>Poderes da ficha</span><span class="tag ${f.poderes.length >= R.limitePoderes(f) ? 'warn' : ''}">${f.poderes.length} / ${R.limitePoderes(f)} poderes</span><span class="tag gold">${c.ppGastos} / ${c.ppTotal} PP</span></div>
-      <div class="pow-play">${f.poderes.map((p) => poderResumo(f, p, c, `${num(p.grau) < c.grauMax ? `<button class="btn-primary small-btn" data-sobe="${esc(p.id)}" ${R.custoPoder(p).proximo > c.ppLivres ? 'disabled title="Faltam PP"' : ''}>Aprimorar (+${R.custoPoder(p).proximo} PP)</button>` : '<span class="tag">Grau máximo</span>'}<button class="btn" data-editp="${esc(p.id)}">Editar</button><button class="btn plain" data-libp="${esc(p.id)}">Pôr na biblioteca</button><button class="btn plain danger" data-rmp="${esc(p.id)}">Tirar</button>`)).join('') || '<div class="empty small-empty">Nenhum poder ainda.</div>'}</div>
+      <div class="pow-play">${f.poderes.map((p) => poderResumo(f, p, c, `${num(p.grau) < c.grauMax ? `<button class="btn-primary small-btn" data-sobe="${esc(p.id)}" ${R.custoPoder(p).proximo > c.ppLivres ? 'disabled title="Faltam PP"' : ''}>Aprimorar (+${R.custoPoder(p).proximo} PP)</button>` : '<span class="tag">Grau máximo</span>'}${travado(f) ? '' : `<button class="btn" data-editp="${esc(p.id)}">Editar</button>`}<button class="btn plain" data-libp="${esc(p.id)}">Pôr na biblioteca</button>${travado(f) ? '' : `<button class="btn plain danger" data-rmp="${esc(p.id)}">Tirar</button>`}`)).join('') || '<div class="empty small-empty">Nenhum poder ainda.</div>'}</div>
       ${(() => {
         if (c.ppLivres <= 0) return '';
         const sobe = f.poderes.filter((p) => num(p.grau) < c.grauMax && R.custoPoder(p).proximo <= c.ppLivres && !(LD.byKey(LD.PODERES, p.base) || {}).cosmico);
@@ -835,7 +835,7 @@
         <div class="atk-list">${f.grimorio.map((ft) => { const x = R.feitico(f, ft, c); return `
           <div class="atk">
             <div><div class="atk-n">${esc(ft.nome || 'Feitiço sem nome')}</div><div class="muted small">${esc(x.escola ? x.escola.nome : 'sem escola')} · ${esc((LD.byKey(LD.PODERES, ft.efeito) || {}).nome || '')} · Grau ${x.final} · CD ${x.cd} · ${esc(x.custo)}</div></div>
-            <button class="btn plain" data-editf="${esc(ft.id)}">Editar</button><button class="btn danger plain" data-rmf="${esc(ft.id)}">Tirar</button>
+            ${travado(f) ? '' : `<button class="btn plain" data-editf="${esc(ft.id)}">Editar</button><button class="btn danger plain" data-rmf="${esc(ft.id)}">Tirar</button>`}
           </div>`; }).join('') || '<div class="empty small-empty">Grimório vazio.</div>'}</div>
         <div class="btn-row"><button class="btn" data-novof>＋ Criar feitiço</button></div>` : ''}`;
 
@@ -912,7 +912,7 @@
             <div class="per-l"><span class="p-n" title="${esc(p.desc)}">${esc(p.nome)}${p.efeito ? ' <span class="star" title="' + esc(p.efeito) + '">★</span>' : ''}${marcaTag(marcasP[p.key])}</span>
               ${g ? `<span class="p-fx">${esc(efeitoAgora(p, R.grau(f, p.key), c))}</span>` : `<span class="p-desc">${esc(p.desc)}</span>`}</div>
             <div class="per-r"><span class="num">${sinal(c.A[p.attr] + R.grau(f, p.key))}</span>
-              <div class="seg" data-pericia="${p.key}">${[0, 1, 2, 3, 4, 5].map((i) => `<button class="${g === i ? 'on' : ''}" data-g="${i}" ${i > teto ? 'disabled' : ''} title="${esc(LD.GRAUS_PERICIA[i])}: ${i} PT">${i || '—'}</button>`).join('')}</div></div>
+              <div class="seg" data-pericia="${p.key}">${[0, 1, 2, 3, 4, 5].map((i) => `<button class="${g === i ? 'on' : ''}" data-g="${i}" ${i > teto || (travado(f) && i < g) ? 'disabled' : ''} title="${esc(LD.GRAUS_PERICIA[i])}: ${i} PT">${i || '—'}</button>`).join('')}</div></div>
           </div>`;
         }).join('')}</div>`).join('')}
       <details class="more" ${keep('pt-' + f.id)}><summary>De onde vêm os ${c.ptTotal} PT</summary><div class="pt-break">
@@ -935,12 +935,12 @@
         <div><div class="subsect"><span>Qualidades</span></div>
           <div class="trait-list">${LD.QUALIDADES.map((q) => `
             <label class="trait ${f.qualidades.includes(q.key) ? 'on' : ''} ${q.origem && q.origem !== f.origem ? 'dim' : ''}">
-              <input type="checkbox" data-q="${q.key}" ${f.qualidades.includes(q.key) ? 'checked' : ''}>
+              <input type="checkbox" data-q="${q.key}" ${f.qualidades.includes(q.key) ? 'checked' + (travado(f) ? ' disabled' : '') : ''}>
               <span class="t-n" title="${esc(q.efeito)}">${esc(q.nome)}</span><span class="tag gold">${q.custo} PT</span><span class="t-e">${esc(q.efeito)}</span></label>`).join('')}</div></div>
         <div><div class="subsect"><span>Defeitos</span><span class="tag">${f.defeitos.length}/${LD.MAX_DEFEITOS}</span></div>
           <div class="trait-list">${LD.DEFEITOS.map((q) => `
             <label class="trait def ${f.defeitos.includes(q.key) ? 'on' : ''}">
-              <input type="checkbox" data-d="${q.key}" ${f.defeitos.includes(q.key) ? 'checked' : ''} ${!f.defeitos.includes(q.key) && f.defeitos.length >= LD.MAX_DEFEITOS ? 'disabled' : ''}>
+              <input type="checkbox" data-d="${q.key}" ${f.defeitos.includes(q.key) ? 'checked' : ''} ${travado(f) || (!f.defeitos.includes(q.key) && f.defeitos.length >= LD.MAX_DEFEITOS) ? 'disabled' : ''}>
               <span class="t-n" title="${esc(q.efeito)}">${esc(q.nome)}</span><span class="tag ok">+${q.custo} PT</span><span class="t-e">${esc(q.efeito)}</span></label>`).join('')}</div></div>
       </div>
 

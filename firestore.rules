@@ -234,6 +234,58 @@ service cloud.firestore {
         && d.get('novaEgide', false) == false
         && d.get('campanha', {}).get('patrulhas', 0) == 0 && d.get('campanha', {}).get('reputacao', 0) == 0;
     }
+    // Depois da aprovação, o jogador só soma: não tira poder, feitiço, qualidade, defeito ou aumento, nem baixa atributo ou perícia.
+    function evolucaoSoSobe(d, r) {
+      return r.get('aprovada', false) != true
+        || (d.get('poderes', []).size() >= r.get('poderes', []).size()
+        && d.get('grimorio', []).size() >= r.get('grimorio', []).size()
+        && d.get('qualidades', []).hasAll(r.get('qualidades', []))
+        && d.get('defeitos', []) == r.get('defeitos', [])
+        && d.get('aumentos', []).hasAll(r.get('aumentos', []))
+        && d.get('atributos', {}).get('FOR', 0) >= r.get('atributos', {}).get('FOR', 0) && d.get('atributos', {}).get('AGI', 0) >= r.get('atributos', {}).get('AGI', 0) && d.get('atributos', {}).get('VIG', 0) >= r.get('atributos', {}).get('VIG', 0) && d.get('atributos', {}).get('INT', 0) >= r.get('atributos', {}).get('INT', 0) && d.get('atributos', {}).get('VON', 0) >= r.get('atributos', {}).get('VON', 0) && d.get('atributos', {}).get('PRE', 0) >= r.get('atributos', {}).get('PRE', 0)
+        && d.get('pericias', {}).get('luta', 0) >= r.get('pericias', {}).get('luta', 0)
+        && d.get('pericias', {}).get('pesadas', 0) >= r.get('pericias', {}).get('pesadas', 0)
+        && d.get('pericias', {}).get('arremesso', 0) >= r.get('pericias', {}).get('arremesso', 0)
+        && d.get('pericias', {}).get('agarrar', 0) >= r.get('pericias', {}).get('agarrar', 0)
+        && d.get('pericias', {}).get('guarda', 0) >= r.get('pericias', {}).get('guarda', 0)
+        && d.get('pericias', {}).get('atletismo', 0) >= r.get('pericias', {}).get('atletismo', 0)
+        && d.get('pericias', {}).get('forca_bruta', 0) >= r.get('pericias', {}).get('forca_bruta', 0)
+        && d.get('pericias', {}).get('laminas', 0) >= r.get('pericias', {}).get('laminas', 0)
+        && d.get('pericias', {}).get('pontaria', 0) >= r.get('pericias', {}).get('pontaria', 0)
+        && d.get('pericias', {}).get('esquiva', 0) >= r.get('pericias', {}).get('esquiva', 0)
+        && d.get('pericias', {}).get('acrobacia', 0) >= r.get('pericias', {}).get('acrobacia', 0)
+        && d.get('pericias', {}).get('furtividade', 0) >= r.get('pericias', {}).get('furtividade', 0)
+        && d.get('pericias', {}).get('pilotagem', 0) >= r.get('pericias', {}).get('pilotagem', 0)
+        && d.get('pericias', {}).get('prestidigitacao', 0) >= r.get('pericias', {}).get('prestidigitacao', 0)
+        && d.get('pericias', {}).get('resiliencia', 0) >= r.get('pericias', {}).get('resiliencia', 0)
+        && d.get('pericias', {}).get('vitalidade', 0) >= r.get('pericias', {}).get('vitalidade', 0)
+        && d.get('pericias', {}).get('imunidade', 0) >= r.get('pericias', {}).get('imunidade', 0)
+        && d.get('pericias', {}).get('folego', 0) >= r.get('pericias', {}).get('folego', 0)
+        && d.get('pericias', {}).get('corrida', 0) >= r.get('pericias', {}).get('corrida', 0)
+        && d.get('pericias', {}).get('aclimatacao', 0) >= r.get('pericias', {}).get('aclimatacao', 0)
+        && d.get('pericias', {}).get('sobrevivencia', 0) >= r.get('pericias', {}).get('sobrevivencia', 0)
+        && d.get('pericias', {}).get('investigacao', 0) >= r.get('pericias', {}).get('investigacao', 0)
+        && d.get('pericias', {}).get('tatica', 0) >= r.get('pericias', {}).get('tatica', 0)
+        && d.get('pericias', {}).get('conhecimento', 0) >= r.get('pericias', {}).get('conhecimento', 0)
+        && d.get('pericias', {}).get('tecnologia', 0) >= r.get('pericias', {}).get('tecnologia', 0)
+        && d.get('pericias', {}).get('computacao', 0) >= r.get('pericias', {}).get('computacao', 0)
+        && d.get('pericias', {}).get('medicina', 0) >= r.get('pericias', {}).get('medicina', 0)
+        && d.get('pericias', {}).get('ocultismo', 0) >= r.get('pericias', {}).get('ocultismo', 0)
+        && d.get('pericias', {}).get('percepcao', 0) >= r.get('pericias', {}).get('percepcao', 0)
+        && d.get('pericias', {}).get('intuicao', 0) >= r.get('pericias', {}).get('intuicao', 0)
+        && d.get('pericias', {}).get('rastreio', 0) >= r.get('pericias', {}).get('rastreio', 0)
+        && d.get('pericias', {}).get('concentracao', 0) >= r.get('pericias', {}).get('concentracao', 0)
+        && d.get('pericias', {}).get('coragem', 0) >= r.get('pericias', {}).get('coragem', 0)
+        && d.get('pericias', {}).get('dominio', 0) >= r.get('pericias', {}).get('dominio', 0)
+        && d.get('pericias', {}).get('adestramento', 0) >= r.get('pericias', {}).get('adestramento', 0)
+        && d.get('pericias', {}).get('persuasao', 0) >= r.get('pericias', {}).get('persuasao', 0)
+        && d.get('pericias', {}).get('enganacao', 0) >= r.get('pericias', {}).get('enganacao', 0)
+        && d.get('pericias', {}).get('disfarce', 0) >= r.get('pericias', {}).get('disfarce', 0)
+        && d.get('pericias', {}).get('intimidacao', 0) >= r.get('pericias', {}).get('intimidacao', 0)
+        && d.get('pericias', {}).get('lideranca', 0) >= r.get('pericias', {}).get('lideranca', 0)
+        && d.get('pericias', {}).get('performance', 0) >= r.get('pericias', {}).get('performance', 0)
+        && d.get('pericias', {}).get('malandragem', 0) >= r.get('pericias', {}).get('malandragem', 0));
+    }
     // Depois da aprovação, Origem e Potencial ficam travados para o jogador.
     function potencialTravado(d, r) {
       return r.get('aprovada', false) != true
@@ -264,6 +316,7 @@ service cloud.firestore {
         && (mestre() || (dono() && mantemDono()
           && camposDaMestragemIguais(request.resource.data, resource.data)
           && potencialTravado(request.resource.data, resource.data)
+          && evolucaoSoSobe(request.resource.data, resource.data)
           && dinheiroOk(request.resource.data, resource.data)
           && treinoOk(request.resource.data, resource.data)));
       allow delete: if dono() || mestre();
