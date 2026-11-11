@@ -910,9 +910,11 @@
     c = c || calc(f);
     const out = [];
     const extra = (g) => Math.floor(g / 2);
-    const armas = (f.inventario || []).filter((i) => i.equipado && i.cat === 'arma')
+    const todas = (f.inventario || []).filter((i) => i.cat === 'arma')
       .map((i) => Object.assign({}, LD.store ? (LD.store.get('itens', i.itemId) || {}) : {}, i));
-    armas.forEach((w) => {
+    const armas = todas.filter((w) => w.equipado);
+    // Armas: as empunhadas primeiro, depois as que estão na mochila.
+    armas.concat(todas.filter((w) => !w.equipado)).forEach((w) => {
       const p = LD.byKey(PERICIAS, w.pericia) || LD.byKey(PERICIAS, 'luta');
       const g = c.G(p.key);
       const attr = p.attr;
@@ -921,19 +923,35 @@
       else { dados = 1 + extra(g) + d6(w.dadosExtra) + c.dadosForca; }
       pot = Math.max(num(w.potencia), c.potGolpe);
       const danoFixo = c.A[attr] + pot + num(w.bonusFixo);
-      out.push({ nome: w.nome, sub: `${p.nome} ${g}`, attr, bonus: c.A[attr] + g, dados: `${dados}d6`, danoFixo, expr: `${dados}d6+${danoFixo}` });
+      const mun = w.municaoMax ? ` · ${num(w.municao)}/${num(w.municaoMax)} tiros` : '';
+      out.push({ nome: w.nome, sub: `${p.nome} ${g}${w.equipado ? '' : ' · na mochila'}${mun}`, attr, bonus: c.A[attr] + g, dados: `${dados}d6`, danoFixo, expr: `${dados}d6+${danoFixo}` });
     });
+    // Golpe desarmado sempre aparece. Armas Naturais somam +1d6 por Grau.
     const gL = c.G('luta');
-    if (!armas.some((w) => (w.pericia || 'luta') === 'luta') && (gL || !armas.length)) {
-      // Armas Naturais (garras, presas, espinhos): +1d6 por Grau nos golpes desarmados.
-      const nat = (f.poderes || []).filter((p) => p.base === 'armas_naturais').reduce((m, p) => Math.max(m, num(p.grau, 1)), 0);
-      const dados = 1 + extra(gL) + c.dadosForca + nat;
-      const danoFixo = c.A.FOR + c.potGolpe;
-      out.unshift({ nome: nat ? 'Garras e golpes' : 'Desarmado', sub: `Luta ${gL}`, attr: 'FOR', bonus: c.A.FOR + gL, dados: `${dados}d6`, danoFixo, expr: `${dados}d6+${danoFixo}` });
-    }
+    const nat = (f.poderes || []).filter((p) => p.base === 'armas_naturais').reduce((m, p) => Math.max(m, num(p.grau, 1)), 0);
+    out.unshift({ nome: nat ? 'Garras e golpes' : 'Desarmado', sub: `Luta ${gL}`, attr: 'FOR', bonus: c.A.FOR + gL, dados: `${1 + extra(gL) + c.dadosForca + nat}d6`, danoFixo: c.A.FOR + c.potGolpe, expr: `${1 + extra(gL) + c.dadosForca + nat}d6+${c.A.FOR + c.potGolpe}` });
+    // Itens de arremesso com dano (granadas, facas): rolam com Arremesso.
+    (f.inventario || []).filter((i) => i.cat !== 'arma' && /\d+d\d+/.test(i.dano || i.dadosBase || '')).forEach((i) => {
+      const g = c.G('arremesso');
+      out.push({ nome: i.nome, sub: `Arremesso ${g}${i.cargasMax ? ` · ${num(i.cargas)}/${num(i.cargasMax)}` : ''}`, attr: 'AGI', bonus: c.A.AGI + g, expr: i.dano || i.dadosBase, nota: i.propriedades || '' });
+    });
+    // Poderes: os de dano rolam acerto e dano; os de controle mostram a CD para o alvo resistir.
+    const CONTROLE = ['controle', 'controle_forte', 'controle_mental', 'ilusao', 'mente', 'controle_materia', 'telepatia', 'animais', 'necromancia', 'probabilidade', 'tempo'];
     (f.poderes || []).forEach((p) => {
       const b = LD.byKey(PODERES, p.base);
-      if (b && b.tipo === 'ataque') out.push(Object.assign({ nome: p.nome || b.nome, sub: `Grau ${p.grau}` }, ataquePoder(f, p, c)));
+      if (!b) return;
+      const linhas = [p].concat((p.variacoes || []).map((v) => Object.assign({}, p, { nome: `${p.nome || b.nome} · ${v.nome}`, grau: v.grau || p.grau, variacoes: [] })));
+      linhas.forEach((q) => {
+        const a = ataquePoder(f, q, c);
+        if (b.tipo === 'ataque') out.push(Object.assign({ nome: q.nome || b.nome, sub: `Poder · Grau ${q.grau}${a.penetrante ? ' · Penetrante' : ''}` }, a));
+        else if (CONTROLE.includes(p.base)) out.push({ nome: q.nome || b.nome, sub: `Poder · Grau ${q.grau} · o alvo resiste`, attr: a.attr, bonus: a.bonus, cd: a.cd, expr: '' });
+      });
+    });
+    // Feitiços do grimório: dano quando o efeito ataca, CD quando o alvo resiste.
+    (f.grimorio || []).forEach((ft) => {
+      const x = feitico(f, ft, c); const b = LD.byKey(PODERES, ft.efeito) || {};
+      const ataca = b.tipo === 'ataque';
+      out.push({ nome: ft.nome || 'Feitiço', sub: `Feitiço · Grau ${x.final} · ${x.custo}`, attr: x.attr, bonus: x.bonus, cd: x.cd, expr: ataca ? `${x.final}d6+${c.A[x.attr] + c.potPoder}` : '' });
     });
     return out;
   }

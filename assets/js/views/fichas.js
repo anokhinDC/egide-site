@@ -348,9 +348,10 @@
           <div class="subsect"><span>Ataques</span></div>
           <div class="atk-list">${ataques.map((a, i) => `
             <div class="atk">
-              <div class="atk-n">${esc(a.nome)}</div>
+              <div class="atk-n">${esc(a.nome)}${a.sub ? `<div class="muted tiny">${esc(a.sub)}</div>` : ''}</div>
               <button class="roll" data-atk="${i}" title="Rolar o ataque">Acerto ${sinal(a.bonus)}</button>
-              <button class="roll dmg ${st.critico === `${f.id}:${i}` ? 'armed' : ''}" data-dano="${i}" title="Rolar o dano">${st.critico === `${f.id}:${i}` ? 'Crítico!' : 'Dano ' + esc(a.expr)}</button>
+              ${a.expr ? `<button class="roll dmg ${st.critico === `${f.id}:${i}` ? 'armed' : ''}" data-dano="${i}" title="Rolar o dano">${st.critico === `${f.id}:${i}` ? 'Crítico!' : 'Dano ' + esc(a.expr)}</button>` : ''}
+              ${a.cd ? `<span class="tag" title="O alvo rola para resistir">CD ${a.cd}</span>` : ''}
             </div>`).join('')}</div>
         </div>
         <div>
