@@ -925,9 +925,11 @@
     });
     const gL = c.G('luta');
     if (!armas.some((w) => (w.pericia || 'luta') === 'luta') && (gL || !armas.length)) {
-      const dados = 1 + extra(gL) + c.dadosForca;
+      // Armas Naturais (garras, presas, espinhos): +1d6 por Grau nos golpes desarmados.
+      const nat = (f.poderes || []).filter((p) => p.base === 'armas_naturais').reduce((m, p) => Math.max(m, num(p.grau, 1)), 0);
+      const dados = 1 + extra(gL) + c.dadosForca + nat;
       const danoFixo = c.A.FOR + c.potGolpe;
-      out.unshift({ nome: 'Desarmado', sub: `Luta ${gL}`, attr: 'FOR', bonus: c.A.FOR + gL, dados: `${dados}d6`, danoFixo, expr: `${dados}d6+${danoFixo}` });
+      out.unshift({ nome: nat ? 'Garras e golpes' : 'Desarmado', sub: `Luta ${gL}`, attr: 'FOR', bonus: c.A.FOR + gL, dados: `${dados}d6`, danoFixo, expr: `${dados}d6+${danoFixo}` });
     }
     (f.poderes || []).forEach((p) => {
       const b = LD.byKey(PODERES, p.base);
