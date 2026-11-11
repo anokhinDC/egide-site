@@ -653,8 +653,12 @@
     const jan4 = new Date(Date.UTC(+m[1], 0, 4)); const dia = jan4.getUTCDay() || 7;
     return Date.UTC(+m[1], 0, 4) - (dia - 1) * 86400000 + (+m[2] - 1) * 7 * 86400000;
   }
+  // Boost no servidor: heróis e anti-heróis recebem o Patrocínio por semana (vilões ganham outros benefícios).
+  const BOOST_SEMANA = { 1: 125, 2: 250 };
+  function boostSemanal(f) { const b = Math.min(2, Math.max(0, num(f.boosts))); return b && f.alinhamento !== 'vilao' ? BOOST_SEMANA[b] : 0; }
+  function ganhoSemanal(f) { return salarioDe(f) + boostSemanal(f); }
   function semanasDeSalario(f) {
-    if (!f.aprovada || !salarioDe(f)) return 0;
+    if (!f.aprovada || !ganhoSemanal(f)) return 0;
     const atual = semanaAtual(); if (f.semanaSalario === atual) return 0;
     const a = segundaDaSemana(f.semanaSalario), b = segundaDaSemana(atual);
     if (a == null) return 1;
@@ -662,8 +666,9 @@
   }
   function pagarSalario(x) {
     const n = semanasDeSalario(x); if (!n) return 0;
-    x.semanaSalario = semanaAtual(); x.creditos = num(x.creditos) + num(x.salario) * n;
-    x.extrato = (x.extrato || []).concat({ quando: Date.now(), valor: num(x.salario) * n, motivo: n > 1 ? `Salário de ${n} semanas` : 'Salário da semana' }).slice(-80);
+    const g = ganhoSemanal(x); const motivo = (salarioDe(x) ? 'Salário' : '') + (salarioDe(x) && boostSemanal(x) ? ' + ' : '') + (boostSemanal(x) ? 'Patrocínio (boost)' : '');
+    x.semanaSalario = semanaAtual(); x.creditos = num(x.creditos) + g * n;
+    x.extrato = (x.extrato || []).concat({ quando: Date.now(), valor: g * n, motivo: n > 1 ? `${motivo} de ${n} semanas` : `${motivo} da semana` }).slice(-80);
     return n;
   }
   const fmtUS = (v) => 'US$ ' + Math.round(num(v)).toLocaleString('pt-BR');
@@ -1067,5 +1072,5 @@
   LD.DEGRAUS_CLASSE = DEGRAUS_CLASSE; LD.MARCOS = MARCOS;
   LD.MORADIAS_TIPOS = MORADIAS_TIPOS;
   LD.REPUTACAO = REPUTACAO; LD.VINCULOS = VINCULOS;
-  LD.rules = { semanasDeSalario, pagarSalario, tirarDoObservatorio, campanhaDe, reputacaoDe, ptDePatrulhas, custoPericia, atributoDeCriacao, ajustarRegrasV3, limitePoderes, moradiaDe, aluguelDe, ultimoDomingo, domingosPendentes, salarioDe, fraquezasDe, marcasPericias, degrau, classeDoDegrau, rotuloClasse, areasTreino, treinoDe, podeTreinar, bonusTreino, aplicarTreino, tetoPTTreino, valeTreino: vale, dinheiro, dinheiroInicial, fmtUS, semanaAtual, fmtClasse, slug, clamp, num, faixaDe, resultadoAjustado, potencial, classe, atributos, grauMaximo, custoPoder, calc, tetoAtributo, escalaAtributo, ataquePoder, ataques, grau, tetoPericia, comandosBot, feitico, rolarD20, rolarExpr, recursos, hasTraco, combinarProtecoes };
+  LD.rules = { boostSemanal, ganhoSemanal, semanasDeSalario, pagarSalario, tirarDoObservatorio, campanhaDe, reputacaoDe, ptDePatrulhas, custoPericia, atributoDeCriacao, ajustarRegrasV3, limitePoderes, moradiaDe, aluguelDe, ultimoDomingo, domingosPendentes, salarioDe, fraquezasDe, marcasPericias, degrau, classeDoDegrau, rotuloClasse, areasTreino, treinoDe, podeTreinar, bonusTreino, aplicarTreino, tetoPTTreino, valeTreino: vale, dinheiro, dinheiroInicial, fmtUS, semanaAtual, fmtClasse, slug, clamp, num, faixaDe, resultadoAjustado, potencial, classe, atributos, grauMaximo, custoPoder, calc, tetoAtributo, escalaAtributo, ataquePoder, ataques, grau, tetoPericia, comandosBot, feitico, rolarD20, rolarExpr, recursos, hasTraco, combinarProtecoes };
 })();

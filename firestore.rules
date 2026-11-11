@@ -196,6 +196,7 @@ service cloud.firestore {
         && d.get('bonusPV', 0) == r.get('bonusPV', 0)
         && d.get('aprovada', false) == r.get('aprovada', false)
         && d.get('salario', 0) == r.get('salario', 0)
+        && d.get('boosts', 0) == r.get('boosts', 0)
         && d.get('inicialFixo', null) == r.get('inicialFixo', null)
         && d.get('nsfw', {}).get('bonusPS', 0) == r.get('nsfw', {}).get('bonusPS', 0)
         && campanhaOk(d, r)
@@ -213,16 +214,20 @@ service cloud.firestore {
       return d.get('treino', {}) == r.get('treino', {});
     }
     // Dinheiro: o jogador só gasta (gastoTotal sobe) e recebe o salário uma vez por semana.
+    // Ganho da semana: salário + Patrocínio do boost (heróis e anti-heróis).
+    function semanal(r) {
+      return r.get('salario', 0) + (r.get('alinhamento', 'heroi') == 'vilao' ? 0 : (r.get('boosts', 0) == 2 ? 250 : (r.get('boosts', 0) == 1 ? 125 : 0)));
+    }
     function dinheiroOk(d, r) {
       return (r.get('aprovada', false) == true
           || (d.get('gastoTotal', 0) == r.get('gastoTotal', 0) && d.get('creditos', 0) == r.get('creditos', 0)))
         && d.get('gastoTotal', 0) >= r.get('gastoTotal', 0)
         && (d.get('creditos', 0) == r.get('creditos', 0)
           || (d.get('semanaSalario', '') != r.get('semanaSalario', '')
-            && r.get('salario', 0) > 0
+            && semanal(r) > 0
             && d.get('creditos', 0) > r.get('creditos', 0)
-            && d.get('creditos', 0) <= r.get('creditos', 0) + r.get('salario', 0) * 8
-            && (d.get('creditos', 0) - r.get('creditos', 0)) % r.get('salario', 0) == 0));
+            && d.get('creditos', 0) <= r.get('creditos', 0) + semanal(r) * 8
+            && (d.get('creditos', 0) - r.get('creditos', 0)) % semanal(r) == 0));
     }
     // Ficha nova de jogador: nível 1, sem bônus, sem aprovação.
     function fichaNovaLimpa(d) {

@@ -143,6 +143,7 @@
       </div>
       <div class="card-foot">
         ${classeTag(c.classe)}
+        ${num(f.boosts) ? `<span class="tag gold" title="O dono deu ${num(f.boosts)} boost(s) no servidor">${'💎'.repeat(Math.min(2, num(f.boosts)))} Booster</span>` : ''}
         ${f.aprovada ? '<span class="tag ok">✓ Aprovada</span>' : pend ? `<span class="tag warn">Falta ${pend}</span>` : '<span class="tag gold">Pronta</span>'}
         ${podeApagar(f) ? `<button class="btn sm plain danger hc-del" data-apagar-lista="${esc(f.id)}" title="Apagar ficha">🗑</button>` : ''}
       </div>
@@ -206,6 +207,7 @@
           <div class="card-meta" style="margin-top:14px">
             ${c.pot.rolou || ['treinado', 'engenhoso'].includes(f.origem) ? `<span class="tag gold">${esc(c.pot.emoji || '◆')} ${esc(c.pot.nome)}</span>` : '<span class="tag warn">Potencial pendente</span>'}
             <span class="tag classe c${Math.floor(c.classeDegrau)}">Degrau ${c.degrau} de 10</span>
+            ${num(f.boosts) ? `<span class="tag gold" title="O dono deu ${num(f.boosts)} boost(s) no servidor">${'💎'.repeat(Math.min(2, num(f.boosts)))} Booster</span>` : ''}
             ${f.aprovada ? '<span class="tag ok">✓ Aprovada</span>' : ''}
           </div>
           <div class="ch-actions">
@@ -382,7 +384,7 @@
               ${stat('Percepção passiva', c.percepcaoPassiva, '10 + VON + Percepção')}
               ${stat('Deslocamento', c.deslocamento + ' m', 'por rodada')}
               ${stat('Carga', c.carga + ' kg', 'a mochila, sempre')}
-              ${stat('Dinheiro', R.fmtUS(c.dinheiro), R.salarioDe(f) ? `salário ${R.fmtUS(R.salarioDe(f))}/semana` : 'sem salário')}
+              ${stat('Dinheiro', R.fmtUS(c.dinheiro), R.ganhoSemanal(f) ? `${R.fmtUS(R.ganhoSemanal(f))}/semana${R.boostSemanal(f) ? ` (💎 ${R.fmtUS(R.boostSemanal(f))} de boost)` : ''}` : (num(f.boosts) ? `💎 ${num(f.boosts)} boost${num(f.boosts) > 1 ? 's' : ''}` : 'sem salário'))}
               ${c.protecaoPoder <= 5 ? stat('Evasão', '✓', 'Ainda de Pé e Evasão valem') : ''}
             </div>
           </details>
@@ -1019,8 +1021,9 @@
           ${field('PT de treino', input('ptTreino', f.ptTreino, 'type="number" min="0"'))}
           ${field('Classe (degrau)', select('ascensao', LD.DEGRAUS_CLASSE.map((v, i) => ({ key: i, nome: `${f.origem === 'treinado' ? 'Ápice' : 'Classe'} ${R.fmtClasse(v)} (degrau ${i + 1})` })), num(f.ascensao)))}
           ${field('Salário por semana', select('salario', LD.SALARIOS, num(f.salario)))}
+          ${field('Boosts do dono no servidor', select('boosts', [{ key: 0, nome: 'Nenhum' }, { key: 1, nome: '💎 1 boost' }, { key: 2, nome: '💎💎 2 boosts' }], num(f.boosts)), 'Heróis e anti-heróis recebem o Patrocínio toda segunda (US$ 125 ou US$ 250). Vilões não recebem dinheiro: usam os benefícios de vilão.')}
         </div>` : ''}`;
-    bindCampos(el, f, (x, k) => { if (k === 'recursos') x.recursos = num(x.recursos, 1); if (k === 'salario') x.salario = num(x.salario); if (k === 'ascensao') x.ascensao = R.clamp(num(x.ascensao), 0, 9); });
+    bindCampos(el, f, (x, k) => { if (k === 'recursos') x.recursos = num(x.recursos, 1); if (k === 'salario') x.salario = num(x.salario); if (k === 'boosts') x.boosts = num(x.boosts); if (k === 'ascensao') x.ascensao = R.clamp(num(x.ascensao), 0, 9); });
     const fr = el.querySelector('[name="familiaRica"]');
     if (fr) fr.addEventListener('change', () => mudar(f.id, (x) => { x.recursosOpcao = fr.checked ? 'familia_rica' : ''; }));
   }
@@ -1113,7 +1116,7 @@
       <div class="page-head" style="margin-bottom:12px">
         <div class="saldo-box">
           <div><span class="caps">Saldo</span><div class="saldo">${esc(R.fmtUS(c.dinheiro))}</div></div>
-          ${R.salarioDe(f) > 0 ? `<span class="tag ok">Salário de ${esc(R.fmtUS(f.salario))} cai sozinho toda segunda${f.semanaSalario === R.semanaAtual() ? ' · desta semana já caiu' : ''}</span>` : `<span class="muted small">Sem salário: a mestragem define.</span>`}
+          ${R.ganhoSemanal(f) > 0 ? `<span class="tag ok">${esc(R.fmtUS(R.ganhoSemanal(f)))} cai sozinho toda segunda${f.semanaSalario === R.semanaAtual() ? ' · desta semana já caiu' : ''}</span>` : `<span class="muted small">Sem salário: a mestragem define.</span>`}
           ${f.novaEgide ? '<span class="tag ok">Nova Égide: Observatório grátis</span>' : ''}
         </div>
         <a class="btn-primary" href="#/loja/${esc(f.id)}">Ir à Loja</a>
