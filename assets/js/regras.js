@@ -929,7 +929,10 @@
     // Golpe desarmado sempre aparece. Armas Naturais somam +1d6 por Grau.
     const gL = c.G('luta');
     const nat = (f.poderes || []).filter((p) => p.base === 'armas_naturais').reduce((m, p) => Math.max(m, num(p.grau, 1)), 0);
-    out.unshift({ nome: nat ? 'Garras e golpes' : 'Desarmado', sub: `Luta ${gL}`, attr: 'FOR', bonus: c.A.FOR + gL, dados: `${1 + extra(gL) + c.dadosForca + nat}d6`, danoFixo: c.A.FOR + c.potGolpe, expr: `${1 + extra(gL) + c.dadosForca + nat}d6+${c.A.FOR + c.potGolpe}` });
+    const base = 1 + extra(gL) + c.dadosForca; const fixo = c.A.FOR + c.potGolpe;
+    const natP = (f.poderes || []).filter((p) => p.base === 'armas_naturais').sort((a, b) => num(b.grau) - num(a.grau))[0];
+    if (natP) out.unshift({ nome: natP.nome || 'Armas Naturais', sub: `Luta ${gL} · Grau ${num(natP.grau, 1)} · crítico causa Sangramento`, attr: 'FOR', bonus: c.A.FOR + gL, dados: `${base + nat}d6`, danoFixo: fixo, expr: `${base + nat}d6+${fixo}` });
+    out.unshift({ nome: 'Desarmado', sub: `Luta ${gL} · soco, chute`, attr: 'FOR', bonus: c.A.FOR + gL, dados: `${base}d6`, danoFixo: fixo, expr: `${base}d6+${fixo}` });
     // Itens de arremesso com dano (granadas, facas): rolam com Arremesso.
     (f.inventario || []).filter((i) => i.cat !== 'arma' && /\d+d\d+/.test(i.dano || i.dadosBase || '')).forEach((i) => {
       const g = c.G('arremesso');
