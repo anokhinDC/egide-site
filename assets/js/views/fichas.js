@@ -182,6 +182,8 @@
     if (!f) { main.innerHTML = '<div class="empty">Ficha não encontrada. <a href="#/fichas">Voltar</a></div>'; return; }
     const c = R.calc(f);
     const editar = podeEditar(f);
+    const ultAlt = (LD.store.list('alteracoes') || []).filter((a) => a.fichaId === f.id).sort((a, b) => b.quando - a.quando)[0];
+    st.ultAlt = ultAlt ? `Última mudança: ${ultAlt.quem}, ${new Date(ultAlt.quando).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })} (${ultAlt.mudancas.slice(0, 2).join('; ')})` : '';
     if (editar && !st.aluguelVisto) { st.aluguelVisto = {}; }
     if (editar && f.aprovada && !st.aluguelVisto[id]) { st.aluguelVisto[id] = true; cobrarAluguel(f); }
     if (editar && R.semanasDeSalario(f)) { const y = clone(LD.store.get('personagens', id) || f); if (R.pagarSalario(y)) LD.store.save('personagens', y); }
@@ -308,6 +310,7 @@
 
     el.innerHTML = `
       ${!f.aprovada && c.avisos.some((a) => !a.leve) ? `<div class="falta"><b>Ficha incompleta:</b> falta${c.avisos.filter((a) => !a.leve).length > 1 ? 'm' : ''} ${c.avisos.filter((a) => !a.leve).length}. <button class="link" data-ir-construcao>Ver o que falta →</button></div>` : ''}
+      ${st.ultAlt ? `<div class="muted tiny" style="margin:0 0 6px">${esc(st.ultAlt)}</div>` : ''}
       <div class="play-top">
         <div class="meter">
           <div class="meter-h"><span class="caps">Vida (PV)</span><span class="tag ${cls}">${estado}</span></div>

@@ -137,7 +137,7 @@
     });
   });
   function gravarAlteracao(f, mudancas) {
-    const reg = { id: id('al'), fichaId: f.id, ficha: f.codinome || f.nome || 'Herói sem nome', quem: userName(), quemUid: uid(), quando: Date.now(), mudancas: mudancas.slice(0, 25) };
+    const reg = { id: id('al'), fichaId: f.id, ficha: f.codinome || f.nome || 'Herói sem nome', quem: (typeof window !== 'undefined' && window.LD_AUTOR) ? `${userName()} · ${window.LD_AUTOR}` : userName(), quemUid: uid(), quando: Date.now(), mudancas: mudancas.slice(0, 25) };
     state.data.alteracoes.unshift(reg);
     if (state.local) { state.data.alteracoes = state.data.alteracoes.slice(0, 400); saveLocal('alteracoes'); emit(); return; }
     emit();
