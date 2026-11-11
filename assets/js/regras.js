@@ -647,6 +647,25 @@
     return out;
   }
   function salarioDe(f) { return hasTraco(f, 'sem_lugar') ? 0 : num(f.salario); }
+  // Salário automático: conta as semanas desde o último pagamento (no máximo 8) e deposita de uma vez.
+  function segundaDaSemana(s) {
+    const m = /^(\d{4})-W(\d{2})$/.exec(s || ''); if (!m) return null;
+    const jan4 = new Date(Date.UTC(+m[1], 0, 4)); const dia = jan4.getUTCDay() || 7;
+    return Date.UTC(+m[1], 0, 4) - (dia - 1) * 86400000 + (+m[2] - 1) * 7 * 86400000;
+  }
+  function semanasDeSalario(f) {
+    if (!f.aprovada || !salarioDe(f)) return 0;
+    const atual = semanaAtual(); if (f.semanaSalario === atual) return 0;
+    const a = segundaDaSemana(f.semanaSalario), b = segundaDaSemana(atual);
+    if (a == null) return 1;
+    return Math.max(1, Math.min(8, Math.round((b - a) / (7 * 86400000))));
+  }
+  function pagarSalario(x) {
+    const n = semanasDeSalario(x); if (!n) return 0;
+    x.semanaSalario = semanaAtual(); x.creditos = num(x.creditos) + num(x.salario) * n;
+    x.extrato = (x.extrato || []).concat({ quando: Date.now(), valor: num(x.salario) * n, motivo: n > 1 ? `Salário de ${n} semanas` : 'Salário da semana' }).slice(-80);
+    return n;
+  }
   const fmtUS = (v) => 'US$ ' + Math.round(num(v)).toLocaleString('pt-BR');
   function semanaAtual(d) {
     d = d || new Date();
@@ -1025,5 +1044,5 @@
   LD.DEGRAUS_CLASSE = DEGRAUS_CLASSE; LD.MARCOS = MARCOS;
   LD.MORADIAS_TIPOS = MORADIAS_TIPOS;
   LD.REPUTACAO = REPUTACAO; LD.VINCULOS = VINCULOS;
-  LD.rules = { tirarDoObservatorio, campanhaDe, reputacaoDe, ptDePatrulhas, custoPericia, atributoDeCriacao, ajustarRegrasV3, limitePoderes, moradiaDe, aluguelDe, ultimoDomingo, domingosPendentes, salarioDe, fraquezasDe, marcasPericias, degrau, classeDoDegrau, rotuloClasse, areasTreino, treinoDe, podeTreinar, bonusTreino, aplicarTreino, tetoPTTreino, valeTreino: vale, dinheiro, dinheiroInicial, fmtUS, semanaAtual, fmtClasse, slug, clamp, num, faixaDe, resultadoAjustado, potencial, classe, atributos, grauMaximo, custoPoder, calc, tetoAtributo, escalaAtributo, ataquePoder, ataques, grau, tetoPericia, comandosBot, feitico, rolarD20, rolarExpr, recursos, hasTraco, combinarProtecoes };
+  LD.rules = { semanasDeSalario, pagarSalario, tirarDoObservatorio, campanhaDe, reputacaoDe, ptDePatrulhas, custoPericia, atributoDeCriacao, ajustarRegrasV3, limitePoderes, moradiaDe, aluguelDe, ultimoDomingo, domingosPendentes, salarioDe, fraquezasDe, marcasPericias, degrau, classeDoDegrau, rotuloClasse, areasTreino, treinoDe, podeTreinar, bonusTreino, aplicarTreino, tetoPTTreino, valeTreino: vale, dinheiro, dinheiroInicial, fmtUS, semanaAtual, fmtClasse, slug, clamp, num, faixaDe, resultadoAjustado, potencial, classe, atributos, grauMaximo, custoPoder, calc, tetoAtributo, escalaAtributo, ataquePoder, ataques, grau, tetoPericia, comandosBot, feitico, rolarD20, rolarExpr, recursos, hasTraco, combinarProtecoes };
 })();

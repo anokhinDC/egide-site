@@ -101,6 +101,9 @@
     // Fichas da regra antiga: a mestragem grava o ajuste (Atributos até 3 com a Origem, Perícias com custo novo).
     if (LD.store.isMaster()) LD.store.list('personagens').filter((x) => !x.regras_v3 || !x.novaEgide_v2).forEach((x) => LD.store.save('personagens', normalizar(clone(x))));
     const meu = LD.store.uid();
+    // Salário cai sozinho: quem pode editar a ficha grava o depósito das semanas que faltam.
+    LD.store.list('personagens').filter((x) => (LD.store.isMaster() || x.ownerId === meu) && R.semanasDeSalario(x))
+      .forEach((x) => { const y = clone(x); R.pagarSalario(y); LD.store.save('personagens', y); });
     const lista = (st.filtro === 'minhas' && !LD.store.state.local ? todos.filter((x) => x.ownerId === meu) : todos)
       .sort((a, b) => titulo(a).localeCompare(titulo(b)));
     main.innerHTML = `
@@ -181,6 +184,7 @@
     const editar = podeEditar(f);
     if (editar && !st.aluguelVisto) { st.aluguelVisto = {}; }
     if (editar && f.aprovada && !st.aluguelVisto[id]) { st.aluguelVisto[id] = true; cobrarAluguel(f); }
+    if (editar && R.semanasDeSalario(f)) { const y = clone(LD.store.get('personagens', id) || f); if (R.pagarSalario(y)) LD.store.save('personagens', y); }
     if (!st.aba[id]) st.aba[id] = c.avisos.some((a) => !a.leve) && editar && !f.aprovada ? 'construcao' : 'jogar';
     const aba = st.aba[id];
     const o = LD.byKey(LD.ORIGENS, f.origem);
@@ -1105,7 +1109,7 @@
       <div class="page-head" style="margin-bottom:12px">
         <div class="saldo-box">
           <div><span class="caps">Saldo</span><div class="saldo">${esc(R.fmtUS(c.dinheiro))}</div></div>
-          ${editar && R.salarioDe(f) > 0 ? (f.semanaSalario === R.semanaAtual() ? `<span class="tag ok">Salário da semana recebido</span>` : `<button class="btn" data-salario>Receber o salário da semana (+${esc(R.fmtUS(f.salario))})</button>`) : `<span class="muted small">${num(f.salario) ? '' : 'Sem salário: a mestragem define.'}</span>`}
+          ${R.salarioDe(f) > 0 ? `<span class="tag ok">Salário de ${esc(R.fmtUS(f.salario))} cai sozinho toda segunda${f.semanaSalario === R.semanaAtual() ? ' · desta semana já caiu' : ''}</span>` : `<span class="muted small">Sem salário: a mestragem define.</span>`}
           ${f.novaEgide ? '<span class="tag ok">Nova Égide: Observatório grátis</span>' : ''}
         </div>
         <a class="btn-primary" href="#/loja/${esc(f.id)}">Ir à Loja</a>

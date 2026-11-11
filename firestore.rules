@@ -219,7 +219,10 @@ service cloud.firestore {
         && d.get('gastoTotal', 0) >= r.get('gastoTotal', 0)
         && (d.get('creditos', 0) == r.get('creditos', 0)
           || (d.get('semanaSalario', '') != r.get('semanaSalario', '')
-            && d.get('creditos', 0) == r.get('creditos', 0) + r.get('salario', 0)));
+            && r.get('salario', 0) > 0
+            && d.get('creditos', 0) > r.get('creditos', 0)
+            && d.get('creditos', 0) <= r.get('creditos', 0) + r.get('salario', 0) * 8
+            && (d.get('creditos', 0) - r.get('creditos', 0)) % r.get('salario', 0) == 0));
     }
     // Ficha nova de jogador: nível 1, sem bônus, sem aprovação.
     function fichaNovaLimpa(d) {
