@@ -56,7 +56,7 @@
       'Cresce até 3 m (ou encolhe a 50 cm).', 'Cresce até 5 m (ou encolhe a 15 cm).', 'Cresce até 8 m (ou encolhe a 3 cm).', 'Cresce até 15 m (ou encolhe ao tamanho de uma formiga).',
       'Cresce até 30 m.', 'Cresce até 60 m (ou encolhe a um grão de areia).', 'Cresce até 120 m.', 'Do tamanho de um arranha-céu, ou microscópico.']),
     P('garras', 'Garras e Presas', 'armas_naturais', 'FOR', 'Corpo', 'Garras, espinhos ou presas que cortam aço.', [
-      '+1d6 nos golpes.', '+2d6 nos golpes.', '+3d6; corta madeira e portas.', '+4d6; corta aço.', '+5d6; corta blindagem.', '+6d6.', '+7d6.', '+8d6; corta quase tudo.']),
+      '+1d6 nos golpes.', '+1d6; corta couro e corda.', '+2d6; corta madeira e portas.', '+2d6; corta aço.', '+3d6; corta blindagem.', '+3d6.', '+4d6.', '+4d6; corta quase tudo.']),
     P('adaptacao', 'Adaptação', 'adaptacao', 'VIG', 'Corpo', 'Sobrevive onde ninguém sobrevive.', [
       'Ignora um ambiente (frio, calor, fome…).', 'Ignora dois.', 'Ignora três, incluindo respirar debaixo da água.', 'Ignora quatro, incluindo veneno.',
       'Ignora cinco, incluindo radiação.', 'Ignora seis, incluindo pressão do fundo do mar.', 'Ignora sete, incluindo o vácuo.', 'Ignora todos.']),

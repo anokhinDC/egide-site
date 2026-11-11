@@ -261,7 +261,7 @@
   // tipo: ataque (dano), protecao (Proteção), defesa (Defesa), outro.
   const P = (key, nome, grupo, custo, attrs, efeito, extra) => Object.assign({ key, nome, grupo, custo, attrs, efeito, tipo: 'outro' }, extra);
   const PODERES = [
-    P('forca', 'Força Sobre-humana', 'Corpo', 2, ['FOR'], 'Força acima do humano. Ergue e arremessa o que a sua Classe ergue (um carro na Classe 2, um prédio na 3). Nos golpes físicos, +1d6 de dano a cada 2 Graus.'),
+    P('forca', 'Força Sobre-humana', 'Corpo', 2, ['FOR'], 'Força acima do humano. Ergue e arremessa o que a sua Classe ergue (um carro na Classe 2, um prédio na 3). Nos golpes físicos, +1d6 de dano no Grau 3, +2d6 no 5, +3d6 no 7.'),
     P('atributo', 'Atributo Sobre-humano', 'Corpo', 1, [], 'Um Atributo além do humano. +1 nele a cada 2 Graus (até 5), e ele passa a trabalhar na escala da sua Classe.', { alvoAtributo: true }),
     P('invulnerabilidade', 'Invulnerabilidade', 'Corpo', 2, ['VIG'], 'Pele dura como aço. Proteção = Grau × 5 (até Classe × 5), sempre ligada.', { tipo: 'protecao', protecao: (g, c) => Math.min(g * 5, x5(c)) }),
     P('armadura', 'Armadura', 'Corpo', 2, ['INT'], 'Um traje tecnológico. Proteção = Grau × 4 (até Classe × 5). Pode ser roubado ou quebrado (Removível).', { tipo: 'protecao', protecao: (g, c) => Math.min(g * 4, x5(c)), falhaPadrao: 'removivel' }),
@@ -269,7 +269,7 @@
     P('elasticidade', 'Elasticidade', 'Corpo', 2, ['AGI'], 'Estica e torce o corpo. Alcança Grau × 2 m corpo a corpo e soma +Grau para Agarrar e escapar.'),
     P('crescer', 'Crescer / Encolher', 'Corpo', 2, ['FOR', 'AGI'], 'Muda de tamanho. Crescer: +Grau na FOR (até 5) e −Grau/2 na Defesa. Encolher: +Grau na Defesa e em Furtividade.'),
     P('adaptacao', 'Adaptação', 'Corpo', 1, ['VIG'], 'O corpo aguenta o que mataria alguém. Cada Grau escolhe um ambiente que não faz mal: frio, calor, fundo do mar, vácuo, veneno, fome ou sono.'),
-    P('armas_naturais', 'Armas Naturais', 'Corpo', 1, ['FOR'], 'Garras, presas ou espinhos. +1d6 de dano por Grau nos golpes; um crítico causa Sangramento.'),
+    P('armas_naturais', 'Armas Naturais', 'Corpo', 1, ['FOR'], 'Garras, presas ou espinhos. +1d6 de dano a cada 2 Graus (Grau 1: +1d6; 3: +2d6; 5: +3d6; 7: +4d6); um crítico causa Sangramento.'),
     P('voo', 'Voo', 'Movimento', 2, ['AGI'], 'Voa. Grau 1: 10 m por rodada; cada Grau dobra a velocidade (Grau 4: um carro na estrada; Grau 6: um avião). +1 de Defesa contra quem não voa.'),
     P('velocidade', 'Supervelocidade', 'Movimento', 2, ['AGI'], 'Corre muito rápido. Deslocamento × Grau e +Grau na Iniciativa. Grau 3+: uma ação extra por turno, só para se mover, Resgatar ou Ajudar.', { iniciativa: (g) => g }),
     P('teleporte', 'Teleporte', 'Movimento', 2, ['VON'], 'Some e aparece em outro lugar que veja ou conheça. Alcance pelo Grau (Grau 1: 5 m; 3: 50 m; 5: 500 m). Grau 4+: leva outras pessoas.'),
@@ -858,7 +858,7 @@
     const temForca = temPoder(f, ['forca']);
     // Todo ataque soma a Potência da Classe (Treinados: 5, o limite humano).
     const potGolpe = treinado ? 5 : x5(cls);
-    const dadosForca = Math.floor(Math.max(0, ...(f.poderes || []).filter((p) => p.base === 'forca').map((p) => num(p.grau, 1)), 0) / 2);
+    const dadosForca = Math.floor(Math.max(0, Math.max(0, ...(f.poderes || []).filter((p) => p.base === 'forca').map((p) => num(p.grau, 1))) - 1) / 2);
 
     // Pontos
     const porNivel = treinado ? 4 : 2;
@@ -928,7 +928,7 @@
     });
     // Golpe desarmado sempre aparece. Armas Naturais somam +1d6 por Grau.
     const gL = c.G('luta');
-    const nat = (f.poderes || []).filter((p) => p.base === 'armas_naturais').reduce((m, p) => Math.max(m, num(p.grau, 1)), 0);
+    const nat = Math.ceil((f.poderes || []).filter((p) => p.base === 'armas_naturais').reduce((m, p) => Math.max(m, num(p.grau, 1)), 0) / 2);
     const base = 1 + extra(gL) + c.dadosForca; const fixo = c.A.FOR + c.potGolpe;
     const natP = (f.poderes || []).filter((p) => p.base === 'armas_naturais').sort((a, b) => num(b.grau) - num(a.grau))[0];
     if (natP) out.unshift({ nome: natP.nome || 'Armas Naturais', sub: `Luta ${gL} · Grau ${num(natP.grau, 1)} · crítico causa Sangramento`, attr: 'FOR', bonus: c.A.FOR + gL, dados: `${base + nat}d6`, danoFixo: fixo, expr: `${base + nat}d6+${fixo}` });
