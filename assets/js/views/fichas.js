@@ -69,7 +69,18 @@
   function mudar(id, fn) {
     const f = ficha(id);
     if (!f) return Promise.resolve();
+    const saldo = (x) => { const c = R.calc(x); return { PT: c.ptLivres, PP: c.ppLivres, Atributos: LD.PONTOS_DE_ATRIBUTO - LD.ATRIBUTOS.reduce((s, a) => s + num((x.atributos || {})[a.key]), 0) }; };
+    const antes = LD.store.isMaster() ? null : saldo(JSON.parse(JSON.stringify(f)));
     fn(f);
+    if (antes) {
+      const depois = saldo(f);
+      const estourou = Object.keys(depois).find((k) => depois[k] < 0 && depois[k] < antes[k]);
+      if (estourou) {
+        LD.ui.toast(`Sem ${estourou} suficientes: sobram ${Math.max(0, antes[estourou])}.`, 'erro');
+        if (LD.app && LD.app.render) LD.app.render();
+        return Promise.resolve();
+      }
+    }
     R.tirarDoObservatorio(f);
     return LD.store.save('personagens', f);
   }
