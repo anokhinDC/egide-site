@@ -92,6 +92,8 @@
       .catch(() => LD.ui.toast('Não consegui apagar. Confira se você é a dona da ficha.', 'erro'));
   }
   function podeEditar(f) { return LD.store.canEdit('personagens', LD.store.get('personagens', f.id)); }
+  // Registros antigos da Narradora aparecem só como "Narrador".
+  function quemMostra(q) { return /Narradora \(Claude\)/.test(q || '') ? 'Narrador' : q; }
   function travado(f) { return f.aprovada && !LD.store.isMaster(); }
   const titulo = (f) => f.codinome || f.nome || 'Herói sem nome';
 
@@ -195,7 +197,7 @@
     const c = R.calc(f);
     const editar = podeEditar(f);
     const ultAlt = (LD.store.list('alteracoes') || []).filter((a) => a.fichaId === f.id).sort((a, b) => b.quando - a.quando)[0];
-    st.ultAlt = ultAlt ? `Última mudança: ${ultAlt.quem}, ${new Date(ultAlt.quando).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })} (${ultAlt.mudancas.slice(0, 2).join('; ')})` : '';
+    st.ultAlt = ultAlt ? `Última mudança: ${quemMostra(ultAlt.quem)}, ${new Date(ultAlt.quando).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })} (${ultAlt.mudancas.slice(0, 2).join('; ')})` : '';
     if (editar && !st.aluguelVisto) { st.aluguelVisto = {}; }
     if (editar && f.aprovada && !st.aluguelVisto[id]) { st.aluguelVisto[id] = true; cobrarAluguel(f); }
     if (editar && R.semanasDeSalario(f)) { const y = clone(LD.store.get('personagens', id) || f); if (R.pagarSalario(y)) LD.store.save('personagens', y); }
@@ -1319,7 +1321,7 @@
   function linhaAlteracao(a, comFicha) {
     return `<div class="alt">
       <div class="alt-h"><span class="muted small">${esc(new Date(a.quando).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' }))}</span>
-        <b>${esc(a.quem || '?')}</b>${comFicha ? ` · <a href="#/ficha/${esc(a.fichaId)}">${esc(a.ficha || 'ficha')}</a>` : ''}</div>
+        <b>${esc(quemMostra(a.quem) || '?')}</b>${comFicha ? ` · <a href="#/ficha/${esc(a.fichaId)}">${esc(a.ficha || 'ficha')}</a>` : ''}</div>
       <ul>${(a.mudancas || []).map((m) => `<li>${esc(m)}</li>`).join('')}</ul></div>`;
   }
   /* =====================================================================
