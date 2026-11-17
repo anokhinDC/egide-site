@@ -345,9 +345,9 @@
           ${editar ? `<div class="meter-c">${stepper('det', m.det, 0, 5)}</div>` : pips(Math.max(c.detMax, m.det), m.det, 'gold')}
         </div>
         <div class="meter fadiga-m ${m.fadiga ? 'on' : ''}">
-          <div class="meter-h"><span class="caps">Fadiga</span><span class="tag ${m.fadiga >= 2 ? 'bad' : m.fadiga ? 'warn' : ''}">${esc(LD.FADIGA[m.fadiga].split(' (')[0])}</span></div>
+          <div class="meter-h"><span class="caps">Fadiga</span><span class="tag ${m.fadiga >= 2 ? 'bad' : m.fadiga ? 'warn' : ''}">${esc((LD.FADIGA[Math.min(m.fadiga, LD.FADIGA.length - 1)] || '').split(' (')[0])}</span></div>
           <div class="v">${m.fadiga}<small> / 3</small></div>
-          <small class="muted">${m.fadiga ? esc((LD.FADIGA[m.fadiga].match(/\((.*)\)/) || [])[1] || '') + '.' : 'Sem penalidade.'} No 3, mais uma derruba.</small>
+          <small class="muted">${m.fadiga ? esc(((LD.FADIGA[Math.min(m.fadiga, LD.FADIGA.length - 1)] || '').match(/\((.*)\)/) || [])[1] || '') + '.' : 'Sem penalidade.'} No 3, mais uma derruba.</small>
           ${editar ? `<div class="meter-c">${stepper('fadiga', m.fadiga, 0, 3)}</div>` : pips(3, m.fadiga, 'bad')}
         </div>
       </div>
