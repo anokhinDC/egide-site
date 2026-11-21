@@ -316,12 +316,26 @@ service cloud.firestore {
         && (!('grau' in d) || (d.grau is number && d.grau >= 1 && d.grau <= 8));
     }
 
+    // O bot do Discord (conta bot@beyonddepths.com) anota o treino que ele mesmo rolou com `!treino`.
+    // Ele só mexe em treino, Fadiga e PV (lesões), e nunca em outro campo da ficha.
+    function botDoDiscord() {
+      return logado() && request.auth.token.email != null
+        && request.auth.token.email.lower() == 'bot@beyonddepths.com';
+    }
+    function soTreinoDoBot(d, r) {
+      return d.diff(r).affectedKeys().hasOnly(['treino', 'medidores', 'updatedAt'])
+        && d.get('medidores', {}).diff(r.get('medidores', {})).affectedKeys().hasOnly(['fadiga', 'pv'])
+        && d.get('medidores', {}).get('fadiga', 0) >= r.get('medidores', {}).get('fadiga', 0)
+        && d.get('medidores', {}).get('pv', 0) <= r.get('medidores', {}).get('pv', 0)
+        && d.get('treino', {}).get('n', 0) == r.get('treino', {}).get('n', 0) + 1
+        && d.get('treino', {}).get('ptGanho', 0) <= r.get('treino', {}).get('ptGanho', 0) + 3;
+    }
     match /egide_personagens/{id} {
       allow read: if logado();
       allow create: if id.size() <= 80 && fichaEgideOk(request.resource.data)
         && (mestre() || (criaComoDono() && fichaNovaLimpa(request.resource.data)));
       allow update: if fichaEgideOk(request.resource.data)
-        && (mestre() || (dono() && mantemDono()
+        && (mestre() || (botDoDiscord() && soTreinoDoBot(request.resource.data, resource.data)) || (dono() && mantemDono()
           && camposDaMestragemIguais(request.resource.data, resource.data)
           && potencialTravado(request.resource.data, resource.data)
           && evolucaoSoSobe(request.resource.data, resource.data)
