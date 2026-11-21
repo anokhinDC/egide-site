@@ -674,6 +674,7 @@
         ${field('Símbolo', input('simbolo', f.simbolo, 'maxlength="4" placeholder="⚡"'), 'Um emoji ou uma letra.')}
       </div>
       ${field('Conceito em uma frase', input('conceito', f.conceito, 'placeholder="Entregadora de bicicleta que brilha quando está com raiva."'))}
+      ${field('Usuário do Discord', input('discord', f.discord || '', 'maxlength="40" placeholder="seu_usuario" autocomplete="off"'), 'O seu nome de usuário no Discord, sem @. Com ele, <code>!egide-vincular</code> liga esta ficha a você e <code>!treino</code> rola com os seus números.')}
       <div class="retrato-box">
         <div class="retrato-prev">${f.retrato ? `<img src="${esc(f.retrato)}" alt="Retrato">` : '<span>Sem imagem</span>'}</div>
         <div class="retrato-ctl">

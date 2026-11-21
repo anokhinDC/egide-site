@@ -56,6 +56,9 @@ REAÇÕES  Esquivar 1d20 + AGI + Esquiva ≥ ataque → errou
       <p>O salário (definido pela mestragem) cai uma vez por semana, no botão do Inventário. Recompensas e multas, a mestragem lança na ficha. <a href="#/loja">Loja</a></p>`],
     ['bot', 'No Discord', () => `<pre class="code">!egide-potencial                 a Rolagem de Potencial (1d100)
 !egide-ficha-criar Nome          cria a ficha de jogo no bot
+!egide-vincular                  liga você à sua ficha do site (preencha "Usuário do Discord" antes)
+!treino pontaria duro            rola o treino com os números da ficha do site (leve, duro ou extremo)
+!egide-treinos                   quantos treinos você já fez na semana
 !egide-teste 7 Difícil vantagem  1d20 + 7 contra CD 20, com Vantagem
 !egide-ataque 9 16 4d6+19 18     ataque +9 contra Defesa 16, dano menos Resistência 18
 !egide-pv -12  !egide-energia -2  !egide-det -1  !egide-fadiga +1</pre>
