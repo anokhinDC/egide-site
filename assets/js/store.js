@@ -89,7 +89,7 @@
       // O log de alterações: só as 400 mais recentes.
       const fonte = col === 'alteracoes' ? state.db.collection(name).orderBy('quando', 'desc').limit(400) : state.db.collection(name);
       unsub.push(fonte.onSnapshot(
-        (snap) => { state.data[col] = snap.docs.map((d) => d.data()); respondeu(col); emit(); },
+        (snap) => { state.data[col] = snap.docs.map((d) => Object.assign({}, d.data(), { id: d.id })); respondeu(col); emit(); },
         (err) => {
           console.error('Firestore', name, err);
           if (err && err.code === 'permission-denied' && !state.negadas.includes(name)) state.negadas.push(name);
