@@ -86,8 +86,8 @@
       liberar();
     }, 8000);
     Object.entries(COLECOES).forEach(([col, name]) => {
-      // O log de alterações: só as 400 mais recentes.
-      const fonte = col === 'alteracoes' ? state.db.collection(name).orderBy('quando', 'desc').limit(400) : state.db.collection(name);
+      // O log de alterações: só as 60 mais recentes (cada documento lido conta na cota diária do Firebase).
+      const fonte = col === 'alteracoes' ? state.db.collection(name).orderBy('quando', 'desc').limit(60) : state.db.collection(name);
       unsub.push(fonte.onSnapshot(
         (snap) => { state.data[col] = snap.docs.map((d) => Object.assign({}, d.data(), { id: d.id })); respondeu(col); emit(); },
         (err) => {
@@ -105,6 +105,8 @@
       try {
         firebase.initializeApp(firebaseConfig);
         state.db = firebase.firestore();
+        // Cache local: ao recarregar a página, o Firebase só cobra os documentos que mudaram.
+        state.db.enablePersistence({ synchronizeTabs: true }).catch((e) => console.warn('Cache do Firestore indisponível', e && e.code));
         state.auth = firebase.auth();
         state.local = false;
       } catch (e) { console.warn('Firebase indisponível, modo local.', e); }
