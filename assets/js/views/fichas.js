@@ -192,6 +192,7 @@
    * Ficha
    * ===================================================================== */
   function renderFicha(main, id) {
+    LD.store.need('alteracoes');
     const f = ficha(id);
     if (!f) { main.innerHTML = '<div class="empty">Ficha não encontrada. <a href="#/fichas">Voltar</a></div>'; return; }
     const c = R.calc(f);

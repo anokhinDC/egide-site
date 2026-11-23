@@ -317,6 +317,7 @@
 
   /* ---------- Página ---------- */
   function render(main) {
+    LD.store.need('poderes');
     const busca = st.busca.toLowerCase();
     const bib = LD.store.list('poderes').slice().sort((a, b) => (a.nome || '').localeCompare(b.nome || ''));
     main.innerHTML = `

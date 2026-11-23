@@ -77,27 +77,43 @@
       Object.keys(state.data).forEach((k) => (state.data[k] = []));
       state.ready = true; emit(); return;
     }
-    const faltam = new Set(Object.keys(COLECOES));
+    const faltam = new Set(INICIAIS);
     const liberar = () => { if (!state.ready) { state.ready = true; emit(); } };
-    const respondeu = (col) => { faltam.delete(col); if (!faltam.size) liberar(); };
+    state._respondeu = (col) => { faltam.delete(col); if (!faltam.size) liberar(); };
     setTimeout(() => {
       if (state.ready) return;
       LD.ui && LD.ui.toast('Algumas coleções demoraram a responder. Se faltar algo, recarregue a página.', 'erro');
       liberar();
     }, 8000);
-    Object.entries(COLECOES).forEach(([col, name]) => {
-      // O log de alterações: só as 60 mais recentes (cada documento lido conta na cota diária do Firebase).
-      const fonte = col === 'alteracoes' ? state.db.collection(name).orderBy('quando', 'desc').limit(60) : state.db.collection(name);
-      unsub.push(fonte.onSnapshot(
-        (snap) => { state.data[col] = snap.docs.map((d) => Object.assign({}, d.data(), { id: d.id })); respondeu(col); emit(); },
-        (err) => {
-          console.error('Firestore', name, err);
-          if (err && err.code === 'permission-denied' && !state.negadas.includes(name)) state.negadas.push(name);
-          else LD.ui && LD.ui.toast(`Erro ao ler ${name}: ${err.message}`, 'erro');
-          respondeu(col); emit();
-        }
-      ));
-    });
+    ouvindo.clear();
+    INICIAIS.forEach(ouvir);
+    // Coleções pedidas por uma página antes do login começam agora.
+    pedidas.forEach(ouvir);
+  }
+
+  // Cada documento lido conta na cota diária do Firebase: as fichas e a config carregam ao abrir;
+  // o resto só quando uma página pede (LD.store.need).
+  const INICIAIS = ['personagens', 'config'];
+  const ouvindo = new Set();
+  const pedidas = new Set();
+  function ouvir(col) {
+    if (ouvindo.has(col) || !state.db || !state.user) return;
+    ouvindo.add(col);
+    const name = COLECOES[col];
+    // O log de alterações: só as 60 mais recentes.
+    const fonte = col === 'alteracoes' ? state.db.collection(name).orderBy('quando', 'desc').limit(60) : state.db.collection(name);
+    unsub.push(fonte.onSnapshot(
+      (snap) => { state.data[col] = snap.docs.map((d) => Object.assign({}, d.data(), { id: d.id })); state._respondeu && state._respondeu(col); emit(); },
+      (err) => {
+        console.error('Firestore', name, err);
+        if (err && err.code === 'permission-denied' && !state.negadas.includes(name)) state.negadas.push(name);
+        else LD.ui && LD.ui.toast(`Erro ao ler ${name}: ${err.message}`, 'erro');
+        state._respondeu && state._respondeu(col); emit();
+      }
+    ));
+  }
+  function need(...cols) {
+    cols.forEach((c) => { pedidas.add(c); if (!state.local) ouvir(c); });
   }
 
   function init() {
@@ -229,7 +245,9 @@
   LD.store = {
     state, init, save, remove, login, logout, isMaster, canEdit, semear, semearFaltantes, exportar, importar, newId: id, uid, userName,
     on: (fn) => { listeners.add(fn); return () => listeners.delete(fn); },
-    get: (col, itemId) => state.data[col].find((x) => x.id === itemId),
+    get: (col, itemId) => state.data[col].find((x) => x.id === itemId)
+      || (col === 'itens' && LD.seed ? LD.seed.itens.find((x) => x.id === itemId) : undefined),
+    need,
     list: (col) => state.data[col],
     COLECOES
   };

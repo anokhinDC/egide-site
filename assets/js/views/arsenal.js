@@ -123,6 +123,7 @@
   }
 
   function render(main, param) {
+    LD.store.need('itens');
     // A mestragem, ao abrir a Loja, traz sozinha os itens novos do catálogo.
     if (LD.store.isMaster() && LD.store.state.ready && LD.seed && LD.store.list('itens').length) {
       const tem = new Set(LD.store.list('itens').map((x) => x.id));

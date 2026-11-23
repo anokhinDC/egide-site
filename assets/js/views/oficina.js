@@ -19,6 +19,7 @@
   }
 
   function render(main) {
+    LD.store.need('itens', 'poderes', 'alteracoes');
     const mestre = LD.store.isMaster();
     const fichas = LD.store.list('personagens').map((x) => LD.fichas.normalizar(JSON.parse(JSON.stringify(x))));
     main.innerHTML = `
