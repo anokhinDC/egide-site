@@ -787,6 +787,45 @@
     return entrada;
   }
 
+  // Revogar um treino (só a mestragem): desfaz Marcas, PT, Fadiga, PV da Pancada, Distensão e Lesão Séria
+  // daquela entrada, devolve a vaga da semana e tira a entrada do diário. Devolve a entrada revogada (ou null).
+  function revogarTreino(x, quando) {
+    const t = treinoDe(x); const i = t.log.findIndex((e) => num(e.quando) === num(quando));
+    if (i < 0) return null;
+    const e = t.log[i];
+    // PT que a entrada rendeu: tira primeiro da área treinada, depois das outras; as 5 Marcas de cada PT voltam e saem junto.
+    let pt = num(e.novosPT);
+    const areas = [e.area].concat(Object.keys(t.ptArea).filter((k) => k !== e.area));
+    areas.forEach((k) => {
+      while (pt > 0 && num(t.ptArea[k]) > 0) { t.ptArea[k] = num(t.ptArea[k]) - 1; t.marcas[k] = num(t.marcas[k]) + 5; pt -= 1; }
+    });
+    const tirados = num(e.novosPT) - pt;
+    t.ptGanho = Math.max(0, t.ptGanho - tirados);
+    // Teto de PT por degrau: devolve a vaga no degrau atual e, se faltar, nos anteriores.
+    let vaga = tirados;
+    for (let n = degrau(x); n >= 1 && vaga > 0; n--) { const k = String(n); const tira = Math.min(vaga, num(t.porNivel[k])); t.porNivel[k] = num(t.porNivel[k]) - tira; vaga -= tira; }
+    t.marcas[e.area] = Math.max(0, num(t.marcas[e.area]) - num(e.marcas));
+    // Contagem: um treino a menos (e na semana, se foi nesta semana).
+    t.n = Math.max(0, t.n - 1);
+    if (semanaAtual(new Date(num(e.quando))) === t.semana) t.naSemana = Math.max(0, t.naSemana - 1);
+    // Lesões
+    const lesao = String(e.lesao || '');
+    const outra = (re) => t.log.some((o, j) => j !== i && o.area === e.area && re.test(String(o.lesao || '')));
+    if (/Distens/i.test(lesao) && !outra(/Distens/i)) t.distensao = t.distensao.filter((a) => a !== e.area);
+    if (/S[ée]ria/i.test(lesao) && t.bloqueadoAte === num(e.quando) + 3 * 86400000) t.bloqueadoAte = 0;
+    const m = x.medidores;
+    if (m) {
+      if (num(e.fadiga)) m.fadiga = clamp(num(m.fadiga) - num(e.fadiga), 0, 3);
+      const pv = /[−-]\s*(\d+)\s*PV/.exec(lesao);
+      if (pv) { const max = calc(x).pvMax; m.pv = Math.min(max, num(m.pv) + num(pv[1])); }
+    }
+    t.log.splice(i, 1);
+    // O intervalo de 12 horas passa a contar do treino anterior.
+    if (t.em === num(e.quando)) t.em = t.log.length ? num(t.log[t.log.length - 1].quando) : 0;
+    x.treino = t;
+    return e;
+  }
+
   function recursos(f) {
     if (hasTraco(f, 'sem_lugar')) return 0;
     let r = num(f.recursos, 1);
@@ -1072,5 +1111,5 @@
   LD.DEGRAUS_CLASSE = DEGRAUS_CLASSE; LD.MARCOS = MARCOS;
   LD.MORADIAS_TIPOS = MORADIAS_TIPOS;
   LD.REPUTACAO = REPUTACAO; LD.VINCULOS = VINCULOS;
-  LD.rules = { boostSemanal, ganhoSemanal, semanasDeSalario, pagarSalario, tirarDoObservatorio, campanhaDe, reputacaoDe, ptDePatrulhas, custoPericia, atributoDeCriacao, ajustarRegrasV3, limitePoderes, moradiaDe, aluguelDe, ultimoDomingo, domingosPendentes, salarioDe, fraquezasDe, marcasPericias, degrau, classeDoDegrau, rotuloClasse, areasTreino, treinoDe, podeTreinar, bonusTreino, aplicarTreino, tetoPTTreino, valeTreino: vale, dinheiro, dinheiroInicial, fmtUS, semanaAtual, fmtClasse, slug, clamp, num, faixaDe, resultadoAjustado, potencial, classe, atributos, grauMaximo, custoPoder, calc, tetoAtributo, escalaAtributo, ataquePoder, ataques, grau, tetoPericia, comandosBot, feitico, rolarD20, rolarExpr, recursos, hasTraco, combinarProtecoes };
+  LD.rules = { boostSemanal, ganhoSemanal, semanasDeSalario, pagarSalario, tirarDoObservatorio, campanhaDe, reputacaoDe, ptDePatrulhas, custoPericia, atributoDeCriacao, ajustarRegrasV3, limitePoderes, moradiaDe, aluguelDe, ultimoDomingo, domingosPendentes, salarioDe, fraquezasDe, marcasPericias, degrau, classeDoDegrau, rotuloClasse, areasTreino, treinoDe, podeTreinar, bonusTreino, aplicarTreino, revogarTreino, tetoPTTreino, valeTreino: vale, dinheiro, dinheiroInicial, fmtUS, semanaAtual, fmtClasse, slug, clamp, num, faixaDe, resultadoAjustado, potencial, classe, atributos, grauMaximo, custoPoder, calc, tetoAtributo, escalaAtributo, ataquePoder, ataques, grau, tetoPericia, comandosBot, feitico, rolarD20, rolarExpr, recursos, hasTraco, combinarProtecoes };
 })();
