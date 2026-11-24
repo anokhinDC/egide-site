@@ -1097,10 +1097,9 @@
           <summary><span class="muted small">${esc(new Date(e.quando).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' }))}</span>
             <b>${esc(nomeArea(e.area))}</b> · ${esc((LD.INTENSIDADES.find((i) => i.key === e.intensidade) || {}).nome || '')}
             · ${e.total} vs CD ${e.cd} <span class="tag ${e.passou ? 'ok' : 'bad'}">${e.passou ? `+${e.marcas} Marca${e.marcas > 1 ? 's' : ''}` : 'falhou'}</span>
-            ${e.novosPT ? `<span class="tag gold">+${e.novosPT} PT</span>` : ''}${e.lesao ? `<span class="tag bad">${esc(e.lesao)}</span>` : ''}${e.fadiga ? `<span class="tag warn">+${e.fadiga} Fadiga</span>` : ''}</summary>
+            ${e.novosPT ? `<span class="tag gold">+${e.novosPT} PT</span>` : ''}${e.lesao ? `<span class="tag bad">${esc(e.lesao)}</span>` : ''}${e.fadiga ? `<span class="tag warn">+${e.fadiga} Fadiga</span>` : ''}${mestre ? ` <button class="btn hit small" data-revogar="${num(e.quando)}" title="Só a mestragem: desfaz este treino">✕ Revogar</button>` : ''}</summary>
           <div class="tlog-body"><p class="muted small">d20 [${esc((e.dados || []).join(', '))}]${e.lugar ? ' · ' + esc((LD.LUGARES_TREINO.find((l) => l.key === e.lugar) || {}).nome || '') : ''}</p>
-            ${e.cena ? (/^https?:\/\//.test(e.cena) ? `<p><a href="${esc(e.cena)}" target="_blank" rel="noopener">Ver a cena</a></p>` : `<p class="cena">${esc(e.cena)}</p>`) : ''}
-            ${mestre ? `<button class="btn plain small" data-revogar="${num(e.quando)}" title="Só a mestragem">Revogar treino</button>` : ''}</div>
+            ${e.cena ? (/^https?:\/\//.test(e.cena) ? `<p><a href="${esc(e.cena)}" target="_blank" rel="noopener">Ver a cena</a></p>` : `<p class="cena">${esc(e.cena)}</p>`) : ''}</div>
         </details>`).join('')}</div>` : '<p class="muted">Nenhum treino ainda.</p>'}`;
 
     const troca = el.querySelector('[data-trocar]');
@@ -1112,7 +1111,8 @@
     });
     el.querySelector('[name="t_d20"]').addEventListener('input', (e) => { form.d20 = e.target.value; });
     el.querySelector('[name="t_nota"]').addEventListener('input', (e) => { form.nota = e.target.value; });
-    el.querySelectorAll('[data-revogar]').forEach((b) => b.addEventListener('click', () => {
+    el.querySelectorAll('[data-revogar]').forEach((b) => b.addEventListener('click', (ev) => {
+      ev.preventDefault(); ev.stopPropagation();
       const e = t.log.find((x) => num(x.quando) === num(b.dataset.revogar)); if (!e) return;
       const quando = new Date(num(e.quando)).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
       if (!LD.ui.confirmar(`Revogar o treino de ${nomeArea(e.area)} de ${quando}? Saem as Marcas${e.novosPT ? `, os ${e.novosPT} PT` : ''}${e.fadiga ? ', a Fadiga' : ''}${e.lesao ? ' e a Lesão' : ''} dele, e a vaga da semana volta.`)) return;
