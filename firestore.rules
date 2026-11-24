@@ -319,6 +319,23 @@ service cloud.firestore {
         && (!('grau' in d) || (d.grau is number && d.grau >= 1 && d.grau <= 8));
     }
 
+    // O bot do Discord (conta bot@beyonddepths.com) anota o treino que ele mesmo rolou com `!treino`.
+    // Só mexe em treino, Fadiga e PV, conta exatamente 1 treino e rende no máximo 3 PT.
+    function botDoDiscord() {
+      return request.auth != null && ('email' in request.auth.token)
+        && request.auth.token.email is string
+        && request.auth.token.email.lower() == 'bot@beyonddepths.com';
+    }
+    function soTreinoDoBot(d, r) {
+      let k = d.diff(r).affectedKeys();
+      let tn = d.get('treino', {});
+      let to = r.get('treino', {});
+      return k.hasOnly(['treino', 'medidores', 'updatedAt'])
+        && tn is map && tn.get('n', 0) == to.get('n', 0) + 1
+        && tn.get('ptGanho', 0) <= to.get('ptGanho', 0) + 3
+        && (!k.hasAny(['medidores']) || (d.medidores is map
+          && d.medidores.diff(r.get('medidores', {})).affectedKeys().hasOnly(['fadiga', 'pv'])));
+    }
     match /egide_personagens/{id} {
       allow read: if logado();
       allow create: if id.size() <= 80 && fichaEgideOk(request.resource.data)
@@ -329,7 +346,8 @@ service cloud.firestore {
           && potencialTravado(request.resource.data, resource.data)
           && evolucaoSoSobe(request.resource.data, resource.data)
           && dinheiroOk(request.resource.data, resource.data)
-          && treinoOk(request.resource.data, resource.data)));
+          && treinoOk(request.resource.data, resource.data))
+          || (botDoDiscord() && soTreinoDoBot(request.resource.data, resource.data)));
       allow delete: if dono() || mestre();
     }
     // Configuração da mesa (perguntas da aba NSFW): todos leem, só a mestragem escreve.
